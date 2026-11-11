@@ -1,20 +1,25 @@
 
 exports.handler = async (event) => {
   const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS"
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS'
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
   }
 
-  if (event.httpMethod !== "GET") {
+  if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
       headers,
-      body: JSON.stringify({ error: "Méthode non autorisée" })
+      body: JSON.stringify({ error: 'Méthode non autorisée' })
     };
   }
 
@@ -23,42 +28,64 @@ exports.handler = async (event) => {
     const baseId = process.env.AIRTABLE_BASE_ID;
 
     if (!token || !baseId) {
-      throw new Error("Configuration Airtable manquante");
+      throw new Error('Configuration Airtable manquante');
     }
 
-    const response = await fetch(
-      `https://api.airtable.com/v0/${baseId}/Inscriptions`,
-      {
+    let records = [];
+    let offset = null;
+
+    do {
+      const params = new URLSearchParams({
+        pageSize: '100'
+      });
+
+      if (offset) {
+        params.set('offset', offset);
+      }
+
+      const url =
+        `https://api.airtable.com/v0/${baseId}/Inscriptions?${params}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error?.message || 'Impossible de récupérer les joueurs'
+        );
       }
-    );
 
-    const data = await response.json();
+      records = records.concat(result.records || []);
+      offset = result.offset || null;
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || "Erreur Airtable");
-    }
+    } while (offset);
 
-    const players = data.records.map(record => ({
-      id: record.id,
-      pseudo: record.fields["Pseudo Free Fire"] || "",
-      playerId: record.fields["ID Free Fire"] || "",
-      mode: record.fields["Mode de combat"] || ""
+    const players = records.map(record => ({
+      pseudo: record.fields['Pseudo Free Fire'] || 'Joueur',
+      mode: record.fields['Mode de combat'] || 'Inscrit'
     }));
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ success: true, players })
+      body: JSON.stringify(players)
     };
 
   } catch (error) {
+    console.error('Erreur chargement joueurs :', error);
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({
+        error: error.message
+      })
     };
   }
 };
