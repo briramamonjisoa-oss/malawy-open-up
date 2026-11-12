@@ -116,9 +116,18 @@ $('#showSignup').onclick=()=>{$('#playerSignupForm').hidden=false;$('#playerLogi
 $('#showLogin').onclick=()=>{$('#playerSignupForm').hidden=true;$('#playerLoginForm').hidden=false;};
 $('#playerSignupForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target),msg=$('#signupMsg'),button=e.submitter;button.disabled=true;msg.textContent='Préparation de ta demande…';
- try{const file=f.get('photo');if(!file||!file.size)throw Error('Ajoute une photo de profil.');msg.textContent='Envoi de ta photo…';const photo=await uploadPhoto(file);
- const r=await fetch('/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),mode:String(f.get('mode')),pin:String(f.get('pin')),photo})});const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');
- msg.textContent='Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';e.target.reset();
+ try{
+  const file=f.get('photo');let photo='';
+  if(file&&file.size){
+   msg.textContent='Envoi de ta photo…';
+   try{photo=await uploadPhoto(file);}catch(photoError){console.warn('Photo non envoyée:',photoError);msg.textContent='Photo indisponible, envoi de la demande sans photo…';}
+  }
+  msg.textContent='Envoi de ta demande…';
+  const payload={pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),mode:String(f.get('mode')),pin:String(f.get('pin'))};
+  if(photo)payload.photo=photo;
+  const r=await fetch('/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');
+  msg.textContent='Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';e.target.reset();
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#playerLoginForm').addEventListener('submit',async e=>{
