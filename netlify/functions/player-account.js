@@ -49,11 +49,8 @@ exports.handler=async(event)=>{
     if(!/^[0-9]{4,8}$/.test(current)||!/^[0-9]{4,8}$/.test(next))return{statusCode:400,headers,body:JSON.stringify({error:'Les PIN doivent contenir 4 à 8 chiffres.'})};
     const record=await airtable('Inscriptions/'+encodeURIComponent(session.id)),fields=record.fields||{};
     if(!validPin(current,fields['PIN hash']))return{statusCode:401,headers,body:JSON.stringify({error:'Ancien code PIN incorrect.'})};
-    const salt=crypto.randomBytes(16).toString('hex'),pinHash=salt+'
-  return{statusCode:405,headers,body:JSON.stringify({error:'Méthode non autorisée'})};
- }catch(e){return{statusCode:500,headers,body:JSON.stringify({error:e.message})}}
-};
-+hashPin(next,salt);
+    const salt=crypto.randomBytes(16).toString('hex');
+    const pinHash=salt+'$'+hashPin(next,salt);
     await airtable('Inscriptions/'+encodeURIComponent(session.id),{method:'PATCH',body:JSON.stringify({fields:{'PIN hash':pinHash}})});
     return{statusCode:200,headers,body:JSON.stringify({success:true})};
    }
