@@ -808,8 +808,13 @@ function init() {
   ensureUI();
 
   const form = $('#createTournament');
-  if(form) fillFormats(form);
 
+if(form) {
+  fillFormats(form);
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+  });
+}
   updateAdmin();
   refresh();
 
