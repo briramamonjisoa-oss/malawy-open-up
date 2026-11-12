@@ -1,4 +1,3 @@
-
 const { verify, airtable } = require('./auth');
 
 const T = 'Inscriptions tournois';
@@ -20,18 +19,18 @@ const R = (status, data) => ({
 async function addAcceptedPlayers(signup) {
   const f = signup.fields || {};
   const format = f.Format || '';
-  const espoir = format === 'Mode Espoir';
-  const count = espoir ? 4 : Number(format[0]) || 1;
+  const esport = format === 'E_sport';
+  const count = esport ? 4 : Number(format[0]) || 1;
   const players = [];
 
   for (let i = 1; i <= count; i++) {
-    const pseudo = f['Joueur ' + i] || (i === 1 ? f['Chef équipe'] : '');
-    const id = f['ID joueur ' + i] || (i === 1 ? f['ID Free Fire chef'] : '');
+    const pseudo = f['Joueur ' + i] || '';
+    const id = f['ID joueur ' + i] || '';
 
     if (pseudo && id) players.push({ pseudo, id });
   }
 
-  if (espoir) {
+  if (esport) {
     for (let i = 1; i <= 2; i++) {
       const pseudo = f['Remplaçant ' + i];
       const id = f['ID remplaçant ' + i];
@@ -39,7 +38,9 @@ async function addAcceptedPlayers(signup) {
     }
   }
 
-  if (!players.length) throw Error('Aucun joueur trouvé dans cette équipe.');
+  if (!players.length) {
+    throw Error('Aucun joueur trouvé dans cette inscription.');
+  }
 
   for (const player of players) {
     const safeId = String(player.id)
@@ -128,6 +129,7 @@ exports.handler = async (event) => {
 
       if (x.status === 'Acceptée' && signup.fields.Statut !== 'Acceptée') {
         const count = await addAcceptedPlayers(signup);
+
         await airtable(`${T}/${x.id}`, {
           method: 'PATCH',
           body: JSON.stringify({
