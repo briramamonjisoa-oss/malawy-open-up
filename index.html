@@ -15,6 +15,23 @@
 </head>
 
 <body>
+<div id="accessGate" class="access-gate">
+ <div class="access-card">
+  <div class="eyebrow">MALAWY OPEN UP · ESPACE JOUEUR</div>
+  <div class="access-logo">M</div>
+  <h1>ACCÈDE À <em>L'ARÈNE.</em></h1>
+  <p>Connecte-toi avec les informations de ton inscription validée.</p>
+  <form id="playerLoginForm" class="form access-form">
+   <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="username" placeholder="Ton pseudo"></label>
+   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" autocomplete="off" placeholder="Ton UID"></label>
+   <label>Photo de profil <small>Obligatoire lors de la création de ton accès</small><input name="photo" type="file" accept="image/*"></label>
+   <label>Code PIN personnel<input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="current-password" placeholder="4 à 8 chiffres"></label>
+   <button class="primary" type="submit">Valider et entrer</button>
+   <p id="gateMsg" class="message" aria-live="polite"></p>
+  </form>
+  <p class="access-note">Ton inscription doit d'abord être acceptée par l'administration.</p>
+ </div>
+</div>
 
 <header class="top">
 <a class="brand" href="#home" aria-label="MALAWY OPEN UP accueil">
@@ -81,7 +98,7 @@
 
 <section id="profile" class="page">
 <div class="eyebrow">ESPACE PERSONNEL</div><h2>MON PROFIL JOUEUR</h2>
-<form id="playerLoginForm" class="panel form"><p class="muted">Connecte-toi avec le pseudo et l’UID Free Fire utilisés lors de ton inscription validée.</p><label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="username"></label><label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" autocomplete="off"></label><button class="primary">Se connecter</button><p id="playerLoginMsg" class="message" aria-live="polite"></p></form>
+<form id="playerLoginForm" hidden></form>
 <div id="playerProfile" class="panel" hidden><div class="admin-player-main"><div id="profileAvatar" class="player-avatar">?</div><div><b id="profilePseudo"></b><small id="profileUid"></small><small id="profileStatus"></small></div></div>
 <div class="stats"><article><strong id="profilePoints">0</strong><span>Points</span></article><article><strong id="profileWins">0</strong><span>Victoires</span></article><article><strong id="profileLosses">0</strong><span>Défaites</span></article></div>
 <label class="form">Modifier ma photo<input id="profilePhoto" type="file" accept="image/*"></label><button id="saveProfilePhoto" class="primary">Enregistrer ma photo</button><p id="profileMsg" class="message" aria-live="polite"></p>
