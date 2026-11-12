@@ -30,6 +30,14 @@ function json(data, status = 200) {
 }
 
 export default {
+  async scheduled(controller, env, ctx) {
+    globalThis.__MOU_ENV = {
+      ADMIN_CODE: env.ADMIN_CODE,
+      AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
+      AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
+    };
+    ctx.waitUntil(handlers.tournaments({httpMethod:"GET",headers:{},body:""}));
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
 
