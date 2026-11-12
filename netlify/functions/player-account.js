@@ -1,7 +1,7 @@
 const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, GET, PATCH, OPTIONS'};
-const sign=(data)=>{const payload=Buffer.from(JSON.stringify(data)).toString('base64url');const signature=crypto.createHmac('sha256',process.env.ADMIN_CODE).update(payload).digest('base64url');return payload+'.'+signature;};
+const sign=(data)=>{const payload=Buffer.from(JSON.stringify(data)).toString('base64url');const secret=(globalThis.__MOU_ENV || process.env).ADMIN_CODE;if(!secret)throw new Error('ADMIN_CODE absent des variables et secrets du Worker Cloudflare');const signature=crypto.createHmac('sha256',secret).update(payload).digest('base64url');return payload+'.'+signature;};
 const hashPin=(pin,salt)=>crypto.scryptSync(pin,salt,64).toString('hex');
 const validPin=(pin,stored)=>{try{const [salt,hash]=String(stored||'').split('$');if(!salt||!hash)return false;const actual=Buffer.from(hashPin(pin,salt),'hex'),expected=Buffer.from(hash,'hex');return actual.length===expected.length&&crypto.timingSafeEqual(actual,expected);}catch{return false;}};
 exports.handler=async(event)=>{
