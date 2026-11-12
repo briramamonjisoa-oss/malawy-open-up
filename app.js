@@ -4,6 +4,7 @@ const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
 const state={players:[],matches:[],teams:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
+document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let pageHistory=[];
 let currentPage='home';
@@ -82,24 +83,29 @@ async function loadPlayerProfile(){
  try{
   const r=await fetch('/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken}});
   const p=await r.json();if(!r.ok)throw Error(p.error||'Connexion expirée');
-  state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;
+  state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
   $('#profileMatches').innerHTML=p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('')||'<p class="muted">Aucun match terminé pour le moment.</p>';
- }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;$('#playerLoginMsg').textContent=e.message;}
+ }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
 $('#playerLoginForm').addEventListener('submit',async e=>{
- e.preventDefault();const f=new FormData(e.target),msg=$('#playerLoginMsg');msg.textContent='Vérification…';
- try{const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim()})});const d=await r.json();if(!r.ok)throw Error(d.error||'Connexion impossible');state.playerToken=d.token;localStorage.setItem('mou_player_token',d.token);msg.textContent='Connexion réussie';await loadPlayerProfile();}
- catch(x){msg.textContent=x.message;}
+ e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg');const button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
+ try{
+  const file=f.get('photo');let photo='';
+  if(file&&file.size){msg.textContent='Envoi de la photo…';photo=await uploadPhoto(file);}
+  const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin')),photo})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Connexion impossible');
+  state.playerToken=d.token;localStorage.setItem('mou_player_token',d.token);msg.textContent='Accès autorisé !';await loadPlayerProfile();
+ }catch(x){msg.textContent=x.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
  const file=$('#profilePhoto').files[0],msg=$('#profileMsg');if(!file){msg.textContent='Choisis une photo avant de continuer.';return;}
  try{msg.textContent='Envoi de la photo…';const photo=await uploadPhoto(file);const r=await fetch('/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({photo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Enregistrement impossible');msg.textContent='Photo mise à jour !';await loadPlayerProfile();}
  catch(e){msg.textContent=e.message;}
 });
-$('#playerLogout').onclick=()=>{state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;$('#playerLoginForm').reset();$('#playerLoginMsg').textContent='Déconnecté.';};
+$('#playerLogout').onclick=()=>{state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;$('#playerLoginForm').reset();document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent='Déconnecté.';};
 if(state.playerToken)loadPlayerProfile();
 if(state.admin)renderAdmin();
 $('#logout').onclick=()=>{state.admin=false;state.token='';sessionStorage.removeItem('mou_admin_token');$('#adminContent').hidden=true;$('#adminForm').hidden=false;$('#adminForm').reset();$('#adminMsg').textContent='Déconnecté'};
