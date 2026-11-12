@@ -53,7 +53,6 @@ window.addEventListener('mou:admin-auth',()=>{
 async function loadAll(){
  const errors=[];
  const jobs=await Promise.allSettled([
-  api('/.netlify/functions/players'),
   api('/.netlify/functions/matches'),
   api('/.netlify/functions/teams'),
   api('/.netlify/functions/tournament-rosters')
@@ -65,12 +64,12 @@ async function loadAll(){
   if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');
   state.players=payload;
  }catch(error){errors.push('Inscriptions : '+(error.message||'chargement impossible'));console.error(errors[errors.length-1]);}
- if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.matches=jobs[1].value;
- else{errors.push('Matchs : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
- if(jobs[2].status==='fulfilled'&&Array.isArray(jobs[2].value))state.teams=jobs[2].value;
- else{errors.push('Équipes : '+(jobs[2].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
- if(jobs[3].status==='fulfilled')state.tournamentGroups=jobs[3].value?.tournaments||[];
- else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[3].reason);}
+ if(jobs[0].status==='fulfilled'&&Array.isArray(jobs[0].value))state.matches=jobs[0].value;
+ else{errors.push('Matchs : '+(jobs[0].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
+ if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.teams=jobs[1].value;
+ else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
+ if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];
+ else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
  state.adminLoadErrors=errors;
  render();
  if(state.admin)renderAdmin();
