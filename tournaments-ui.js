@@ -73,6 +73,16 @@ function styles() {
     }
     .tour-card{display:flex;justify-content:space-between;
       align-items:center;gap:12px;flex-wrap:wrap}
+    .tour-card-main{flex:1;min-width:180px}
+    .my-tournaments{margin:18px 0 26px;padding:15px;border:1px solid #394258;border-radius:16px;background:#111827}
+    .my-tournament-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .my-tournament-card{background:#202a3c;border:1px solid #394258;border-radius:13px;padding:13px;min-width:0}
+    .my-tournament-card b{display:block;font-size:15px}
+    .my-tournament-card .tour-status{display:inline-block;margin-top:9px;padding:5px 9px;border-radius:20px;background:#303b51;color:#c9ff38;font-size:11px;font-weight:800}
+    .my-tournament-card .tour-status.pending{color:#ffd36a}
+    .my-tournament-card .tour-status.refused{color:#ff8888}
+    body[data-theme="light"] .my-tournaments{background:#fff;border-color:#dce2ec}
+    body[data-theme="light"] .my-tournament-card{background:#f4f6fa;border-color:#dce2ec}
     .tour-form{display:grid;gap:12px}
     .tour-form label{display:grid;gap:6px;font-size:13px;font-weight:700}
     .tour-form input,.tour-form select,.tour-form textarea{
@@ -125,6 +135,12 @@ function ensureUI() {
       <h2>TOURNOIS</h2>
       <p class="tour-muted">Choisis une compétition et inscris-toi.</p>
 
+      <div id="myTournaments" class="my-tournaments" hidden>
+        <h3>MES TOURNOIS</h3>
+        <p class="tour-muted">Chaque carte correspond à un tournoi auquel tu es inscrit.</p>
+        <div id="myTournamentCards" class="my-tournament-grid"></div>
+      </div>
+      <h3>TOURNOIS DISPONIBLES</h3>
       <div id="publicTournaments">Chargement des tournois...</div>
       <div id="teamSignup" hidden></div>
 
@@ -270,12 +286,36 @@ async function refresh() {
       signups = s.signups || [];
     } else signups = [];
 
+    renderMyTournaments();
     renderPublic();
     renderAdmin();
     updateAdmin();
   } catch (e) {
     box.textContent = 'Erreur de chargement : ' + e.message;
   }
+}
+
+function renderMyTournaments() {
+  const wrap = $('#myTournaments');
+  const box = $('#myTournamentCards');
+  if (!wrap || !box) return;
+  const mine = currentPlayer?.tournamentSignups || [];
+  if (!playerToken() || !mine.length) {
+    wrap.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  wrap.hidden = false;
+  box.innerHTML = mine.map(s => {
+    const status = String(s.status || 'En attente');
+    const cls = status === 'Acceptée' ? '' : status === 'Refusée' ? 'refused' : 'pending';
+    return `<article class="my-tournament-card">
+      <b>${esc(s.tournamentName || 'Tournoi')}</b>
+      <small>${esc(s.game || '')} · ${esc(s.format || '')}</small>
+      <small>${s.date ? esc(new Date(s.date).toLocaleString('fr-FR')) : 'Date à confirmer'}</small>
+      <span class="tour-status ${cls}">${esc(status)}</span>
+    </article>`;
+  }).join('');
 }
 
 function renderPublic() {
@@ -286,7 +326,7 @@ function renderPublic() {
 
   box.innerHTML = open.map(t => `
     <article class="tour-card">
-      <div>
+      <div class="tour-card-main">
         ${t.poster ? `<img class="tour-poster" src="${esc(t.poster)}" alt="Affiche">` : ''}
         <b>${esc(t.name)}</b>
         <small>${esc(t.game)} · ${esc(t.format)}</small>
