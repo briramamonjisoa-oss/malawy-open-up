@@ -1,19 +1,31 @@
 const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
-const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, GET, OPTIONS'};
+const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, GET, PATCH, OPTIONS'};
 const sign=(data)=>{const payload=Buffer.from(JSON.stringify(data)).toString('base64url');const signature=crypto.createHmac('sha256',process.env.ADMIN_CODE).update(payload).digest('base64url');return payload+'.'+signature;};
+const hashPin=(pin,salt)=>crypto.scryptSync(pin,salt,64).toString('hex');
+const validPin=(pin,stored)=>{try{const [salt,hash]=String(stored||'').split('$');if(!salt||!hash)return false;const actual=Buffer.from(hashPin(pin,salt),'hex'),expected=Buffer.from(hash,'hex');return actual.length===expected.length&&crypto.timingSafeEqual(actual,expected);}catch{return false;}};
 exports.handler=async(event)=>{
  if(event.httpMethod==='OPTIONS')return{statusCode:200,headers,body:''};
  try{
   if(event.httpMethod==='POST'){
-   const {pseudo,playerId}=JSON.parse(event.body||'{}');
-   if(!pseudo||!playerId)return{statusCode:400,headers,body:JSON.stringify({error:'Saisis ton pseudo et ton UID Free Fire.'})};
+   const {pseudo,playerId,pin,photo}=JSON.parse(event.body||'{}');
+   if(!pseudo||!playerId||!/^[0-9]{4,8}$/.test(String(pin||'')))return{statusCode:400,headers,body:JSON.stringify({error:'Saisis ton pseudo, ton UID et un PIN de 4 à 8 chiffres.'})};
    let records=[],offset;
    do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Inscriptions?'+q);records.push(...(d.records||[]));offset=d.offset;}while(offset);
    const matches=records.filter(r=>String(r.fields['Pseudo Free Fire']||'').trim().toLowerCase()===String(pseudo).trim().toLowerCase()&&String(r.fields['ID Free Fire']||'').trim()===String(playerId).trim());
    if(matches.length!==1)return{statusCode:401,headers,body:JSON.stringify({error:'Pseudo ou UID incorrect.'})};
-   const r=matches[0],status=r.fields['Statut inscription']||'En attente';
+   const r=matches[0],fields=r.fields||{},status=fields['Statut inscription']||'En attente';
    if(status!=='Accepté')return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription doit être acceptée par un administrateur avant de te connecter.'})};
+   let pinStored=fields['PIN hash']||'';
+   if(!pinStored){
+    if(typeof photo!=='string'||!/^https:\/\//i.test(photo))return{statusCode:400,headers,body:JSON.stringify({error:'Pour créer ton accès, ajoute une photo de profil.'})};
+    const salt=crypto.randomBytes(16).toString('hex');
+    pinStored=salt+'$'+hashPin(String(pin),salt);
+    await airtable('Inscriptions/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{'PIN hash':pinStored,Photo:photo}})});
+   }else{
+    if(!validPin(String(pin),pinStored))return{statusCode:401,headers,body:JSON.stringify({error:'Code PIN incorrect.'})};
+    if(typeof photo==='string'&&/^https:\/\//i.test(photo))await airtable('Inscriptions/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{Photo:photo}})});
+   }
    const token=sign({role:'player',id:r.id,exp:Date.now()+10*365*24*60*60*1000});
    return{statusCode:200,headers,body:JSON.stringify({success:true,token})};
   }
@@ -21,6 +33,7 @@ exports.handler=async(event)=>{
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
    const r=await airtable('Inscriptions/'+encodeURIComponent(session.id));
    const f=r.fields||{},pseudo=f['Pseudo Free Fire']||'Joueur';
+   if((f['Statut inscription']||'')!=='Accepté')return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription n’est plus acceptée.'})};
    let matches=[],offset;
    do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Matchs?'+q);matches.push(...(d.records||[]));offset=d.offset;}while(offset);
    const history=matches.filter(m=>[m.fields['Équipe A'],m.fields['Équipe B']].some(n=>String(n||'').trim().toLowerCase()===pseudo.toLowerCase())&&(m.fields.Statut||'Terminé')==='Terminé').map(m=>({a:m.fields['Équipe A']||'',b:m.fields['Équipe B']||'',sa:Number(m.fields['Score A'])||0,sb:Number(m.fields['Score B'])||0,date:m.fields['Date du match']||''})).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
