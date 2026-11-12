@@ -72,7 +72,6 @@ async function createAcceptedTeam(signup) {
   const teamName = clean(f['Nom équipe']) || starters.join(' + ') || 'Équipe';
   const fields = {
     'Nom équipe': teamName,
-    'Statut': 'Acceptée',
     'Points': 0,
     'Victoires': 0,
     'Défaites': 0,
@@ -185,6 +184,11 @@ exports.handler = async (event) => {
     // Récupération de toutes les demandes
     if (event.httpMethod === 'GET') {
       const records = await getAllRecords(T);
+      for (const record of records) {
+        if (record.fields?.Statut === 'Acceptée') {
+          await createAcceptedTeam(record);
+        }
+      }
 
       return R(200, {
         signups: records.map(r => ({
