@@ -123,6 +123,16 @@ $('#saveProfilePhoto').addEventListener('click',async()=>{
  catch(e){msg.textContent=e.message;}
 });
 $('#playerLogout').onclick=()=>{state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;$('#playerLoginForm').reset();document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent='Déconnecté.';};
+
+const settingsMenu=$('#settingsMenu'),settingsToggle=$('#settingsToggle');
+function closeSettings(){settingsMenu.hidden=true;settingsToggle.setAttribute('aria-expanded','false');}
+settingsToggle.addEventListener('click',()=>{settingsMenu.hidden=!settingsMenu.hidden;settingsToggle.setAttribute('aria-expanded',String(!settingsMenu.hidden));$('#pinResetWrap').hidden=!state.playerToken;$('#themeToggle').textContent=document.body.dataset.theme==='light'?'🌙 Mode sombre':'☀️ Mode clair';});
+document.addEventListener('click',e=>{if(!e.target.closest('#settingsMenu')&&!e.target.closest('#settingsToggle'))closeSettings();});
+const savedTheme=localStorage.getItem('mou_theme')||'dark';document.body.dataset.theme=savedTheme;
+$('#themeToggle').onclick=()=>{const next=document.body.dataset.theme==='light'?'dark':'light';document.body.dataset.theme=next;localStorage.setItem('mou_theme',next);$('#themeToggle').textContent=next==='light'?'🌙 Mode sombre':'☀️ Mode clair';};
+$('#settingsLogout').onclick=()=>{closeSettings();if(state.playerToken)$('#playerLogout').click();if(state.admin)$('#logout').click();if(!state.playerToken&&!state.admin){$('#accessGate').hidden=false;$('#gateMsg').textContent='Tu es déjà déconnecté.';}};
+$('#pinResetForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#pinResetMsg'),button=e.target.querySelector('button[type="submit"]');const currentPin=String(f.get('currentPin')||''),newPin=String(f.get('newPin')||'');if(!/^[0-9]{4,8}$/.test(newPin)){msg.textContent='Le nouveau PIN doit contenir 4 à 8 chiffres.';return;}button.disabled=true;msg.textContent='Mise à jour…';try{const r=await fetch('/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changePin',currentPin,newPin})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le PIN');e.target.reset();msg.textContent='Code PIN modifié avec succès.';}catch(err){msg.textContent=err.message;}finally{button.disabled=false;}});
+
 if(state.playerToken)loadPlayerProfile();
 if(state.admin)renderAdmin();
 $('#logout').onclick=()=>{state.admin=false;state.token='';sessionStorage.removeItem('mou_admin_token');$('#adminContent').hidden=true;$('#adminForm').hidden=false;$('#adminForm').reset();$('#adminMsg').textContent='Déconnecté'};
