@@ -11,9 +11,12 @@ const PRESET = 'malawy_photos';
 
 let tournaments = [];
 let signups = [];
+let registeredPlayers = [];
+let currentPlayer = null;
 let busy = false;
 
 const token = () => sessionStorage.getItem('mou_admin_token') || '';
+const playerToken = () => localStorage.getItem('mou_player_token') || '';
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;',
@@ -223,45 +226,24 @@ function fillFormats(form) {
 }
 
 function roster(format) {
-  let html = '';
-
-  if (format === 'E_sport') {
-    html += `
-      <label>Capitaine / Joueur 1
-        <input name="p1" required maxlength="32">
-      </label>
-      <label>UID Free Fire du capitaine
-        <input name="id1" required maxlength="40">
-      </label>
-    `;
-  }
-
+  let html = '<datalist id="registeredPlayerNames">' +
+    registeredPlayers.map(p => `<option value="${esc(p.pseudo)}" data-uid="${esc(p.playerId)}"></option>`).join('') +
+    '</datalist>';
+  const row = (label, pseudoName, uidName, player) => `
+    <label>${label}
+      <input name="${pseudoName}" data-player-pseudo="${pseudoName}" list="registeredPlayerNames" required maxlength="32" value="${esc(player?.pseudo || '')}" autocomplete="off">
+    </label>
+    <label>UID Free Fire
+      <input name="${uidName}" data-player-uid-for="${pseudoName}" required maxlength="40" value="${esc(player?.playerId || '')}">
+    </label>`;
+  if (format === 'E_sport') html += row('Capitaine / Joueur 1','p1','id1',currentPlayer);
   const start = format === 'E_sport' ? 2 : 1;
-
   for (let i = start; i <= playerCount(format); i++) {
-    html += `
-      <label>Pseudo joueur ${i}
-        <input name="p${i}" required maxlength="32">
-      </label>
-      <label>UID Free Fire joueur ${i}
-        <input name="id${i}" required maxlength="40">
-      </label>
-    `;
+    html += row('Pseudo joueur '+i,'p'+i,'id'+i,i===1?currentPlayer:null);
   }
-
   if (format === 'E_sport') {
-    for (let i = 1; i <= 2; i++) {
-      html += `
-        <label>Remplaçant ${i}
-          <input name="s${i}" required maxlength="32">
-        </label>
-        <label>UID Free Fire remplaçant ${i}
-          <input name="sid${i}" required maxlength="40">
-        </label>
-      `;
-    }
+    for (let i = 1; i <= 2; i++) html += row('Remplaçant '+i,'s'+i,'sid'+i,null);
   }
-
   return html;
 }
 
@@ -272,6 +254,16 @@ async function refresh() {
   try {
     const d = await call('tournaments');
     tournaments = d.tournaments || [];
+
+    const playerResponse = await fetch('/.netlify/functions/players', {cache:'no-store'});
+    registeredPlayers = playerResponse.ok ? (await playerResponse.json()).filter(p => p.status === 'Accepté') : [];
+    currentPlayer = null;
+    if (playerToken()) {
+      try {
+        const me = await fetch('/.netlify/functions/player-account', {headers:{Authorization:'Bearer '+playerToken()},cache:'no-store'});
+        if (me.ok) currentPlayer = await me.json();
+      } catch(e) { currentPlayer = null; }
+    }
 
     if (token()) {
       const s = await call('tournament-signups');
@@ -359,13 +351,15 @@ function signupForm(t) {
 
       ${roster(t.format)}
 
+      <p class="tour-muted">Tes informations sont préremplies si tu es connecté. Pour les autres joueurs, choisis leur pseudo : leur UID sera complété automatiquement. Vérifie les informations avant de confirmer.</p>
       ${t.format === 'E_sport' ? `
         <label>Logo de l'équipe (facultatif)
           <input type="file" name="logo" accept="image/*">
         </label>
       ` : ''}
 
-      <button class="primary" type="submit">Envoyer l'inscription</button>
+      <label class="tour-confirm"><input type="checkbox" name="confirmInfo" required style="width:auto"> Je vérifie et confirme que tous les pseudos et UID sont corrects.</label>
+      <button class="primary" type="submit">Confirmer mon inscription</button>
       <p class="tour-message" id="joinMsg"></p>
     </form>
   `;
@@ -495,6 +489,14 @@ document.addEventListener('click', async event => {
     alert(e.message);
     button.disabled = false;
   }
+});
+
+document.addEventListener('input', event => {
+  const pseudoInput = event.target.closest('[data-player-pseudo]');
+  if (!pseudoInput) return;
+  const selected = registeredPlayers.find(p => String(p.pseudo).toLowerCase() === pseudoInput.value.trim().toLowerCase());
+  const uidInput = pseudoInput.form?.querySelector('[data-player-uid-for="'+pseudoInput.name+'"]');
+  if (uidInput && selected) uidInput.value = selected.playerId || '';
 });
 
 document.addEventListener('change', event => {
