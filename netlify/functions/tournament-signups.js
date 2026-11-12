@@ -173,6 +173,11 @@ async function addAcceptedPlayers(signup) {
   return players.length;
 }
 
+async function removeAcceptedTeam(signupId) {
+  const formula = "{ID inscription tournoi}='" + escapeFormula(signupId) + "'";
+  const teams = await getAllRecords('Equipes', { filterByFormula: formula });
+  for (const team of teams) await airtable('Equipes/' + encodeURIComponent(team.id), { method: 'DELETE' });
+}
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return R(200, {});
 
@@ -219,7 +224,7 @@ exports.handler = async (event) => {
       return R(400, { error: 'Identifiant inscription manquant' });
     }
 
-    if (!['Acceptée', 'Refusée'].includes(x.status)) {
+    if (x.action !== 'delete' && !['Acceptée', 'Refusée', 'Annulée'].includes(x.status)) {
       return R(400, { error: 'Statut invalide' });
     }
 
@@ -229,10 +234,16 @@ exports.handler = async (event) => {
 
     const currentStatus = signup.fields?.Statut || 'En attente';
 
-    if (x.status === 'Refusée' && currentStatus === 'Acceptée') {
-      return R(400, {
-        error: 'Cette inscription est déjà acceptée. Elle ne peut pas être refusée ici.'
-      });
+    if (x.action === 'delete') {
+      await removeAcceptedTeam(x.id);
+      await airtable(encodeURIComponent(T) + '/' + encodeURIComponent(x.id), { method: 'DELETE' });
+      return R(200, { success: true, message: 'Inscription supprimée définitivement.' });
+    }
+
+    if (x.status === 'Annulée') {
+      await removeAcceptedTeam(x.id);
+      await airtable(encodeURIComponent(T) + '/' + encodeURIComponent(x.id), { method: 'PATCH', body: JSON.stringify({ fields: { Statut: 'Annulée' } }) });
+      return R(200, { success: true, message: 'Inscription annulée.' });
     }
 
     if (x.status === 'Acceptée' && currentStatus !== 'Acceptée') {
