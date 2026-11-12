@@ -30,7 +30,16 @@ exports.handler=async(event)=>{
    let matches=[],offset;
    do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Matchs?'+q);matches.push(...(d.records||[]));offset=d.offset;}while(offset);
    const history=matches.filter(m=>[m.fields['Équipe A'],m.fields['Équipe B']].some(n=>String(n||'').trim().toLowerCase()===pseudo.toLowerCase())&&(m.fields.Statut||'Terminé')==='Terminé').map(m=>({a:m.fields['Équipe A']||'',b:m.fields['Équipe B']||'',sa:Number(m.fields['Score A'])||0,sb:Number(m.fields['Score B'])||0,date:m.fields['Date du match']||''})).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,status:f['Statut inscription']||'',matches:history})};
+   let signups=[],signupOffset;
+   do{const q=new URLSearchParams({pageSize:'100'});if(signupOffset)q.set('offset',signupOffset);const d=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q);signups.push(...(d.records||[]));signupOffset=d.offset;}while(signupOffset);
+   const uid=String(f['ID Free Fire']||'').trim();
+   const tournamentSignups=signups.filter(s=>{
+    const sf=s.fields||{};
+    for(let i=1;i<=4;i++)if(String(sf['ID joueur '+i]||'').trim()===uid)return true;
+    for(let i=1;i<=2;i++)if(String(sf['ID remplaçant '+i]||'').trim()===uid)return true;
+    return String(sf['ID Free Fire chef']||'').trim()===uid;
+   }).map(s=>({id:s.id,tournamentId:s.fields['ID tournoi']||'',tournamentName:s.fields['Nom tournoi']||'Tournoi',game:s.fields.Jeu||'',format:s.fields.Format||'',status:s.fields.Statut||'En attente'}));
+   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,status:f['Statut inscription']||'',matches:history,tournamentSignups})};
   }
   if(event.httpMethod==='PATCH'){
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
