@@ -10,8 +10,14 @@ const state = {
 
 // Navigation
 function tab(name) {
-  $$('.page').forEach(x => x.classList.toggle('active', x.id === name));
-  $$('[data-tab]').forEach(x => x.classList.toggle('active', x.dataset.tab === name));
+  $$('.page').forEach(x =>
+    x.classList.toggle('active', x.id === name)
+  );
+
+  $$('[data-tab]').forEach(x =>
+    x.classList.toggle('active', x.dataset.tab === name)
+  );
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
   render();
 }
@@ -62,9 +68,17 @@ function esc(value) {
 function render() {
   const wins = state.matches.filter(m => m.sa !== m.sb).length;
 
-  if ($('#statPlayers')) $('#statPlayers').textContent = state.players.length;
-  if ($('#statMatches')) $('#statMatches').textContent = state.matches.length;
-  if ($('#statWins')) $('#statWins').textContent = wins;
+  if ($('#statPlayers')) {
+    $('#statPlayers').textContent = state.players.length;
+  }
+
+  if ($('#statMatches')) {
+    $('#statMatches').textContent = state.matches.length;
+  }
+
+  if ($('#statWins')) {
+    $('#statWins').textContent = wins;
+  }
 
   if ($('#playersList')) {
     $('#playersList').innerHTML = state.players.length
@@ -101,10 +115,11 @@ function render() {
       (m.sa > m.sb ? 3 : m.sa === m.sb ? 1 : 0);
 
     scores[m.b] = (scores[m.b] || 0) +
-      (m.sb > m.sa ? 3 : m.sa === m.sb ? 1 : 0);
+      (m.sb > m.sa ? 3 : m.sb === m.sa ? 1 : 0);
   });
 
-  const ranking = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const ranking = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1]);
 
   if ($('#rankingList')) {
     $('#rankingList').innerHTML = ranking.length
@@ -156,15 +171,17 @@ if ($('#regForm')) {
         throw new Error(result.error || 'Échec de l’inscription');
       }
 
-      message.textContent = 'Inscription réussie ! Bienvenue dans l’arène.';
-      event.target.reset();
+      message.textContent =
+        'Inscription réussie ! Bienvenue dans l’arène.';
 
+      event.target.reset();
       await loadPlayers();
 
     } catch (error) {
       console.error(error);
       message.textContent =
-        'Erreur : ' + error.message + '. Ton inscription n’a pas été enregistrée.';
+        'Erreur : ' + error.message +
+        '. Ton inscription n’a pas été enregistrée.';
     }
   });
 }
@@ -173,6 +190,11 @@ if ($('#regForm')) {
 if ($('#matchForm')) {
   $('#matchForm').addEventListener('submit', event => {
     event.preventDefault();
+
+    if (!state.admin) {
+      alert('Accès administrateur nécessaire.');
+      return;
+    }
 
     const form = new FormData(event.target);
 
@@ -185,7 +207,10 @@ if ($('#matchForm')) {
       date: new Date().toISOString()
     });
 
-    localStorage.setItem('mou_matches', JSON.stringify(state.matches));
+    localStorage.setItem(
+      'mou_matches',
+      JSON.stringify(state.matches)
+    );
 
     event.target.reset();
     render();
@@ -197,25 +222,77 @@ if ($('#refresh')) {
   $('#refresh').onclick = loadPlayers;
 }
 
-// Administration
+// Administration : vérification côté serveur
 if ($('#adminForm')) {
-  $('#adminForm').addEventListener('submit', event => {
+  $('#adminForm').addEventListener('submit', async event => {
     event.preventDefault();
-    $('#adminMsg').textContent =
-      'Le code administrateur doit être configuré lors du déploiement.';
+
+    const message = $('#adminMsg');
+    const input = event.target.querySelector('input');
+    const code = input ? input.value : '';
+
+    message.textContent = 'Vérification du code…';
+
+    try {
+      const response = await fetch('/.netlify/functions/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Code incorrect');
+      }
+
+      state.admin = true;
+      event.target.hidden = true;
+
+      if ($('#adminContent')) {
+        $('#adminContent').hidden = false;
+      }
+
+      message.textContent =
+        'Bienvenue dans l’espace administrateur !';
+
+    } catch (error) {
+      state.admin = false;
+      message.textContent = error.message;
+    }
   });
 }
 
+// Déconnexion administrateur
 if ($('#logout')) {
   $('#logout').onclick = () => {
-    if ($('#adminContent')) $('#adminContent').hidden = true;
-    if ($('#adminForm')) $('#adminForm').hidden = false;
+    state.admin = false;
+
+    if ($('#adminContent')) {
+      $('#adminContent').hidden = true;
+    }
+
+    if ($('#adminForm')) {
+      $('#adminForm').hidden = false;
+      $('#adminForm').reset();
+    }
+
+    if ($('#adminMsg')) {
+      $('#adminMsg').textContent = '';
+    }
   };
 }
 
 // Exporter les matchs
 if ($('#export')) {
   $('#export').onclick = () => {
+    if (!state.admin) {
+      alert('Accès administrateur nécessaire.');
+      return;
+    }
+
     const blob = new Blob(
       [JSON.stringify(state.matches, null, 2)],
       { type: 'application/json' }
@@ -237,7 +314,9 @@ window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
   deferred = event;
 
-  if ($('#install')) $('#install').hidden = false;
+  if ($('#install')) {
+    $('#install').hidden = false;
+  }
 });
 
 if ($('#install')) {
@@ -246,7 +325,9 @@ if ($('#install')) {
       deferred.prompt();
       deferred = null;
     } else {
-      alert('Sur Android : menu Chrome ⋮ puis Installer l’application ou Ajouter à l’écran d’accueil.');
+      alert(
+        'Sur Android : menu Chrome ⋮ puis Installer l’application ou Ajouter à l’écran d’accueil.'
+      );
     }
   };
 }
@@ -256,10 +337,11 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
-      .catch(error => console.error('Service Worker :', error));
+      .catch(error =>
+        console.error('Service Worker :', error)
+      );
   });
 }
 
 // Démarrage
 loadPlayers();
- 
