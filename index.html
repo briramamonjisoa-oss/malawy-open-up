@@ -1,29 +1,197 @@
+
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0d1018"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="MALAWY OPEN UP"><link rel="stylesheet" href="/style.css"><title>MALAWY OPEN UP — Free Fire</title>
-  <link rel="manifest" href="/manifest.webmanifest">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MALAWY OPEN UP">
+
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/style.css">
+
+<title>MALAWY OPEN UP — Free Fire</title>
 </head>
+
 <body>
-<header class="top"><a class="brand" href="#home" aria-label="MALAWY OPEN UP accueil"><span class="logo">M</span><span class="brand-name">MALAWY <b>OPEN UP</b><small>FREE FIRE COMMUNITY</small></span></a><span class="live">● ESPORT</span></header>
+
+<header class="top">
+<a class="brand" href="#home" aria-label="MALAWY OPEN UP accueil">
+<span class="logo">M</span>
+<span class="brand-name">MALAWY <b>OPEN UP</b><small>FREE FIRE COMMUNITY</small></span>
+</a>
+<span class="live">● ESPORT</span>
+</header>
+
 <main>
-<section class="hero" id="homeHero"><div class="eyebrow">● ESPORT COMMUNITY</div><p class="hero-brand">MALAWY OPEN UP</p><h1>ENTRE DANS<br><em>L'ARÈNE.</em></h1><p>Inscris-toi, affronte tes adversaires et grimpe au classement.</p><button class="primary" data-go="register">S'inscrire maintenant ↗</button><button class="secondary" data-go="ranking">Voir le classement</button></section>
-<nav class="tabs" aria-label="Navigation principale"><button data-tab="home" class="tab active">Accueil</button><button data-tab="register" class="tab">Inscription</button><button data-tab="players" class="tab">Joueurs</button><button data-tab="matches" class="tab">Matchs</button><button data-tab="ranking" class="tab">Classement</button></nav>
-<section id="home" class="page active"><div class="section-head"><div class="eyebrow">MALAWY OPEN UP</div><h2>TABLEAU DE BORD</h2></div><div class="stats"><article><strong id="statPlayers">0</strong><span>Joueurs acceptés</span></article><article><strong id="statMatches">0</strong><span>Matchs joués</span></article><article><strong id="statWins">0</strong><span>Victoires</span></article></div><div class="panel"><h3>Bienvenue dans l'arène</h3><p>Retrouve les participants, les résultats et le classement officiel du tournoi.</p><button class="primary" data-go="ranking">Consulter le classement</button></div></section>
-<section id="register" class="page"><div class="eyebrow">REJOINS LA COMPÉTITION</div><h2>INSCRIPTION JOUEUR</h2><form id="regForm" class="panel form"><label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="nickname"></label><label>ID Free Fire<input name="ffid" required maxlength="40"></label><label>Mode<select name="mode" required><option value="">Choisir</option><option>1 VS 1</option><option>2 VS 1</option></select></label><button class="primary">Envoyer mon inscription</button><p id="regMsg" class="message" aria-live="polite"></p></form></section>
-<section id="players" class="page"><div class="eyebrow">COMMUNAUTÉ</div><h2>PARTICIPANTS</h2><button id="refresh" class="secondary">Actualiser la liste</button><div id="playersList" class="stack"></div></section>
-<section id="matches" class="page"><div class="eyebrow">RÉSULTATS OFFICIELS</div><h2>MATCHS</h2><p class="muted">Les résultats validés par l'administration sont partagés avec tous les joueurs.</p><div id="publicMatchList" class="stack"></div></section>
-<section id="ranking" class="page"><div class="eyebrow">TOP PLAYERS</div><h2>LES MEILLEURS JOUEURS</h2><p class="muted">Le classement est calculé automatiquement à partir des résultats enregistrés.</p><div id="topPlayers" class="top-players"></div><h3>CLASSEMENT COMPLET</h3><div id="rankingList" class="stack"></div></section>
-<section id="admin" class="page"><div class="eyebrow">ZONE SÉCURISÉE</div><h2>ADMINISTRATION</h2><form id="adminForm" class="panel form"><label>Code administrateur<input name="pin" type="password" required autocomplete="current-password"></label><button class="primary">Connexion administrateur</button><p id="adminMsg" class="message" aria-live="polite"></p></form><div id="adminContent" hidden>
-<div class="admin-toolbar"><h3>PANNEAU ADMIN</h3><button id="logout" class="ghost">Déconnexion</button></div>
-<div class="admin-block"><h3>Gérer les inscriptions</h3><p class="muted">Accepte, refuse ou bannis un joueur. Tu peux aussi ajouter sa photo.</p><div id="adminPlayers" class="stack"></div></div>
-<div class="admin-block"><h3>Ajouter / modifier un résultat</h3><form id="matchForm" class="panel form"><input type="hidden" name="recordId"><label>Joueur / équipe A<input name="a" list="playerNames" required></label><label>Score A<input name="sa" type="number" min="0" value="0" required></label><label>Joueur / équipe B<input name="b" list="playerNames" required></label><label>Score B<input name="sb" type="number" min="0" value="0" required></label><datalist id="playerNames"></datalist><label>Mode<select name="mode"><option>1 VS 1</option><option>2 VS 1</option></select></label><label>Date du match<input name="date" type="datetime-local"></label><div class="button-row"><button class="primary" type="submit">Enregistrer le résultat</button><button class="secondary" type="button" id="resetMatch">Effacer</button></div><p id="matchMsg" class="message"></p></form><div id="adminMatches" class="stack"></div></div>
-<div class="admin-block"><h3>Configuration des photos</h3><p class="muted">Pour enregistrer les photos dans le cloud, renseigne ton Cloudinary dans app.js. Le joueur peut ensuite être photographié depuis la galerie du téléphone.</p></div>
-</div></section>
+
+<section class="hero" id="homeHero">
+<div class="eyebrow">● ESPORT COMMUNITY</div>
+<p class="hero-brand">MALAWY OPEN UP</p>
+<h1>ENTRE DANS<br><em>L'ARÈNE.</em></h1>
+<p>Inscris-toi, affronte tes adversaires et grimpe au classement.</p>
+<button class="primary" data-go="register">S'inscrire maintenant ↗</button>
+<button class="secondary" data-go="ranking">Voir le classement</button>
+</section>
+
+<nav class="tabs" aria-label="Navigation principale">
+<button data-tab="home" class="tab active">Accueil</button>
+<button data-tab="register" class="tab">Inscription</button>
+<button data-tab="players" class="tab">Joueurs</button>
+<button data-tab="matches" class="tab">Matchs</button>
+<button data-tab="ranking" class="tab">Classement</button>
+</nav>
+
+<section id="home" class="page active">
+<div class="section-head">
+<div class="eyebrow">MALAWY OPEN UP</div>
+<h2>TABLEAU DE BORD</h2>
+</div>
+<div class="stats">
+<article><strong id="statPlayers">0</strong><span>Joueurs acceptés</span></article>
+<article><strong id="statMatches">0</strong><span>Matchs joués</span></article>
+<article><strong id="statWins">0</strong><span>Victoires</span></article>
+</div>
+<div class="panel">
+<h3>Bienvenue dans l'arène</h3>
+<p>Retrouve les participants, les résultats et le classement officiel du tournoi.</p>
+<button class="primary" data-go="ranking">Consulter le classement</button>
+</div>
+</section>
+
+<section id="register" class="page">
+<div class="eyebrow">REJOINS LA COMPÉTITION</div>
+<h2>INSCRIPTION JOUEUR</h2>
+<form id="regForm" class="panel form">
+<label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="nickname"></label>
+<label>ID Free Fire<input name="ffid" required maxlength="40"></label>
+<label>Mode
+<select name="mode" required>
+<option value="">Choisir</option>
+<option>1 VS 1</option>
+<option>2 VS 1</option>
+</select>
+</label>
+<button class="primary">Envoyer mon inscription</button>
+<p id="regMsg" class="message" aria-live="polite"></p>
+</form>
+</section>
+
+<section id="players" class="page">
+<div class="eyebrow">COMMUNAUTÉ</div>
+<h2>PARTICIPANTS</h2>
+<button id="refresh" class="secondary">Actualiser la liste</button>
+<div id="playersList" class="stack"></div>
+</section>
+
+<section id="matches" class="page">
+<div class="eyebrow">RÉSULTATS OFFICIELS</div>
+<h2>MATCHS</h2>
+<p class="muted">Les résultats validés par l'administration sont partagés avec tous les joueurs.</p>
+<div id="publicMatchList" class="stack"></div>
+</section>
+
+<section id="ranking" class="page">
+<div class="eyebrow">TOP PLAYERS</div>
+<h2>LES MEILLEURS JOUEURS</h2>
+<p class="muted">Le classement est calculé automatiquement à partir des résultats enregistrés.</p>
+<div id="topPlayers" class="top-players"></div>
+<h3>CLASSEMENT COMPLET</h3>
+<div id="rankingList" class="stack"></div>
+</section>
+
+<section id="admin" class="page">
+<div class="eyebrow">ZONE SÉCURISÉE</div>
+<h2>ADMINISTRATION</h2>
+
+<form id="adminForm" class="panel form">
+<label>Code administrateur<input name="pin" type="password" required autocomplete="current-password"></label>
+<button class="primary">Connexion administrateur</button>
+<p id="adminMsg" class="message" aria-live="polite"></p>
+</form>
+
+<div id="adminContent" hidden>
+
+<div class="admin-toolbar">
+<h3>PANNEAU ADMIN</h3>
+<button id="logout" class="ghost">Déconnexion</button>
+</div>
+
+<div class="admin-block">
+<h3>Gérer les inscriptions</h3>
+<p class="muted">Accepte, refuse ou bannis un joueur. Tu peux aussi ajouter sa photo.</p>
+<div id="adminPlayers" class="stack"></div>
+</div>
+
+<div class="admin-block">
+<h3>Ajouter / modifier un résultat</h3>
+
+<form id="matchForm" class="panel form">
+<input type="hidden" name="recordId">
+
+<label>Joueur / équipe A<input name="a" list="playerNames" required></label>
+<label>Score A<input name="sa" type="number" min="0" value="0" required></label>
+<label>Joueur / équipe B<input name="b" list="playerNames" required></label>
+<label>Score B<input name="sb" type="number" min="0" value="0" required></label>
+
+<datalist id="playerNames"></datalist>
+
+<label>Mode
+<select name="mode">
+<option>1 VS 1</option>
+<option>2 VS 1</option>
+</select>
+</label>
+
+<label>Date du match<input name="date" type="datetime-local"></label>
+
+<div class="button-row">
+<button class="primary" type="submit">Enregistrer le résultat</button>
+<button class="secondary" type="button" id="resetMatch">Effacer</button>
+</div>
+
+<p id="matchMsg" class="message"></p>
+</form>
+
+<div id="adminMatches" class="stack"></div>
+</div>
+
+<div class="admin-block">
+<h3>Configuration des photos</h3>
+<p class="muted">Pour enregistrer les photos dans le cloud, renseigne ton Cloudinary dans app.js. Le joueur peut ensuite être photographié depuis la galerie du téléphone.</p>
+</div>
+
+</div>
+</section>
+
 </main>
-<footer><b>MALAWY OPEN UP</b><span>PLAY FAIR. FIGHT HARD.</span></footer>
-<nav class="bottom" aria-label="Navigation mobile"><button data-tab="home">⌂<small>Accueil</small></button><button data-tab="register">＋<small>Inscription</small></button><button data-tab="players">♙<small>Joueurs</small></button><button data-tab="ranking">♛<small>Classement</small></button><button data-tab="admin">⚙<small>Admin</small></button></nav>
+
+<footer>
+<b>MALAWY OPEN UP</b>
+<span>PLAY FAIR. FIGHT HARD.</span>
+</footer>
+
+<nav class="bottom" aria-label="Navigation mobile">
+<button data-tab="home">⌂<small>Accueil</small></button>
+<button data-tab="register">＋<small>Inscription</small></button>
+<button data-tab="players">♙<small>Joueurs</small></button>
+<button data-tab="ranking">♛<small>Classement</small></button>
+<button data-tab="admin">⚙<small>Admin</small></button>
+</nav>
+
 <script src="/app.js"></script>
-  <script src="/tournaments-ui.js"></script>
+<script src="/tournaments-ui.js"></script>
+
+<!-- Installation PWA -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .catch(console.error);
+  });
+}
+</script>
+
 </body>
 </html>
