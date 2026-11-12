@@ -6,6 +6,7 @@ import players from "../netlify/functions/players.js";
 import register from "../netlify/functions/register.js";
 import teams from "../netlify/functions/teams.js";
 import tournamentRegister from "../netlify/functions/tournament-register.js";
+import tournamentRosters from "../netlify/functions/tournament-rosters.js";
 import tournamentSignups from "../netlify/functions/tournament-signups.js";
 import tournaments from "../netlify/functions/tournaments.js";
 
@@ -18,6 +19,7 @@ const handlers = {
   register: register.handler,
   teams: teams.handler,
   "tournament-register": tournamentRegister.handler,
+  "tournament-rosters": tournamentRosters.handler,
   "tournament-signups": tournamentSignups.handler,
   tournaments: tournaments.handler
 };
