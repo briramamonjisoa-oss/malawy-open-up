@@ -40,6 +40,8 @@ export default {
       if (!handler) return jsonError(404, "Fonction API introuvable");
 
       try {
+        // Netlify-style handlers read process.env; Cloudflare exposes secrets on env.
+        globalThis.__MOU_ENV = env;
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const headers = Object.fromEntries(request.headers.entries());
         const event = {
