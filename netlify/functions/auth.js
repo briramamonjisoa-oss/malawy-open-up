@@ -26,5 +26,5 @@ exports.verifyPlayer = (event) => {
   const expected=crypto.createHmac('sha256',secret).update(payload).digest('base64url');
   const a=Buffer.from(signature||''),b=Buffer.from(expected);
   if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return null;
-  try { const data=JSON.parse(Buffer.from(payload,'base64url').toString()); return data.role==='player'&&data.exp>Date.now()?data:null; } catch { return null; }
+  try { const data=JSON.parse(Buffer.from(payload,'base64url').toString()); return data.role==='player'&&data.pinAuth===1&&data.exp>Date.now()?data:null; } catch { return null; }
 };
