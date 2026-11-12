@@ -8,12 +8,15 @@ document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let pageHistory=[];
 let currentPage='home';
+const validPages=['home','register','profile','players','matches','ranking','admin'];
+function getSavedPage(){const saved=localStorage.getItem('mou_last_page')||'home';if(!validPages.includes(saved))return 'home';if(saved==='admin'&&!state.token)return 'home';return saved;}
 function tab(n,remember=true){
  if(!document.getElementById(n))return;
  if(n==='profile'&&!state.playerToken){$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;}
  if(remember&&n!==currentPage){pageHistory.push(currentPage);history.pushState({mouPage:n},'','#'+n);}
  currentPage=n;
- $$('.page').forEach(x=>x.classList.toggle('active',x.id===n));
+ try{localStorage.setItem('mou_last_page',n);}catch(e){}
+ $('.page').forEach(x=>x.classList.toggle('active',x.id===n));
  $$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));
  if(n==='admin'&&state.admin)renderAdmin();
  window.scrollTo(0,0);
@@ -33,7 +36,9 @@ document.addEventListener('click',e=>{
  const t=e.target.closest('[data-tab]');if(t){tab(t.dataset.tab);return;}
  const go=e.target.closest('[data-go]');if(go)tab(go.dataset.go);
 });
-history.replaceState({mouPage:'home'},'','#home');
+const initialPage=getSavedPage();
+history.replaceState({mouPage:initialPage},'','#'+initialPage);
+tab(initialPage,false);
 window.addEventListener('popstate',()=>{
  const previous=pageHistory.pop()||'home';
  tab(previous,false);
