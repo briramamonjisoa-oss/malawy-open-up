@@ -26,7 +26,7 @@ exports.handler=async(event)=>{
     if(!validPin(String(pin),pinStored))return{statusCode:401,headers,body:JSON.stringify({error:'Code PIN incorrect.'})};
     if(typeof photo==='string'&&/^https:\/\//i.test(photo))await airtable('Inscriptions/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{Photo:photo}})});
    }
-   const token=sign({role:'player',id:r.id,exp:Date.now()+10*365*24*60*60*1000});
+   const token=sign({role:'player',pinAuth:1,id:r.id,exp:Date.now()+10*365*24*60*60*1000});
    return{statusCode:200,headers,body:JSON.stringify({success:true,token})};
   }
   if(event.httpMethod==='GET'){
