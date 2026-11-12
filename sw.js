@@ -1,10 +1,11 @@
-const CACHE = 'malawy-v28';
+const CACHE = 'malawy-v29';
 
 const ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/ui-controls.js',
   '/access-forms.js',
   '/admin-access.js',
   '/navigation-fix.js',
