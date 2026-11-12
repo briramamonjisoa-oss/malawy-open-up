@@ -16,7 +16,7 @@ function tab(n,remember=true){
  if(remember&&n!==currentPage){pageHistory.push(currentPage);history.pushState({mouPage:n},'','#'+n);}
  currentPage=n;
  try{localStorage.setItem('mou_last_page',n);}catch(e){}
- $('.page').forEach(x=>x.classList.toggle('active',x.id===n));
+ $$('.page').forEach(x=>x.classList.toggle('active',x.id===n));
  $$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));
  if(n==='admin'&&state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;renderAdmin();loadAll();loadRequestsInbox();}
  window.scrollTo(0,0);
