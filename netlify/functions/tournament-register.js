@@ -24,8 +24,8 @@ exports.handler = async (event) => {
   try {
     const x = JSON.parse(event.body || '{}');
 
-    if (!x.tournamentId || !x.teamName || !x.captain || !x.captainId) {
-      throw Error('Informations équipe incomplètes');
+    if (!x.tournamentId) {
+      throw Error('Identifiant du tournoi manquant');
     }
 
     const tournament = await airtable(U + '/' + x.tournamentId);
@@ -40,52 +40,65 @@ exports.handler = async (event) => {
 
     const formats = {
       'Clash Squad': ['1v1', '2v2', '3v3', '4v4'],
-      'Battle Royale': ['1v1', '2v2', '3v3', '4v4', 'Mode Espoir']
+      'Battle Royale': ['1v1', '2v2', '3v3', '4v4', 'E_sport']
     };
 
     if (!formats[game] || !formats[game].includes(format)) {
       throw Error('Format de tournoi invalide');
     }
 
-    const espoir = format === 'Mode Espoir';
-    const numberOfPlayers = espoir ? 4 : Number(format[0]);
+    const esport = format === 'E_sport';
+    const numberOfPlayers = esport ? 4 : Number(format[0]);
     const p = x.players || {};
 
-    for (let i = 2; i <= numberOfPlayers; i++) {
-      if (!p['p' + i] || !p['id' + i]) {
-        throw Error('Tous les titulaires doivent être renseignés');
+    for (let i = 1; i <= numberOfPlayers; i++) {
+      if (!String(p['p' + i] || '').trim() ||
+          !String(p['id' + i] || '').trim()) {
+        throw Error('Le pseudo et l’UID de chaque joueur sont obligatoires');
       }
     }
 
-    if (espoir && (!p.s1 || !p.sid1 || !p.s2 || !p.sid2)) {
-      throw Error('Les deux remplaçants sont obligatoires');
+    if (esport) {
+      if (!x.captain || !x.captainId) {
+        throw Error('Le capitaine est obligatoire');
+      }
+
+      if (String(x.captain).trim() !== String(p.p1).trim() ||
+          String(x.captainId).trim() !== String(p.id1).trim()) {
+        throw Error('Le capitaine doit être le joueur 1');
+      }
+
+      if (!p.s1 || !p.sid1 || !p.s2 || !p.sid2) {
+        throw Error('Les deux remplaçants sont obligatoires');
+      }
     }
 
     const fields = {
-      'Nom équipe': x.teamName,
       'ID tournoi': x.tournamentId,
-      'Nom tournoi': f['Nom du tournoi'],
+      'Nom tournoi': f['Nom du tournoi'] || '',
       'Jeu': game,
       'Format': format,
-      'Chef équipe': x.captain,
-      'ID Free Fire chef': x.captainId,
-      'Joueur 1': x.captain,
-      'ID joueur 1': x.captainId,
       'Statut': 'En attente',
       'Date inscription': new Date().toISOString()
     };
 
-    if (x.logo) fields['Logo équipe'] = x.logo;
+    if (esport) {
+      fields['Nom équipe'] = x.teamName || 'E_sport - ' + p.p1;
+      fields['Chef équipe'] = x.captain;
+      fields['ID Free Fire chef'] = x.captainId;
 
-    for (let i = 2; i <= numberOfPlayers; i++) {
-      fields['Joueur ' + i] = p['p' + i];
-      fields['ID joueur ' + i] = p['id' + i];
+      if (x.logo) fields['Logo équipe'] = x.logo;
     }
 
-    if (espoir) {
+    for (let i = 1; i <= numberOfPlayers; i++) {
+      fields['Joueur ' + i] = String(p['p' + i]).trim();
+      fields['ID joueur ' + i] = String(p['id' + i]).trim();
+    }
+
+    if (esport) {
       for (let i = 1; i <= 2; i++) {
-        fields['Remplaçant ' + i] = p['s' + i];
-        fields['ID remplaçant ' + i] = p['sid' + i];
+        fields['Remplaçant ' + i] = String(p['s' + i]).trim();
+        fields['ID remplaçant ' + i] = String(p['sid' + i]).trim();
       }
     }
 
