@@ -371,12 +371,14 @@ function renderAdmin() {
         <small>Joueurs : ${esc(players || '—')}</small>
         ${esport ? `<small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')}</small>` : ''}
         <small>Statut : ${esc(s.status)}</small>
-        ${s.status === 'En attente' ? `
-          <div class="tour-actions">
+        <div class="tour-actions">
+          ${s.status === 'En attente' ? `
             <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
             <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
-          </div>
-        ` : ''}
+          ` : ''}
+          ${s.status === 'Acceptée' ? `<button class="secondary" type="button" data-cancel-signup="${esc(s.id)}">Annuler l'inscription</button>` : ''}
+          <button class="danger" type="button" data-delete-signup="${esc(s.id)}">Supprimer l'inscription</button>
+        </div>
       </div>
     `;
   }).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
@@ -525,6 +527,20 @@ document.addEventListener('click', async event => {
         id:button.dataset.approve || button.dataset.refuse,
         status:button.dataset.approve ? 'Acceptée' : 'Refusée'
       });
+      await refresh();
+    }
+
+    if (button.dataset.cancelSignup) {
+      if (!confirm('Annuler cette inscription au tournoi ? Elle ne figurera plus parmi les inscrits.')) return;
+      button.disabled = true;
+      await call('tournament-signups', {id:button.dataset.cancelSignup,status:'Annulée'});
+      await refresh();
+    }
+
+    if (button.dataset.deleteSignup) {
+      if (!confirm('Supprimer définitivement cette inscription au tournoi ? Cette action est irréversible.')) return;
+      button.disabled = true;
+      await call('tournament-signups', {id:button.dataset.deleteSignup,action:'delete'});
       await refresh();
     }
   } catch (e) {
