@@ -151,14 +151,20 @@ async function loadPlayerProfile(){
  }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
 window.addEventListener('mou:player-auth',async()=>{
- state.playerToken=localStorage.getItem('mou_player_token')||'';
- await loadPlayerProfile();
- if(state.player){
-  document.body.classList.remove('access-locked');
+ const msg=$('#gateMsg');
+ try{
+  state.playerToken=localStorage.getItem('mou_player_token')||'';
+  if(!state.playerToken)throw new Error('Session joueur introuvable sur cet appareil.');
+  await loadPlayerProfile();
+  if(!state.player)throw new Error(msg.textContent||'Le profil n’a pas pu être chargé.');
   $('#accessGate').hidden=true;
+  document.body.classList.remove('access-locked');
   $('#playerLoginForm').hidden=true;
   $('#playerProfile').hidden=false;
   tab('profile');
+ }catch(error){
+  console.error('Ouverture profil joueur:',error);
+  if(msg)msg.textContent='Connexion validée, mais ouverture du profil impossible : '+error.message;
  }
 });
 $('#showSignup').onclick=()=>{$('#playerSignupForm').hidden=false;$('#playerLoginForm').hidden=true;};
