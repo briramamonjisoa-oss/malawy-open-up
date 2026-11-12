@@ -13,13 +13,13 @@ function tab(n,remember=true){
  if(n==='profile'&&!state.playerToken){$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;}
  if(remember&&n!==currentPage){pageHistory.push(currentPage);history.pushState({mouPage:n},'','#'+n);}
  currentPage=n;
- $('.page').forEach(x=>x.classList.toggle('active',x.id===n));
- $('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));
+ $$('.page').forEach(x=>x.classList.toggle('active',x.id===n));
+ $$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));
  if(n==='admin'&&state.admin)renderAdmin();
  window.scrollTo(0,0);
 }
 function addPageBackButtons(){
- $('.page').forEach(p=>{
+ $$('.page').forEach(p=>{
   if(p.id==='home'||p.querySelector('.page-back'))return;
   const b=document.createElement('button');b.type='button';b.className='secondary page-back';b.dataset.back='true';b.textContent='← Retour';p.insertBefore(b,p.firstChild);
  });
