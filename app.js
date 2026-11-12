@@ -124,7 +124,7 @@ $('#playerSignupForm').addEventListener('submit',async e=>{
 $('#playerLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
  try{const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
- state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();
+ state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
