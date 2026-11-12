@@ -29,6 +29,14 @@
    <button class="primary" type="submit">Valider et entrer</button>
    <p id="gateMsg" class="message" aria-live="polite"></p>
   </form>
+  <div class="access-admin">
+   <p>Tu es administrateur ?</p>
+   <form id="gateAdminForm" class="form">
+    <label>Code administrateur<input name="code" type="password" required autocomplete="current-password" placeholder="Ton code admin"></label>
+    <button class="secondary" type="submit">Accéder au panneau admin</button>
+    <p id="gateAdminMsg" class="message" aria-live="polite"></p>
+   </form>
+  </div>
   <p class="access-note">Ton inscription doit d'abord être acceptée par l'administration.</p>
  </div>
 </div>
