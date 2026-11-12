@@ -150,6 +150,17 @@ async function loadPlayerProfile(){
   $('#profileMatches').innerHTML=p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('')||'<p class="muted">Aucun match terminé pour le moment.</p>';
  }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
+window.addEventListener('mou:player-auth',async()=>{
+ state.playerToken=localStorage.getItem('mou_player_token')||'';
+ await loadPlayerProfile();
+ if(state.player){
+  document.body.classList.remove('access-locked');
+  $('#accessGate').hidden=true;
+  $('#playerLoginForm').hidden=true;
+  $('#playerProfile').hidden=false;
+  tab('profile');
+ }
+});
 $('#showSignup').onclick=()=>{$('#playerSignupForm').hidden=false;$('#playerLoginForm').hidden=true;};
 $('#showLogin').onclick=()=>{$('#playerSignupForm').hidden=true;$('#playerLoginForm').hidden=false;};
 $('#playerSignupForm').addEventListener('submit',async e=>{
