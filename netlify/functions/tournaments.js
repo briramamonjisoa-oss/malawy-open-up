@@ -59,6 +59,49 @@ async function getAllRecords() {
   return records;
 }
 
+async function getTableRecords(table) {
+  let records = [], offset = '';
+  do {
+    const params = new URLSearchParams({pageSize:'100'});
+    if (offset) params.set('offset', offset);
+    const data = await airtable(encodeURIComponent(table)+'?'+params.toString());
+    records.push(...(data.records || []));
+    offset = data.offset || '';
+  } while (offset);
+  return records;
+}
+
+async function deleteRecords(table, records) {
+  for (let i=0;i<records.length;i+=10) {
+    const batch=records.slice(i,i+10);
+    for (const record of batch) {
+      await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(record.id),{method:'DELETE'});
+    }
+  }
+}
+
+async function cleanupExpiredTournaments() {
+  const [tournaments, signups, teams] = await Promise.all([
+    getAllRecords(),
+    getTableRecords('Inscriptions tournois'),
+    getTableRecords('Equipes')
+  ]);
+  const now=Date.now();
+  const expired=tournaments.filter(r=>{
+    const date=r.fields?.['Date du tournoi'];
+    return date && !Number.isNaN(new Date(date).getTime()) && new Date(date).getTime() < now;
+  });
+  if (!expired.length) return tournaments;
+  const expiredIds=new Set(expired.map(r=>r.id));
+  const expiredSignups=signups.filter(s=>expiredIds.has(String(s.fields?.['ID tournoi']||'')));
+  const signupIds=new Set(expiredSignups.map(s=>s.id));
+  const expiredTeams=teams.filter(t=>signupIds.has(String(t.fields?.['ID inscription tournoi']||'')));
+  await deleteRecords('Equipes',expiredTeams);
+  await deleteRecords('Inscriptions tournois',expiredSignups);
+  await deleteRecords(T,expired);
+  return tournaments.filter(t=>!expiredIds.has(t.id));
+}
+
 // Vérifier et convertir une date
 function parseDate(value, label) {
   if (!value) return null;
@@ -81,7 +124,7 @@ exports.handler = async (event) => {
 
     // LISTE PUBLIQUE DES TOURNOIS
     if (event.httpMethod === 'GET') {
-      const records = await getAllRecords();
+      const records = await cleanupExpiredTournaments();
 
       return R(200, {
         tournaments: records.map(mapTournament)
