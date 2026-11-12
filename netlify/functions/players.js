@@ -11,7 +11,7 @@ exports.handler=async(event)=>{
    if(off)q.set('offset',off);
    const d=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q);
    signupRecords.push(...(d.records||[]));
-   var off=d.offset;
+   off=d.offset;
   }while(off);
  }catch(error){
   // Les inscriptions de joueurs ne doivent jamais disparaître si la table des tournois est absente ou indisponible.
