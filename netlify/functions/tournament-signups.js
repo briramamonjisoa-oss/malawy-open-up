@@ -48,6 +48,45 @@ async function getAllRecords(table, extraParams = {}) {
   return records;
 }
 
+
+async function createAcceptedTeam(signup) {
+  const f = signup.fields || {};
+  const signupId = signup.id;
+  const existing = await getAllRecords('Equipes', {
+    filterByFormula: `{ID inscription tournoi}='${escapeFormula(signupId)}'`,
+    maxRecords: '1'
+  });
+  if (existing.length) return existing[0];
+
+  const format = clean(f.Format);
+  const count = format === 'E_sport' ? 4 : Number(format[0]);
+  const starters = [];
+  for (let i = 1; i <= count; i++) {
+    const pseudo = clean(f['Joueur ' + i]);
+    if (pseudo) starters.push(pseudo);
+  }
+  const substitutes = format === 'E_sport'
+    ? [clean(f['Remplaçant 1']), clean(f['Remplaçant 2'])].filter(Boolean)
+    : [];
+  const roster = [...starters, ...substitutes];
+  const teamName = clean(f['Nom équipe']) || starters.join(' + ') || 'Équipe';
+  const fields = {
+    'Nom équipe': teamName,
+    'Statut': 'Acceptée',
+    'Points': 0,
+    'Victoires': 0,
+    'Défaites': 0,
+    'ID inscription tournoi': signupId,
+    'Nom tournoi': clean(f['Nom tournoi']),
+    'Format': format,
+    'Joueurs': roster.join(', ')
+  };
+  return airtable('Equipes', {
+    method: 'POST',
+    body: JSON.stringify({ records: [{ fields }] })
+  });
+}
+
 async function addAcceptedPlayers(signup) {
   const f = signup.fields || {};
   const format = f.Format || '';
@@ -194,9 +233,9 @@ exports.handler = async (event) => {
 
     if (x.status === 'Acceptée' && currentStatus !== 'Acceptée') {
       const count = await addAcceptedPlayers(signup);
+      await createAcceptedTeam(signup);
 
-      await airtable(
-        encodeURIComponent(T) + '/' + encodeURIComponent(x.id),
+      await airtable(`encodeURIComponent(T) + '/' + encodeURIComponent(x.id)`,
         {
           method: 'PATCH',
           body: JSON.stringify({
@@ -207,7 +246,7 @@ exports.handler = async (event) => {
 
       return R(200, {
         success: true,
-        message: `${count} joueur(s) ajouté(s) aux participants.`
+        message: `${count} joueur(s) ajouté(s) aux participants et équipe créée.`
       });
     }
 
