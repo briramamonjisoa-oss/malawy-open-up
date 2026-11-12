@@ -4,11 +4,11 @@ exports.handler=async(event)=>{
  if(event.httpMethod==='OPTIONS')return{statusCode:200,headers,body:''};
  if(event.httpMethod!=='GET')return{statusCode:405,headers,body:JSON.stringify({error:'Méthode non autorisée'})};
  try{let records=[],offset;do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable(`Inscriptions?${q}`);records.push(...(d.records||[]));offset=d.offset}while(offset);
- let signupRecords=[];
+ let signupRecords=[],off;
  try{
   do{
    const q=new URLSearchParams({pageSize:'100'});
-   if(typeof off!=='undefined'&&off)q.set('offset',off);
+   if(off)q.set('offset',off);
    const d=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q);
    signupRecords.push(...(d.records||[]));
    var off=d.offset;
