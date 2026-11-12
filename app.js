@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 // Configure Cloudinary here to enable photo uploads from the phone gallery.
 const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos'; 
-const state={players:[],matches:[],token:sessionStorage.getItem('mou_admin_token')||'',admin:false};
+const state={players:[],matches:[],token:sessionStorage.getItem('mou_admin_token')||'',admin:false};window.dispatchEvent(new Event('mou:admin-auth'));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tab(n){$$('.page').forEach(x=>x.classList.toggle('active',x.id===n));$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='admin'&&state.admin)renderAdmin();window.scrollTo(0,0);}
 $$('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));$$('[data-go]').forEach(b=>b.onclick=()=>tab(b.dataset.go));
