@@ -5,8 +5,38 @@ const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
 const state={players:[],matches:[],teams:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function tab(n){if(n==='profile'&&!state.playerToken){$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;}$('.page').forEach(x=>x.classList.toggle('active',x.id===n));$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='admin'&&state.admin)renderAdmin();window.scrollTo(0,0);}
-$$('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));$$('[data-go]').forEach(b=>b.onclick=()=>tab(b.dataset.go));
+let pageHistory=[];
+let currentPage='home';
+function tab(n,remember=true){
+ if(!document.getElementById(n))return;
+ if(n==='profile'&&!state.playerToken){$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;}
+ if(remember&&n!==currentPage){pageHistory.push(currentPage);history.pushState({mouPage:n},'','#'+n);}
+ currentPage=n;
+ $('.page').forEach(x=>x.classList.toggle('active',x.id===n));
+ $('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));
+ if(n==='admin'&&state.admin)renderAdmin();
+ window.scrollTo(0,0);
+}
+function addPageBackButtons(){
+ $('.page').forEach(p=>{
+  if(p.id==='home'||p.querySelector('.page-back'))return;
+  const b=document.createElement('button');b.type='button';b.className='secondary page-back';b.dataset.back='true';b.textContent='← Retour';p.insertBefore(b,p.firstChild);
+ });
+}
+addPageBackButtons();
+new MutationObserver(addPageBackButtons).observe($('main'),{childList:true});
+document.addEventListener('click',e=>{
+ const back=e.target.closest('[data-back]');
+ if(back){const previous=pageHistory.pop()||'home';tab(previous,false);return;}
+ const t=e.target.closest('[data-tab]');if(t){tab(t.dataset.tab);return;}
+ const go=e.target.closest('[data-go]');if(go)tab(go.dataset.go);
+});
+history.replaceState({mouPage:'home'},'','#home');
+window.addEventListener('popstate',()=>{
+ const previous=pageHistory.pop()||'home';
+ tab(previous,false);
+ if(previous==='home')history.replaceState({mouPage:'home'},'','#home');
+});
 async function api(path,opts={}){const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
 async function loadAll(){try{const [p,m,t]=await Promise.all([api('/.netlify/functions/players'),api('/.netlify/functions/matches'),api('/.netlify/functions/teams')]);state.players=Array.isArray(p)?p:[];state.matches=Array.isArray(m)?m:[];state.teams=Array.isArray(t)?t:[]}catch(e){console.error(e);state.players=[];state.matches=[];state.teams=[]}render();if(state.admin)renderAdmin()}
 function ranking(){const map=new Map();state.players.filter(p=>p.status==='Accepté'||!p.status).forEach(p=>{const n=String(p.pseudo||'').trim();if(n)map.set(n,{name:n,photo:p.photo||'',points:Number(p.points)||0,wins:Number(p.wins)||0,played:0,score:0})});state.matches.filter(x=>x.status==='Terminé'||!x.status).forEach(x=>{const a=String(x.a||'').trim(),b=String(x.b||'').trim();if(!a||!b)return;[a,b].forEach(n=>{if(!map.has(n))map.set(n,{name:n,photo:'',points:0,wins:0,played:0,score:0})});const A=map.get(a),B=map.get(b),sa=Number(x.sa)||0,sb=Number(x.sb)||0;A.played++;B.played++;A.score+=sa;B.score+=sb;if(sa>sb){A.wins++;A.points+=3}else if(sb>sa){B.wins++;B.points+=3}else{A.points++;B.points++}});return [...map.values()].sort((a,b)=>b.points-a.points||b.wins-a.wins||b.score-a.score||a.name.localeCompare(b.name))}
