@@ -39,7 +39,7 @@ window.addEventListener('popstate',()=>{
  tab(previous,false);
  if(previous==='home')history.replaceState({mouPage:'home'},'','#home');
 });
-async function api(path,opts={}){const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
+async function api(path,opts={}){const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers,cache:opts.cache||'no-store'});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
 async function loadAll(){try{const [p,m,t]=await Promise.all([api('/.netlify/functions/players'),api('/.netlify/functions/matches'),api('/.netlify/functions/teams')]);state.players=Array.isArray(p)?p:[];state.matches=Array.isArray(m)?m:[];state.teams=Array.isArray(t)?t:[]}catch(e){console.error(e);state.players=[];state.matches=[];state.teams=[]}render();if(state.admin)renderAdmin()}
 function ranking(){const map=new Map();state.players.filter(p=>p.status==='Accepté'||!p.status).forEach(p=>{const n=String(p.pseudo||'').trim();if(n)map.set(n,{name:n,photo:p.photo||'',points:Number(p.points)||0,wins:Number(p.wins)||0,played:0,score:0})});state.matches.filter(x=>x.status==='Terminé'||!x.status).forEach(x=>{const a=String(x.a||'').trim(),b=String(x.b||'').trim();if(!a||!b)return;[a,b].forEach(n=>{if(!map.has(n))map.set(n,{name:n,photo:'',points:0,wins:0,played:0,score:0})});const A=map.get(a),B=map.get(b),sa=Number(x.sa)||0,sb=Number(x.sb)||0;A.played++;B.played++;A.score+=sa;B.score+=sb;if(sa>sb){A.wins++;A.points+=3}else if(sb>sa){B.wins++;B.points+=3}else{A.points++;B.points++}});return [...map.values()].sort((a,b)=>b.points-a.points||b.wins-a.wins||b.score-a.score||a.name.localeCompare(b.name))}
 function avatar(p){const letter=esc((p.name||p.pseudo||'?').slice(0,1).toUpperCase());return p.photo?`<img src="${esc(p.photo)}" alt="Photo ${esc(p.name||p.pseudo)}" onerror="this.remove();this.parentElement.textContent='${letter}'">`:letter}
@@ -141,3 +141,13 @@ $('#matchForm').addEventListener('submit',async e=>{e.preventDefault();const f=n
 $('#resetMatch').onclick=()=>$('#matchForm').reset();
 if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;}
 loadAll();
+let publicRefreshBusy=false;
+async function refreshPublicData(){
+ if(publicRefreshBusy||document.hidden)return;
+ publicRefreshBusy=true;
+ try{await loadAll()}finally{publicRefreshBusy=false}
+}
+window.addEventListener('focus',refreshPublicData);
+window.addEventListener('pageshow',refreshPublicData);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPublicData()});
+setInterval(refreshPublicData,15000);
