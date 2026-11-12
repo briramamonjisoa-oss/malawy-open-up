@@ -1,6 +1,8 @@
 (() => {
   'use strict';
-  let current = 'home';
+  const allowed = ['home','register','profile','players','matches','ranking','admin'];
+  const saved = localStorage.getItem('mou_last_page') || 'home';
+  let current = allowed.includes(saved) && (saved !== 'admin' || sessionStorage.getItem('mou_admin_token')) ? saved : 'home';
   const stack = [];
   const pages = () => Array.from(document.querySelectorAll('main .page'));
   function show(id, remember = true) {
@@ -8,6 +10,7 @@
     if (!target || !target.classList.contains('page')) return;
     if (remember && current !== id) stack.push(current);
     current = id;
+    try { localStorage.setItem('mou_last_page', id); } catch (_) {}
     pages().forEach(page => page.classList.toggle('active', page.id === id));
     document.querySelectorAll('[data-tab]').forEach(button =>
       button.classList.toggle('active', button.dataset.tab === id)
@@ -36,5 +39,6 @@
       else show(tab ? tab.dataset.tab : go.dataset.go);
     }
   }, true);
-  window.addEventListener('popstate', () => show(stack.pop() || 'home', false));
+  window.addEventListener('popstate', () => show(stack.pop() || localStorage.getItem('mou_last_page') || 'home', false));
+  show(current, false);
 })();
