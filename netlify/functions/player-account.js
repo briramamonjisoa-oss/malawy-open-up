@@ -34,11 +34,16 @@ exports.handler=async(event)=>{
    const r=await airtable('Inscriptions/'+encodeURIComponent(session.id));
    const f=r.fields||{},pseudo=f['Pseudo Free Fire']||'Joueur';
    if(!isApproved(f['Statut inscription']))return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription n’est plus acceptée.'})};
-   let matches=[],offset;
-   do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Matchs?'+q);matches.push(...(d.records||[]));offset=d.offset;}while(offset);
-   const history=matches.filter(m=>[m.fields['Équipe A'],m.fields['Équipe B']].some(n=>String(n||'').trim().toLowerCase()===pseudo.toLowerCase())&&(m.fields.Statut||'Terminé')==='Terminé').map(m=>({a:m.fields['Équipe A']||'',b:m.fields['Équipe B']||'',sa:Number(m.fields['Score A'])||0,sb:Number(m.fields['Score B'])||0,date:m.fields['Date du match']||''})).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+   // Les données secondaires (matchs et inscriptions aux tournois) ne doivent jamais bloquer la connexion au profil.
+   let matches=[],offset,history=[];
+   try{
+    do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Matchs?'+q);matches.push(...(d.records||[]));offset=d.offset;}while(offset);
+    history=matches.filter(m=>[m.fields['Équipe A'],m.fields['Équipe B']].some(n=>String(n||'').trim().toLowerCase()===pseudo.toLowerCase())&&(m.fields.Statut||'Terminé')==='Terminé').map(m=>({a:m.fields['Équipe A']||'',b:m.fields['Équipe B']||'',sa:Number(m.fields['Score A'])||0,sb:Number(m.fields['Score B'])||0,date:m.fields['Date du match']||''})).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+   }catch(error){console.error('Historique matchs indisponible, profil maintenu:',error.message);}
    let signups=[],signupOffset;
-   do{const q=new URLSearchParams({pageSize:'100'});if(signupOffset)q.set('offset',signupOffset);const d=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q);signups.push(...(d.records||[]));signupOffset=d.offset;}while(signupOffset);
+   try{
+    do{const q=new URLSearchParams({pageSize:'100'});if(signupOffset)q.set('offset',signupOffset);const d=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q);signups.push(...(d.records||[]));signupOffset=d.offset;}while(signupOffset);
+   }catch(error){console.error('Inscriptions tournois indisponibles, profil maintenu:',error.message);}
    const uid=String(f['ID Free Fire']||'').trim();
    const tournamentSignups=signups.filter(s=>{
     const sf=s.fields||{};
