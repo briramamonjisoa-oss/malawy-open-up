@@ -1,10 +1,11 @@
-const CACHE = 'malawy-v25';
+const CACHE = 'malawy-v26';
 
 const ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/access-forms.js',
   '/admin-access.js',
   '/navigation-fix.js',
   '/tournaments-ui.js',
@@ -41,7 +42,7 @@ self.addEventListener('fetch', event => {
   }
 
   const path = new URL(event.request.url).pathname;
-  if (['/','/index.html','/app.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/style.css'].includes(path)) {
+  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/style.css'].includes(path)) {
     event.respondWith(
       fetch(event.request).then(response => {
         if (response.ok) {
