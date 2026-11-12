@@ -120,7 +120,7 @@ function ensureUI() {
     section.innerHTML = `
       <div class="eyebrow">MALAWY OPEN UP</div>
       <h2>TOURNOIS</h2>
-      <p class="tour-muted">Choisis une compétition et inscris ta squad.</p>
+      <p class="tour-muted">Choisis une compétition et inscris-toi.</p>
 
       <div id="publicTournaments">Chargement des tournois...</div>
       <div id="teamSignup" hidden></div>
@@ -208,14 +208,14 @@ function show() {
 }
 
 function playerCount(format) {
-  return format === 'Mode Espoir' ? 4 : Number(format[0]) || 1;
+  return format === 'E_sport' ? 4 : Number(format[0]) || 1;
 }
 
 function fillFormats(form) {
   const select = form.elements.format;
   const old = select.value;
   const formats = form.elements.game.value === 'Battle Royale'
-    ? ['1v1','2v2','3v3','4v4','Mode Espoir']
+    ? ['1v1','2v2','3v3','4v4','E_sport']
     : ['1v1','2v2','3v3','4v4'];
 
   select.innerHTML = formats.map(x => `<option>${esc(x)}</option>`).join('');
@@ -224,21 +224,44 @@ function fillFormats(form) {
 
 function roster(format) {
   let html = '';
-  for (let i = 2; i <= playerCount(format); i++) {
+
+  if (format === 'E_sport') {
     html += `
-      <label>Joueur ${i}<input name="p${i}" required maxlength="32"></label>
-      <label>ID Free Fire joueur ${i}<input name="id${i}" required maxlength="40"></label>
+      <label>Capitaine / Joueur 1
+        <input name="p1" required maxlength="32">
+      </label>
+      <label>UID Free Fire du capitaine
+        <input name="id1" required maxlength="40">
+      </label>
     `;
   }
 
-  if (format === 'Mode Espoir') {
+  const start = format === 'E_sport' ? 2 : 1;
+
+  for (let i = start; i <= playerCount(format); i++) {
+    html += `
+      <label>Pseudo joueur ${i}
+        <input name="p${i}" required maxlength="32">
+      </label>
+      <label>UID Free Fire joueur ${i}
+        <input name="id${i}" required maxlength="40">
+      </label>
+    `;
+  }
+
+  if (format === 'E_sport') {
     for (let i = 1; i <= 2; i++) {
       html += `
-        <label>Remplaçant ${i}<input name="s${i}" required maxlength="32"></label>
-        <label>ID Free Fire remplaçant ${i}<input name="sid${i}" required maxlength="40"></label>
+        <label>Remplaçant ${i}
+          <input name="s${i}" required maxlength="32">
+        </label>
+        <label>UID Free Fire remplaçant ${i}
+          <input name="sid${i}" required maxlength="40">
+        </label>
       `;
     }
   }
+
   return html;
 }
 
@@ -301,19 +324,28 @@ function renderAdmin() {
     </div>
   `).join('') || '<p class="tour-muted">Aucun tournoi.</p>';
 
-  $('#adminSignups').innerHTML = signups.map(s => `
-    <div class="signup-card">
-      ${s.logo ? `<img class="tour-logo" src="${esc(s.logo)}" alt="Logo">` : ''}
-      <b>${esc(s.teamName)}</b>
-      <small>${esc(s.tournamentName)} · ${esc(s.format)} · Chef : ${esc(s.captain)}</small>
-      <small>Joueurs : ${esc([s.player1 || s.captain,s.player2,s.player3,s.player4].filter(Boolean).join(', '))}</small>
-      <small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')} · ${esc(s.status)}</small>
-      <div class="tour-actions">
-        <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
-        <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
+  $('#adminSignups').innerHTML = signups.map(s => {
+    const players = [s.player1,s.player2,s.player3,s.player4].filter(Boolean).join(', ');
+    const esport = s.format === 'E_sport';
+
+    return `
+      <div class="signup-card">
+        ${s.logo ? `<img class="tour-logo" src="${esc(s.logo)}" alt="Logo">` : ''}
+        <b>${esc(esport ? (s.teamName || 'Équipe E_sport') : (s.player1 || 'Inscription'))}</b>
+        <small>${esc(s.tournamentName)} · ${esc(s.format)}</small>
+        ${esport ? `<small>Capitaine : ${esc(s.captain)}</small>` : ''}
+        <small>Joueurs : ${esc(players || '—')}</small>
+        ${esport ? `<small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')}</small>` : ''}
+        <small>Statut : ${esc(s.status)}</small>
+        ${s.status === 'En attente' ? `
+          <div class="tour-actions">
+            <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
+            <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
+          </div>
+        ` : ''}
       </div>
-    </div>
-  `).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
+    `;
+  }).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
 }
 
 function signupForm(t) {
@@ -322,17 +354,16 @@ function signupForm(t) {
   box.innerHTML = `
     <form id="joinForm" class="tour-form">
       <h3>Inscription — ${esc(t.name)}</h3>
+      <p class="tour-muted">Format : ${esc(t.format)}</p>
       <input type="hidden" name="tid" value="${esc(t.id)}">
-
-      <label>Nom de la squad<input name="team" required maxlength="80"></label>
-      <label>Chef d'équipe / Joueur 1<input name="captain" required maxlength="32"></label>
-      <label>ID Free Fire du chef<input name="captainId" required maxlength="40"></label>
 
       ${roster(t.format)}
 
-      <label>Logo de l'équipe (facultatif)
-        <input type="file" name="logo" accept="image/*">
-      </label>
+      ${t.format === 'E_sport' ? `
+        <label>Logo de l'équipe (facultatif)
+          <input type="file" name="logo" accept="image/*">
+        </label>
+      ` : ''}
 
       <button class="primary" type="submit">Envoyer l'inscription</button>
       <p class="tour-message" id="joinMsg"></p>
@@ -341,7 +372,6 @@ function signupForm(t) {
   box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* ENREGISTREMENT DU TOURNOI : déclenché directement par le bouton */
 async function saveTournament() {
   const form = $('#createTournament');
   const button = $('#saveTournament');
@@ -493,12 +523,12 @@ document.addEventListener('submit', async event => {
     const logo = file && file.size ? await uploadPhoto(file) : '';
     const players = {};
 
-    for (let i = 2; i <= playerCount(t.format); i++) {
+    for (let i = 1; i <= playerCount(t.format); i++) {
       players['p' + i] = String(form.get('p' + i) || '').trim();
       players['id' + i] = String(form.get('id' + i) || '').trim();
     }
 
-    if (t.format === 'Mode Espoir') {
+    if (t.format === 'E_sport') {
       for (let i = 1; i <= 2; i++) {
         players['s' + i] = String(form.get('s' + i) || '').trim();
         players['sid' + i] = String(form.get('sid' + i) || '').trim();
@@ -507,14 +537,16 @@ document.addEventListener('submit', async event => {
 
     await call('tournament-register', {
       tournamentId:t.id,
-      teamName:String(form.get('team')).trim(),
-      captain:String(form.get('captain')).trim(),
-      captainId:String(form.get('captainId')).trim(),
-      logo, players
+      captain:t.format === 'E_sport' ? players.p1 : '',
+      captainId:t.format === 'E_sport' ? players.id1 : '',
+      teamName:t.format === 'E_sport' ? 'E_sport - ' + players.p1 : '',
+      logo,
+      players
     });
 
-    message.textContent = 'Inscription envoyée, en attente de validation.';
     event.target.reset();
+    await refresh();
+    message.textContent = 'Inscription envoyée, en attente de validation.';
 
   } catch (e) {
     message.textContent = 'Erreur : ' + e.message;

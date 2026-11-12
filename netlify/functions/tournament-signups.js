@@ -17,59 +17,113 @@ const R = (status, data) => ({
   body: JSON.stringify(data)
 });
 
+function clean(value) {
+  return String(value || '').trim();
+}
+
+function escapeFormula(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+async function getAllRecords(table, extraParams = {}) {
+  let records = [];
+  let offset = '';
+
+  do {
+    const params = new URLSearchParams({
+      ...extraParams,
+      pageSize: '100'
+    });
+
+    if (offset) params.set('offset', offset);
+
+    const data = await airtable(
+      encodeURIComponent(table) + '?' + params.toString()
+    );
+
+    records = records.concat(data.records || []);
+    offset = data.offset || '';
+  } while (offset);
+
+  return records;
+}
+
 async function addAcceptedPlayers(signup) {
   const f = signup.fields || {};
   const format = f.Format || '';
-  const espoir = format === 'Mode Espoir';
-  const count = espoir ? 4 : Number(format[0]) || 1;
-  const players = [];
+  const esport = format === 'E_sport';
 
-  for (let i = 1; i <= count; i++) {
-    const pseudo = f['Joueur ' + i] || (i === 1 ? f['Chef équipe'] : '');
-    const id = f['ID joueur ' + i] || (i === 1 ? f['ID Free Fire chef'] : '');
+  const count = esport ? 4 : Number(format[0]);
 
-    if (pseudo && id) players.push({ pseudo, id });
+  if (![1, 2, 3, 4].includes(count)) {
+    throw Error('Format d’inscription invalide.');
   }
 
-  if (espoir) {
+  const players = [];
+  const usedUIDs = new Set();
+
+  // Vérification de tous les titulaires
+  for (let i = 1; i <= count; i++) {
+    const pseudo = clean(f['Joueur ' + i]);
+    const id = clean(f['ID joueur ' + i]);
+
+    if (!pseudo || !id) {
+      throw Error('Joueur ' + i + ' : pseudo ou UID manquant.');
+    }
+
+    if (usedUIDs.has(id)) {
+      throw Error('Un UID est utilisé plusieurs fois dans cette équipe.');
+    }
+
+    usedUIDs.add(id);
+    players.push({ pseudo, id });
+  }
+
+  // Vérification des deux remplaçants E_sport
+  if (esport) {
     for (let i = 1; i <= 2; i++) {
-      const pseudo = f['Remplaçant ' + i];
-      const id = f['ID remplaçant ' + i];
-      if (pseudo && id) players.push({ pseudo, id });
+      const pseudo = clean(f['Remplaçant ' + i]);
+      const id = clean(f['ID remplaçant ' + i]);
+
+      if (!pseudo || !id) {
+        throw Error('Remplaçant ' + i + ' : pseudo ou UID manquant.');
+      }
+
+      if (usedUIDs.has(id)) {
+        throw Error('Un UID est utilisé plusieurs fois dans cette équipe.');
+      }
+
+      usedUIDs.add(id);
+      players.push({ pseudo, id });
     }
   }
 
-  if (!players.length) throw Error('Aucun joueur trouvé dans cette équipe.');
-
+  // Ajouter ou actualiser chaque participant
   for (const player of players) {
-    const safeId = String(player.id)
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'");
+    const formula = `{ID Free Fire}='${escapeFormula(player.id)}'`;
 
-    const query = new URLSearchParams({
-      filterByFormula: `{ID Free Fire}='${safeId}'`,
+    const existing = await getAllRecords(P, {
+      filterByFormula: formula,
       maxRecords: '1'
     });
 
-    const existing = await airtable(`${P}?${query}`);
-
-    if (existing.records && existing.records.length) {
-      const record = existing.records[0];
-
-      await airtable(`${P}/${record.id}`, {
+    if (existing.length) {
+      await airtable(`${P}/${existing[0].id}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          fields: { 'Statut inscription': 'Accepté' }
+          fields: {
+            'Statut inscription': 'Accepté'
+          }
         })
       });
     } else {
-      await airtable(P, {
+      await airtable(encodeURIComponent(P), {
         method: 'POST',
         body: JSON.stringify({
           records: [{
             fields: {
               'Pseudo Free Fire': player.pseudo,
-              'ID Free Fire': String(player.id),
+              'ID Free Fire': player.id,
               'Statut inscription': 'Accepté'
             }
           }]
@@ -89,13 +143,12 @@ exports.handler = async (event) => {
       return R(401, { error: 'Accès administrateur requis' });
     }
 
+    // Récupération de toutes les demandes
     if (event.httpMethod === 'GET') {
-      const data = await airtable(
-        encodeURIComponent(T) + '?pageSize=100'
-      );
+      const records = await getAllRecords(T);
 
       return R(200, {
-        signups: (data.records || []).map(r => ({
+        signups: records.map(r => ({
           id: r.id,
           teamName: r.fields['Nom équipe'] || '',
           tournamentName: r.fields['Nom tournoi'] || '',
@@ -113,47 +166,66 @@ exports.handler = async (event) => {
       });
     }
 
-    if (event.httpMethod === 'POST') {
-      const x = JSON.parse(event.body || '{}');
+    if (event.httpMethod !== 'POST') {
+      return R(405, { error: 'Méthode invalide' });
+    }
 
-      if (!x.id) {
-        return R(400, { error: 'Identifiant inscription manquant' });
-      }
+    const x = JSON.parse(event.body || '{}');
 
-      if (!['Acceptée', 'Refusée'].includes(x.status)) {
-        return R(400, { error: 'Statut invalide' });
-      }
+    if (!x.id) {
+      return R(400, { error: 'Identifiant inscription manquant' });
+    }
 
-      const signup = await airtable(`${T}/${x.id}`);
+    if (!['Acceptée', 'Refusée'].includes(x.status)) {
+      return R(400, { error: 'Statut invalide' });
+    }
 
-      if (x.status === 'Acceptée' && signup.fields.Statut !== 'Acceptée') {
-        const count = await addAcceptedPlayers(signup);
-        await airtable(`${T}/${x.id}`, {
+    const signup = await airtable(
+      encodeURIComponent(T) + '/' + encodeURIComponent(x.id)
+    );
+
+    const currentStatus = signup.fields?.Statut || 'En attente';
+
+    if (x.status === 'Refusée' && currentStatus === 'Acceptée') {
+      return R(400, {
+        error: 'Cette inscription est déjà acceptée. Elle ne peut pas être refusée ici.'
+      });
+    }
+
+    if (x.status === 'Acceptée' && currentStatus !== 'Acceptée') {
+      const count = await addAcceptedPlayers(signup);
+
+      await airtable(
+        encodeURIComponent(T) + '/' + encodeURIComponent(x.id),
+        {
           method: 'PATCH',
           body: JSON.stringify({
             fields: { Statut: 'Acceptée' }
           })
-        });
+        }
+      );
 
-        return R(200, {
-          success: true,
-          message: `${count} joueur(s) ajouté(s) aux participants.`
-        });
-      }
+      return R(200, {
+        success: true,
+        message: `${count} joueur(s) ajouté(s) aux participants.`
+      });
+    }
 
-      await airtable(`${T}/${x.id}`, {
+    await airtable(
+      encodeURIComponent(T) + '/' + encodeURIComponent(x.id),
+      {
         method: 'PATCH',
         body: JSON.stringify({
           fields: { Statut: x.status }
         })
-      });
+      }
+    );
 
-      return R(200, { success: true });
-    }
-
-    return R(405, { error: 'Méthode invalide' });
+    return R(200, { success: true });
 
   } catch (error) {
-    return R(400, { error: error.message });
+    return R(400, {
+      error: error.message || 'Erreur serveur'
+    });
   }
 };
