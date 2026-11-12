@@ -239,7 +239,7 @@ exports.handler = async (event) => {
       const count = await addAcceptedPlayers(signup);
       await createAcceptedTeam(signup);
 
-      await airtable(`encodeURIComponent(T) + '/' + encodeURIComponent(x.id)`,
+      await airtable(encodeURIComponent(T) + '/' + encodeURIComponent(x.id),
         {
           method: 'PATCH',
           body: JSON.stringify({
