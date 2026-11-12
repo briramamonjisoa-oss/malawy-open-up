@@ -1,3 +1,4 @@
+
 const { airtable } = require('./auth');
 
 const T = 'Inscriptions tournois';
@@ -16,9 +17,64 @@ const R = (status, data) => ({
   body: JSON.stringify(data)
 });
 
+function clean(value) {
+  return String(value || '').trim();
+}
+
+function escapeFormula(value) {
+  return String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
+}
+
+async function getTournamentSignups(tournamentId) {
+  const formula = `{ID tournoi}='${escapeFormula(tournamentId)}'`;
+  let records = [];
+  let offset = '';
+
+  do {
+    const params = new URLSearchParams({
+      filterByFormula: formula,
+      pageSize: '100'
+    });
+
+    if (offset) params.set('offset', offset);
+
+    const data = await airtable(
+      encodeURIComponent(T) + '?' + params.toString()
+    );
+
+    records = records.concat(data.records || []);
+    offset = data.offset || '';
+  } while (offset);
+
+  return records;
+}
+
+function getSignupUIDs(fields) {
+  const ids = [];
+
+  for (let i = 1; i <= 4; i++) {
+    if (fields['ID joueur ' + i]) {
+      ids.push(clean(fields['ID joueur ' + i]));
+    }
+  }
+
+  for (let i = 1; i <= 2; i++) {
+    if (fields['ID remplaçant ' + i]) {
+      ids.push(clean(fields['ID remplaçant ' + i]));
+    }
+  }
+
+  return ids;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return R(200, {});
-  if (event.httpMethod !== 'POST') return R(405, { error: 'Méthode invalide' });
+
+  if (event.httpMethod !== 'POST') {
+    return R(405, { error: 'Méthode invalide' });
+  }
 
   try {
     const x = JSON.parse(event.body || '{}');
@@ -27,11 +83,14 @@ exports.handler = async (event) => {
       throw Error('Identifiant du tournoi manquant');
     }
 
-    const tournament = await airtable(U + '/' + x.tournamentId);
+    const tournament = await airtable(
+      encodeURIComponent(U) + '/' + encodeURIComponent(x.tournamentId)
+    );
+
     const f = tournament.fields || {};
 
     if (f.Statut !== 'Inscriptions ouvertes') {
-      throw Error('Inscriptions fermées');
+      throw Error('Les inscriptions sont fermées');
     }
 
     const format = f.Format;
@@ -46,32 +105,109 @@ exports.handler = async (event) => {
       throw Error('Format de tournoi invalide');
     }
 
+    // Vérification de la date limite
+    if (f['Date limite inscription']) {
+      const deadline = new Date(f['Date limite inscription']);
+
+      if (Number.isNaN(deadline.getTime())) {
+        throw Error("La date limite d'inscription est invalide");
+      }
+
+      if (Date.now() > deadline.getTime()) {
+        throw Error("La date limite d'inscription est dépassée");
+      }
+    }
+
     const esport = format === 'E_sport';
     const numberOfPlayers = esport ? 4 : Number(format[0]);
     const p = x.players || {};
 
+    const players = [];
+    const submittedUIDs = new Set();
+
+    // Vérification des titulaires
     for (let i = 1; i <= numberOfPlayers; i++) {
-      if (!String(p['p' + i] || '').trim() ||
-          !String(p['id' + i] || '').trim()) {
+      const pseudo = clean(p['p' + i]);
+      const uid = clean(p['id' + i]);
+
+      if (!pseudo || !uid) {
         throw Error('Le pseudo et l’UID de chaque joueur sont obligatoires');
       }
+
+      if (submittedUIDs.has(uid)) {
+        throw Error('Un même UID ne peut pas être utilisé plusieurs fois');
+      }
+
+      submittedUIDs.add(uid);
+      players.push({ pseudo, uid });
     }
 
+    // Vérification du capitaine E_sport
     if (esport) {
-      if (!x.captain || !x.captainId) {
+      if (!clean(x.captain) || !clean(x.captainId)) {
         throw Error('Le capitaine est obligatoire');
       }
 
-      if (String(x.captain).trim() !== String(p.p1).trim() ||
-          String(x.captainId).trim() !== String(p.id1).trim()) {
+      if (
+        clean(x.captain) !== players[0].pseudo ||
+        clean(x.captainId) !== players[0].uid
+      ) {
         throw Error('Le capitaine doit être le joueur 1');
       }
 
-      if (!p.s1 || !p.sid1 || !p.s2 || !p.sid2) {
-        throw Error('Les deux remplaçants sont obligatoires');
+      // Vérification des deux remplaçants
+      for (let i = 1; i <= 2; i++) {
+        const pseudo = clean(p['s' + i]);
+        const uid = clean(p['sid' + i]);
+
+        if (!pseudo || !uid) {
+          throw Error('Les deux remplaçants et leurs UID sont obligatoires');
+        }
+
+        if (submittedUIDs.has(uid)) {
+          throw Error('Un même UID ne peut pas être utilisé plusieurs fois');
+        }
+
+        submittedUIDs.add(uid);
+        players.push({ pseudo, uid, substitute: true });
       }
     }
 
+    // Vérification des inscriptions existantes
+    const existingSignups = await getTournamentSignups(x.tournamentId);
+
+    const activeSignups = existingSignups.filter(record =>
+      record.fields?.Statut !== 'Refusée'
+    );
+
+    // Vérification du nombre maximal d'inscriptions
+    const limit = Math.max(
+      0,
+      Number(f["Nombre maximum d'équipes"]) || 0
+    );
+
+    if (limit > 0 && activeSignups.length >= limit) {
+      throw Error('Le nombre maximum d’inscriptions est atteint');
+    }
+
+    // Vérification des UID déjà inscrits à ce tournoi
+    const existingUIDs = new Set();
+
+    for (const record of activeSignups) {
+      for (const uid of getSignupUIDs(record.fields || {})) {
+        existingUIDs.add(uid);
+      }
+    }
+
+    for (const player of players) {
+      if (existingUIDs.has(player.uid)) {
+        throw Error(
+          'L’UID ' + player.uid + ' est déjà inscrit à ce tournoi'
+        );
+      }
+    }
+
+    // Préparation des données Airtable
     const fields = {
       'ID tournoi': x.tournamentId,
       'Nom tournoi': f['Nom du tournoi'] || '',
@@ -82,26 +218,32 @@ exports.handler = async (event) => {
     };
 
     if (esport) {
-      fields['Nom équipe'] = x.teamName || 'E_sport - ' + p.p1;
-      fields['Chef équipe'] = x.captain;
-      fields['ID Free Fire chef'] = x.captainId;
+      fields['Nom équipe'] =
+        clean(x.teamName) || 'E_sport - ' + players[0].pseudo;
 
-      if (x.logo) fields['Logo équipe'] = x.logo;
+      fields['Chef équipe'] = clean(x.captain);
+      fields['ID Free Fire chef'] = clean(x.captainId);
+
+      if (x.logo) {
+        fields['Logo équipe'] = x.logo;
+      }
     }
 
     for (let i = 1; i <= numberOfPlayers; i++) {
-      fields['Joueur ' + i] = String(p['p' + i]).trim();
-      fields['ID joueur ' + i] = String(p['id' + i]).trim();
+      fields['Joueur ' + i] = players[i - 1].pseudo;
+      fields['ID joueur ' + i] = players[i - 1].uid;
     }
 
     if (esport) {
       for (let i = 1; i <= 2; i++) {
-        fields['Remplaçant ' + i] = String(p['s' + i]).trim();
-        fields['ID remplaçant ' + i] = String(p['sid' + i]).trim();
+        const substitute = players[numberOfPlayers + i - 1];
+
+        fields['Remplaçant ' + i] = substitute.pseudo;
+        fields['ID remplaçant ' + i] = substitute.uid;
       }
     }
 
-    const result = await airtable(T, {
+    const result = await airtable(encodeURIComponent(T), {
       method: 'POST',
       body: JSON.stringify({
         records: [{ fields }]
@@ -110,10 +252,13 @@ exports.handler = async (event) => {
 
     return R(200, {
       success: true,
-      id: result.records?.[0]?.id
+      id: result.records?.[0]?.id,
+      message: 'Inscription envoyée avec succès'
     });
 
   } catch (error) {
-    return R(400, { error: error.message });
+    return R(400, {
+      error: error.message || 'Erreur serveur'
+    });
   }
 };
