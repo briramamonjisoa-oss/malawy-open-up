@@ -11,7 +11,7 @@ DÉPLOIEMENT
 1. Crée un compte sur https://www.netlify.com/ et connecte-le à GitHub, ou déploie le dossier via Netlify.
 2. Dans Netlify > Site configuration > Environment variables, ajoute :
    AIRTABLE_TOKEN = ton jeton Airtable personnel (ne le partage jamais)
-   AIRTABLE_BASE_ID = appUXdWXyTbNXBPPB
+   AIRTABLE_BASE_ID = TON_IDENTIFIANT_AIRTABLE
 3. Redéploie le site.
 4. Vérifie que la table s'appelle exactement Inscriptions et que les champs sont :
    Pseudo Free Fire (texte), ID Free Fire (texte), Mode de combat (choix unique : 1 VS 1 / 2 VS 1).
