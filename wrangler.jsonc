@@ -3,6 +3,7 @@
   "name": "malawy-open-up",
   "main": "src/worker.js",
   "compatibility_date": "2026-11-12",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
