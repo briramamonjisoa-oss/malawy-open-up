@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 // Configure Cloudinary here to enable photo uploads from the phone gallery.
-const CLOUDINARY_CLOUD_NAME='';
-const CLOUDINARY_UPLOAD_PRESET='';
+const CLOUDINARY_CLOUD_NAME='owc0mtlg';
+const CLOUDINARY_UPLOAD_PRESET='malawy_photos'; 
 const state={players:[],matches:[],token:sessionStorage.getItem('mou_admin_token')||'',admin:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tab(n){$$('.page').forEach(x=>x.classList.toggle('active',x.id===n));$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='admin'&&state.admin)renderAdmin();window.scrollTo({top:0,behavior:'smooth'});}
