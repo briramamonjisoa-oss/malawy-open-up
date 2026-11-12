@@ -22,31 +22,45 @@ const handlers = {
   tournaments: tournaments.handler
 };
 
-function jsonError(status, message) {
-  return new Response(JSON.stringify({ error: message }), {
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8" }
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
   });
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const prefix = "/.netlify/functions/";
 
+    // Safe diagnostic: reports presence only, never returns secret values.
+    if (url.pathname === "/__health") {
+      return json({
+        worker: "malawy-open-up",
+        bindings: {
+          ADMIN_CODE: Boolean(env.ADMIN_CODE),
+          AIRTABLE_TOKEN: Boolean(env.AIRTABLE_TOKEN),
+          AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID)
+        }
+      });
+    }
+
+    const prefix = "/.netlify/functions/";
     if (url.pathname.startsWith(prefix)) {
       const name = url.pathname.slice(prefix.length).replace(/\/$/, "");
       const handler = handlers[name];
-      if (!handler) return jsonError(404, "Fonction API introuvable");
+      if (!handler) return json({ error: "Fonction API introuvable" }, 404);
 
       try {
-        // Netlify-style handlers read process.env; Cloudflare exposes secrets on env.
-        globalThis.__MOU_ENV = env;
+        globalThis.__MOU_ENV = {
+          ADMIN_CODE: env.ADMIN_CODE,
+          AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
+          AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
+        };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
-        const headers = Object.fromEntries(request.headers.entries());
         const event = {
           httpMethod: request.method,
-          headers,
+          headers: Object.fromEntries(request.headers.entries()),
           body,
           path: url.pathname,
           rawUrl: request.url,
@@ -64,7 +78,7 @@ export default {
         });
       } catch (error) {
         console.error("API worker error:", name, error);
-        return jsonError(500, "Erreur serveur");
+        return json({ error: "Erreur serveur" }, 500);
       }
     }
 
