@@ -95,12 +95,12 @@ exports.handler = async event => {
       throw Error('Jeu invalide');
     }
 
-    if (!['1v1','2v2','3v3','4v4','Mode Espoir'].includes(x.format)) {
+    if (!['1v1','2v2','3v3','4v4','E_sport'].includes(x.format)) {
       throw Error('Format invalide');
     }
 
-    if (x.format === 'Mode Espoir' && x.game !== 'Battle Royale') {
-      throw Error('Mode Espoir disponible uniquement en Battle Royale');
+    if (x.format === 'E_sport' && x.game !== 'Battle Royale') {
+      throw Error('E_sport disponible uniquement en Battle Royale');
     }
 
     const fields = {
