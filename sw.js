@@ -1,5 +1,4 @@
-
-const CACHE = 'malawy-v4';
+const CACHE = 'malawy-v5';
 
 const ASSETS = [
   '/',
@@ -36,6 +35,20 @@ self.addEventListener('fetch', event => {
     event.request.method !== 'GET' ||
     new URL(event.request.url).pathname.includes('/.netlify/functions/')
   ) {
+    return;
+  }
+
+  const path = new URL(event.request.url).pathname;
+  if (['/','/index.html','/app.js','/tournaments-ui.js','/style.css'].includes(path)) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
     return;
   }
 
