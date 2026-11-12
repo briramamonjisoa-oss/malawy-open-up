@@ -54,8 +54,14 @@
 <span class="logo">M</span>
 <span class="brand-name">MALAWY <b>OPEN UP</b><small>FREE FIRE COMMUNITY</small></span>
 </a>
-<span class="live">● ESPORT</span>
+<div class="header-actions"><span class="live">● ESPORT</span><button type="button" id="settingsToggle" class="settings-toggle" aria-label="Paramètres" aria-expanded="false">⚙</button></div>
 </header>
+<div id="settingsMenu" class="settings-menu" hidden>
+ <div class="settings-title">PARAMÈTRES</div>
+ <button type="button" id="themeToggle" class="settings-option">☀️ Mode clair</button>
+ <div id="pinResetWrap" class="pin-reset-wrap" hidden><form id="pinResetForm" class="form"><b>Réinitialiser le code PIN</b><label>Ancien PIN<input name="currentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><label>Nouveau PIN<input name="newPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><button class="primary" type="submit">Enregistrer le nouveau PIN</button><p id="pinResetMsg" class="message" aria-live="polite"></p></form></div>
+ <button type="button" id="settingsLogout" class="settings-option danger-text">↪ Déconnexion</button>
+</div>
 
 <main>
 
