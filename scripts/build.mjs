@@ -13,4 +13,12 @@ for (const entry of await readdir(root, { withFileTypes: true })) {
   await copyFile(path.join(root, entry.name), path.join(output, entry.name));
 }
 
+// The source repository currently stores the SVG icon with a trailing dot.
+// Publish the canonical URL expected by the manifest and service worker.
+try {
+  await copyFile(path.join(root, "icon.svg."), path.join(output, "icon.svg"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+
 console.log("Static site assets copied to ./public");
