@@ -20,7 +20,7 @@ exports.airtable = async (path, options={}) => {
 exports.verifyPlayer = (event) => {
   const secret=process.env.ADMIN_CODE;
   const header=event.headers?.authorization||event.headers?.Authorization||'';
-  const token=header.replace(/^Bearer\\s+/i,'');
+  const token=header.replace(/^Bearer\s+/i,'');
   if(!secret||!token.includes('.'))return null;
   const [payload,signature]=token.split('.');
   const expected=crypto.createHmac('sha256',secret).update(payload).digest('base64url');
