@@ -39,6 +39,7 @@
 <button data-tab="home" class="tab active">Accueil</button>
 <button data-tab="register" class="tab">Inscription</button>
 <button data-tab="players" class="tab">Joueurs</button>
+<button data-tab="profile" class="tab">Mon profil</button>
 <button data-tab="matches" class="tab">Matchs</button>
 <button data-tab="ranking" class="tab">Classement</button>
 </nav>
@@ -76,6 +77,15 @@
 <button class="primary">Envoyer mon inscription</button>
 <p id="regMsg" class="message" aria-live="polite"></p>
 </form>
+</section>
+
+<section id="profile" class="page">
+<div class="eyebrow">ESPACE PERSONNEL</div><h2>MON PROFIL JOUEUR</h2>
+<form id="playerLoginForm" class="panel form"><p class="muted">Connecte-toi avec le pseudo et l’UID Free Fire utilisés lors de ton inscription validée.</p><label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="username"></label><label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" autocomplete="off"></label><button class="primary">Se connecter</button><p id="playerLoginMsg" class="message" aria-live="polite"></p></form>
+<div id="playerProfile" class="panel" hidden><div class="admin-player-main"><div id="profileAvatar" class="player-avatar">?</div><div><b id="profilePseudo"></b><small id="profileUid"></small><small id="profileStatus"></small></div></div>
+<div class="stats"><article><strong id="profilePoints">0</strong><span>Points</span></article><article><strong id="profileWins">0</strong><span>Victoires</span></article><article><strong id="profileLosses">0</strong><span>Défaites</span></article></div>
+<label class="form">Modifier ma photo<input id="profilePhoto" type="file" accept="image/*"></label><button id="saveProfilePhoto" class="primary">Enregistrer ma photo</button><p id="profileMsg" class="message" aria-live="polite"></p>
+<h3>HISTORIQUE DES MATCHS</h3><div id="profileMatches" class="stack"></div><button id="playerLogout" class="secondary">Déconnexion</button></div>
 </section>
 
 <section id="players" class="page">
@@ -197,6 +207,7 @@
 <button data-tab="home">⌂<small>Accueil</small></button>
 <button data-tab="register">＋<small>Inscription</small></button>
 <button data-tab="players">♙<small>Joueurs</small></button>
+<button data-tab="profile">◎<small>Mon profil</small></button>
 <button data-tab="ranking">♛<small>Classement</small></button>
 <button data-tab="admin">⚙<small>Admin</small></button>
 </nav>
