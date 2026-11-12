@@ -82,7 +82,7 @@
         if (!result.token) throw new Error('Le serveur n’a pas renvoyé de session. Réessaie.');
         localStorage.setItem('mou_player_token', result.token);
         message.textContent = 'Connexion réussie. Ouverture de ton profil…';
-        window.location.reload();
+        window.dispatchEvent(new Event('mou:player-auth'));
       }
     } catch (error) {
       message.textContent = error.message || 'Erreur réseau. Vérifie ta connexion et réessaie.';
