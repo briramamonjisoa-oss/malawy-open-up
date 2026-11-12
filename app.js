@@ -198,7 +198,6 @@ $('#pointsForm').addEventListener('submit',async e=>{e.preventDefault();const f=
 $('#matchForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#matchMsg');msg.textContent='Enregistrement…';try{await api('/.netlify/functions/admin-data',{method:'POST',body:JSON.stringify({action:'saveMatch',id:f.get('recordId')||'',a:String(f.get('a')).trim(),b:String(f.get('b')).trim(),sa:Number(f.get('sa')),sb:Number(f.get('sb')),mode:String(f.get('mode')),date:String(f.get('date')||'')})});msg.textContent='Résultat enregistré et partagé.';e.target.reset();await loadAll()}catch(x){msg.textContent=x.message}});
 $('#resetMatch').onclick=()=>$('#matchForm').reset();
 if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;}
-loadAll();
 let publicRefreshBusy=false;
 async function refreshPublicData(){
  if(publicRefreshBusy||document.hidden)return;
