@@ -4,7 +4,7 @@ const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos'; 
 const state={players:[],matches:[],token:sessionStorage.getItem('mou_admin_token')||'',admin:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function tab(n){$$('.page').forEach(x=>x.classList.toggle('active',x.id===n));$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='admin'&&state.admin)renderAdmin();window.scrollTo({top:0,behavior:'smooth'});}
+function tab(n){$$('.page').forEach(x=>x.classList.toggle('active',x.id===n));$$('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===n));if(n==='admin'&&state.admin)renderAdmin();window.scrollTo(0,0);}
 $$('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));$$('[data-go]').forEach(b=>b.onclick=()=>tab(b.dataset.go));
 async function api(path,opts={}){const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
 async function loadAll(){try{const [p,m]=await Promise.all([api('/.netlify/functions/players'),api('/.netlify/functions/matches')]);state.players=Array.isArray(p)?p:[];state.matches=Array.isArray(m)?m:[]}catch(e){console.error(e);state.players=[];state.matches=[]}render();if(state.admin)renderAdmin()}
