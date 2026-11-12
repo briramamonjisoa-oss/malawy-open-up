@@ -5,6 +5,7 @@
   form.dataset.bound='1';
   const token=sessionStorage.getItem('mou_admin_token');
   if(token){
+   window.dispatchEvent(new Event('mou:admin-auth'));
    document.body.classList.remove('access-locked');
    const gate=document.getElementById('accessGate');if(gate)gate.hidden=true;
    const adminForm=document.getElementById('adminForm');if(adminForm)adminForm.hidden=true;
@@ -20,6 +21,7 @@
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||'Connexion administrateur impossible');
     sessionStorage.setItem('mou_admin_token',data.token);
+    window.dispatchEvent(new Event('mou:admin-auth'));
     document.body.classList.remove('access-locked');
     document.getElementById('accessGate').hidden=true;
     document.getElementById('adminForm').hidden=true;
