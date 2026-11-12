@@ -58,8 +58,13 @@ async function loadAll(){
   api('/.netlify/functions/teams'),
   api('/.netlify/functions/tournament-rosters')
  ]);
- if(jobs[0].status==='fulfilled'&&Array.isArray(jobs[0].value))state.players=jobs[0].value;
- else{errors.push('Inscriptions : '+(jobs[0].reason?.message||'réponse invalide'));console.error(errors[errors.length-1]);}
+ try{
+  const response=await fetch('/.netlify/functions/players?refresh='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
+  const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||'Erreur '+response.status);
+  if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');
+  state.players=payload;
+ }catch(error){errors.push('Inscriptions : '+(error.message||'chargement impossible'));console.error(errors[errors.length-1]);}
  if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.matches=jobs[1].value;
  else{errors.push('Matchs : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
  if(jobs[2].status==='fulfilled'&&Array.isArray(jobs[2].value))state.teams=jobs[2].value;
