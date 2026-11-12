@@ -101,15 +101,20 @@ async function loadPlayerProfile(){
   $('#profileMatches').innerHTML=p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('')||'<p class="muted">Aucun match terminé pour le moment.</p>';
  }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
+$('#showSignup').onclick=()=>{$('#playerSignupForm').hidden=false;$('#playerLoginForm').hidden=true;};
+$('#showLogin').onclick=()=>{$('#playerSignupForm').hidden=true;$('#playerLoginForm').hidden=false;};
+$('#playerSignupForm').addEventListener('submit',async e=>{
+ e.preventDefault();const f=new FormData(e.target),msg=$('#signupMsg'),button=e.submitter;button.disabled=true;msg.textContent='Préparation de ta demande…';
+ try{const file=f.get('photo');if(!file||!file.size)throw Error('Ajoute une photo de profil.');msg.textContent='Envoi de ta photo…';const photo=await uploadPhoto(file);
+ const r=await fetch('/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),mode:String(f.get('mode')),pin:String(f.get('pin')),photo})});const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');
+ msg.textContent='Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';e.target.reset();
+ }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
+});
 $('#playerLoginForm').addEventListener('submit',async e=>{
- e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg');const button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
- try{
-  const file=f.get('photo');let photo='';
-  if(file&&file.size){msg.textContent='Envoi de la photo…';photo=await uploadPhoto(file);}
-  const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin')),photo})});
-  const d=await r.json();if(!r.ok)throw Error(d.error||'Connexion impossible');
-  state.playerToken=d.token;localStorage.setItem('mou_player_token',d.token);msg.textContent='Accès autorisé !';await loadPlayerProfile();
- }catch(x){msg.textContent=x.message;}finally{button.disabled=false;}
+ e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
+ try{const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
+ state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();
+ }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
  const file=$('#profilePhoto').files[0],msg=$('#profileMsg');if(!file){msg.textContent='Choisis une photo avant de continuer.';return;}
