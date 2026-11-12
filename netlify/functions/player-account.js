@@ -14,7 +14,7 @@ exports.handler=async(event)=>{
    if(matches.length!==1)return{statusCode:401,headers,body:JSON.stringify({error:'Pseudo ou UID incorrect.'})};
    const r=matches[0],status=r.fields['Statut inscription']||'En attente';
    if(status!=='Accepté')return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription doit être acceptée par un administrateur avant de te connecter.'})};
-   const token=sign({role:'player',id:r.id,exp:Date.now()+12*60*60*1000});
+   const token=sign({role:'player',id:r.id,exp:Date.now()+10*365*24*60*60*1000});
    return{statusCode:200,headers,body:JSON.stringify({success:true,token})};
   }
   if(event.httpMethod==='GET'){
