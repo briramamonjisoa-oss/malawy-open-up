@@ -21,7 +21,7 @@ exports.handler=async(event)=>{
   const groups=new Map();
   for(const signup of signups){
    const f=signup.fields||{};
-   if(f.Statut==='Refusée')continue;
+   if(['Refusée','Annulée'].includes(f.Statut))continue;
    const id=String(f['ID tournoi']||'');
    if(!id)continue;
    const t=tournamentMap.get(id)||{};
