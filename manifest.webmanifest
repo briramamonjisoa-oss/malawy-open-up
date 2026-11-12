@@ -1,0 +1,21 @@
+
+{
+  "id": "/",
+  "name": "MALAWY OPEN UP",
+  "short_name": "MALAWY",
+  "description": "Communauté esport Free Fire : inscriptions, tournois et classement.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1018",
+  "theme_color": "#0d1018",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
