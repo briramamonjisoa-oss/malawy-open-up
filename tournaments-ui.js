@@ -309,10 +309,12 @@ function renderMyTournaments() {
   box.innerHTML = mine.map(s => {
     const status = String(s.status || 'En attente');
     const cls = status === 'Acceptée' ? '' : status === 'Refusée' ? 'refused' : 'pending';
+    const tournament = tournaments.find(t => t.id === s.tournamentId);
+    const date = tournament?.date || s.date || '';
     return `<article class="my-tournament-card">
-      <b>${esc(s.tournamentName || 'Tournoi')}</b>
-      <small>${esc(s.game || '')} · ${esc(s.format || '')}</small>
-      <small>${s.date ? esc(new Date(s.date).toLocaleString('fr-FR')) : 'Date à confirmer'}</small>
+      <b>${esc(s.tournamentName || tournament?.name || 'Tournoi')}</b>
+      <small>${esc(s.game || tournament?.game || '')} · ${esc(s.format || tournament?.format || '')}</small>
+      <small>${date ? esc(new Date(date).toLocaleString('fr-FR')) : 'Date à confirmer'}</small>
       <span class="tour-status ${cls}">${esc(status)}</span>
     </article>`;
   }).join('');
