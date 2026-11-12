@@ -1,4 +1,3 @@
-
 /* MALAWY OPEN UP - TOURNOIS */
 (() => {
 'use strict';
@@ -120,7 +119,7 @@ function ensureUI() {
     section.innerHTML = `
       <div class="eyebrow">MALAWY OPEN UP</div>
       <h2>TOURNOIS</h2>
-      <p class="tour-muted">Choisis une compétition et inscris ta squad.</p>
+      <p class="tour-muted">Choisis une compétition et inscris-toi.</p>
 
       <div id="publicTournaments">Chargement des tournois...</div>
       <div id="teamSignup" hidden></div>
@@ -208,14 +207,14 @@ function show() {
 }
 
 function playerCount(format) {
-  return format === 'Mode Espoir' ? 4 : Number(format[0]) || 1;
+  return format === 'E_sport' ? 4 : Number(format[0]) || 1;
 }
 
 function fillFormats(form) {
   const select = form.elements.format;
   const old = select.value;
   const formats = form.elements.game.value === 'Battle Royale'
-    ? ['1v1','2v2','3v3','4v4','Mode Espoir']
+    ? ['1v1','2v2','3v3','4v4','E_sport']
     : ['1v1','2v2','3v3','4v4'];
 
   select.innerHTML = formats.map(x => `<option>${esc(x)}</option>`).join('');
@@ -224,21 +223,44 @@ function fillFormats(form) {
 
 function roster(format) {
   let html = '';
-  for (let i = 2; i <= playerCount(format); i++) {
+
+  if (format === 'E_sport') {
     html += `
-      <label>Joueur ${i}<input name="p${i}" required maxlength="32"></label>
-      <label>ID Free Fire joueur ${i}<input name="id${i}" required maxlength="40"></label>
+      <label>Capitaine / Joueur 1
+        <input name="p1" required maxlength="32">
+      </label>
+      <label>UID Free Fire du capitaine
+        <input name="id1" required maxlength="40">
+      </label>
     `;
   }
 
-  if (format === 'Mode Espoir') {
+  const start = format === 'E_sport' ? 2 : 1;
+
+  for (let i = start; i <= playerCount(format); i++) {
+    html += `
+      <label>Pseudo joueur ${i}
+        <input name="p${i}" required maxlength="32">
+      </label>
+      <label>UID Free Fire joueur ${i}
+        <input name="id${i}" required maxlength="40">
+      </label>
+    `;
+  }
+
+  if (format === 'E_sport') {
     for (let i = 1; i <= 2; i++) {
       html += `
-        <label>Remplaçant ${i}<input name="s${i}" required maxlength="32"></label>
-        <label>ID Free Fire remplaçant ${i}<input name="sid${i}" required maxlength="40"></label>
+        <label>Remplaçant ${i}
+          <input name="s${i}" required maxlength="32">
+        </label>
+        <label>UID Free Fire remplaçant ${i}
+          <input name="sid${i}" required maxlength="40">
+        </label>
       `;
     }
   }
+
   return html;
 }
 
@@ -301,16 +323,258 @@ function renderAdmin() {
     </div>
   `).join('') || '<p class="tour-muted">Aucun tournoi.</p>';
 
-  $('#adminSignups').innerHTML = signups.map(s => `
-    <div class="signup-card">
-      ${s.logo ? `<img class="tour-logo" src="${esc(s.logo)}" alt="Logo">` : ''}
-      <b>${esc(s.teamName)}</b>
-      <small>${esc(s.tournamentName)} · ${esc(s.format)} · Chef : ${esc(s.captain)}</small>
-      <small>Joueurs : ${esc([s.player1 || s.captain,s.player2,s.player3,s.player4].filter(Boolean).join(', '))}</small>
-      <small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')} · ${esc(s.status)}</small>
-      <div class="tour-actions">
-        <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
-        <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
+  $('#adminSignups').innerHTML = signups.map(s => {
+    const players = [s.player1,s.player2,s.player3,s.player4].filter(Boolean).join(', ');
+    const esport = s.format === 'E_sport';
+
+    return `
+      <div class="signup-card">
+        ${s.logo ? `<img class="tour-logo" src="${esc(s.logo)}" alt="Logo">` : ''}
+        <b>${esc(esport ? (s.teamName || 'Équipe E_sport') : (s.player1 || 'Inscription'))}</b>
+        <small>${esc(s.tournamentName)} · ${esc(s.format)}</small>
+        ${esport ? `<small>Capitaine : ${esc(s.captain)}</small>` : ''}
+        <small>Joueurs : ${esc(players || '—')}</small>
+        ${esport ? `<small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')}</small>` : ''}
+        <small>Statut : ${esc(s.status)}</small>
+        <div class="tour-actions">
+          <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
+          <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
+        </div>
+      </div>
+    `;
+  }).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
+}
+
+function signupForm(t) {
+  const box = $('#teamSignup');
+  box.hidden = false;
+  box.innerHTML = `
+    <form id="joinForm" class="tour-form">
+      <h3>Inscription — ${esc(t.name)}</h3>
+      <p class="tour-muted">Format : ${esc(t.format)}</p>
+      <input type="hidden" name="tid" value="${esc(t.id)}">
+
+      ${roster(t.format)}
+
+      ${t.format === 'E_sport' ? `
+        <label>Logo de l'équipe (facultatif)
+          <input type="file" name="logo" accept="image/*">
+        </label>
+      ` : ''}
+
+      <button class="primary" type="submit">Envoyer l'inscription</button>
+      <p class="tour-message" id="joinMsg"></p>
+    </form>
+  `;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ENREGISTREMENT DU TOURNOI */
+async function saveTournament() {
+  const form = $('#createTournament');
+  const button = $('#saveTournament');
+  const message = $('#createMsg');
+
+  if (!form.reportValidity() || busy) return;
+
+  busy = true;
+  button.disabled = true;
+
+  try {
+    message.textContent = 'Enregistrement en cours...';
+
+    const data = new FormData(form);
+    const file = data.get('poster');
+    const poster = file && file.size ? await uploadPhoto(file) : '';
+
+    const result = await call('tournaments', {
+      action:'save',
+      id:data.get('id'),
+      name:String(data.get('name') || '').trim(),
+      game:data.get('game'),
+      format:data.get('format'),
+      date:data.get('date'),
+      deadline:data.get('deadline'),
+      limit:data.get('limit'),
+      rules:data.get('rules'),
+      poster
+    });
+
+    if (!result.success) throw Error('Le serveur n’a pas confirmé l’enregistrement.');
+
+    message.textContent = 'Tournoi enregistré avec succès !';
+    form.reset();
+    form.elements.id.value = '';
+    fillFormats(form);
+    await refresh();
+
+  } catch (e) {
+    message.textContent = 'Erreur : ' + e.message;
+  } finally {
+    busy = false;
+    button.disabled = false;
+  }
+}
+
+document.addEventListener('click', async event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+
+  if (button.dataset.tab === 'tournaments') {
+    show();
+    return;
+  }
+
+  if (button.id === 'saveTournament') {
+    await saveTournament();
+    return;
+  }
+
+  if (button.id === 'resetTournament') {
+    const form = $('#createTournament');
+    form.reset();
+    form.elements.id.value = '';
+    fillFormats(form);
+    $('#createMsg').textContent = '';
+    return;
+  }
+
+  try {
+    if (button.dataset.enter) {
+      const t = tournaments.find(x => x.id === button.dataset.enter);
+      if (t) signupForm(t);
+    }
+
+    if (button.dataset.toggle) {
+      const t = tournaments.find(x => x.id === button.dataset.toggle);
+      if (!t) return;
+      button.disabled = true;
+      await call('tournaments', {
+        action:'status', id:t.id,
+        status:t.status === 'Inscriptions ouvertes'
+          ? 'Inscriptions fermées' : 'Inscriptions ouvertes'
+      });
+      await refresh();
+    }
+
+    if (button.dataset.delete) {
+      if (!confirm('Supprimer définitivement ce tournoi ?')) return;
+      button.disabled = true;
+      await call('tournaments', {action:'delete',id:button.dataset.delete});
+      await refresh();
+    }
+
+    if (button.dataset.edit) {
+      const t = tournaments.find(x => x.id === button.dataset.edit);
+      const form = $('#createTournament');
+      if (!t || !form) return;
+
+      form.elements.id.value = t.id;
+      form.elements.name.value = t.name;
+      form.elements.game.value = t.game;
+      fillFormats(form);
+      form.elements.format.value = t.format;
+      form.elements.date.value = t.date ? new Date(t.date).toISOString().slice(0,16) : '';
+      form.elements.deadline.value = t.deadline ? new Date(t.deadline).toISOString().slice(0,16) : '';
+      form.elements.limit.value = t.limit || 0;
+      form.elements.rules.value = t.rules || '';
+      form.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    if (button.dataset.approve || button.dataset.refuse) {
+      button.disabled = true;
+      await call('tournament-signups', {
+        id:button.dataset.approve || button.dataset.refuse,
+        status:button.dataset.approve ? 'Acceptée' : 'Refusée'
+      });
+      await refresh();
+    }
+  } catch (e) {
+    alert(e.message);
+    button.disabled = false;
+  }
+});
+
+document.addEventListener('change', event => {
+  if (event.target.name === 'game' && event.target.closest('#createTournament')) {
+    fillFormats(event.target.form);
+  }
+});
+
+document.addEventListener('submit', async event => {
+  if (event.target.id !== 'joinForm') return;
+  event.preventDefault();
+
+  if (busy) return;
+  busy = true;
+
+  const form = new FormData(event.target);
+  const message = $('#joinMsg');
+
+  try {
+    message.textContent = 'Envoi en cours...';
+
+    const t = tournaments.find(x => x.id === form.get('tid'));
+    if (!t) throw Error('Ce tournoi n’est plus disponible.');
+
+    const file = form.get('logo');
+    const logo = file && file.size ? await uploadPhoto(file) : '';
+    const players = {};
+
+    for (let i = 1; i <= playerCount(t.format); i++) {
+      players['p' + i] = String(form.get('p' + i) || '').trim();
+      players['id' + i] = String(form.get('id' + i) || '').trim();
+    }
+
+    if (t.format === 'E_sport') {
+      for (let i = 1; i <= 2; i++) {
+        players['s' + i] = String(form.get('s' + i) || '').trim();
+        players['sid' + i] = String(form.get('sid' + i) || '').trim();
+      }
+    }
+
+    await call('tournament-register', {
+      tournamentId:t.id,
+      captain:t.format === 'E_sport' ? players.p1 : '',
+      captainId:t.format === 'E_sport' ? players.id1 : '',
+      teamName:t.format === 'E_sport' ? 'E_sport - ' + players.p1 : '',
+      logo,
+      players
+    });
+
+    message.textContent = 'Inscription envoyée, en attente de validation.';
+    event.target.reset();
+
+  } catch (e) {
+    message.textContent = 'Erreur : ' + e.message;
+  } finally {
+    busy = false;
+  }
+});
+
+function init() {
+  styles();
+  ensureUI();
+
+  const form = $('#createTournament');
+  if (form) fillFormats(form);
+
+  updateAdmin();
+  refresh();
+
+  window.addEventListener('mou:admin-auth', () => {
+    updateAdmin();
+    refresh();
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init, {once:true});
+} else {
+  init();
+}
+
+})();n>
       </div>
     </div>
   `).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
