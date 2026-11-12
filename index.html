@@ -99,6 +99,9 @@
 <div id="topPlayers" class="top-players"></div>
 <h3>CLASSEMENT COMPLET</h3>
 <div id="rankingList" class="stack"></div>
+<h3>CLASSEMENT DES ÉQUIPES</h3>
+<div id="topTeams" class="top-players"></div>
+<div id="teamsRankingList" class="stack"></div>
 </section>
 
 <section id="admin" class="page">
@@ -122,6 +125,24 @@
 <h3>Gérer les inscriptions</h3>
 <p class="muted">Accepte, refuse ou bannis un joueur. Tu peux aussi ajouter sa photo.</p>
 <div id="adminPlayers" class="stack"></div>
+</div>
+
+<div class="admin-block">
+<h3>Attribuer des points</h3>
+<p class="muted">Choisis un joueur ou une équipe. Les points seront ajoutés au total actuel.</p>
+<form id="pointsForm" class="panel form">
+<label>Type
+<select name="targetType"><option value="player">Joueur</option><option value="team">Équipe</option></select>
+</label>
+<label>Joueur / équipe
+<select name="targetId" required><option value="">Choisir</option></select>
+</label>
+<label>Points à ajouter
+<input name="points" type="number" min="1" step="1" required placeholder="Ex. 25">
+</label>
+<button class="primary" type="submit">Ajouter les points</button>
+<p id="pointsMsg" class="message" aria-live="polite"></p>
+</form>
 </div>
 
 <div class="admin-block">
