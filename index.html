@@ -228,6 +228,15 @@
 <div id="adminMatches" class="stack"></div>
 </div>
 
+<div class="admin-inbox-launch">
+<button type="button" id="openRequestsInbox" class="primary">📥 Boîte des demandes <span id="inboxCount">0</span></button>
+</div>
+<div id="requestsInbox" class="requests-inbox" hidden>
+<div class="admin-toolbar"><h3>TOUTES LES INSCRIPTIONS</h3><button type="button" id="refreshRequestsInbox" class="secondary">Actualiser</button></div>
+<p id="inboxMessage" class="muted">Chargement des demandes…</p>
+<div id="inboxPlayers" class="stack"></div>
+</div>
+
 <div class="admin-block">
 <h3>Configuration des photos</h3>
 <p class="muted">Pour enregistrer les photos dans le cloud, renseigne ton Cloudinary dans app.js. Le joueur peut ensuite être photographié depuis la galerie du téléphone.</p>
