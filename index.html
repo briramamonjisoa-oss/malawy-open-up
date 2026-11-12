@@ -21,13 +21,21 @@
   <div class="access-logo">M</div>
   <h1>ACCÈDE À <em>L'ARÈNE.</em></h1>
   <p>Connecte-toi avec les informations de ton inscription validée.</p>
-  <form id="playerLoginForm" class="form access-form">
+  <div class="access-switch"><button type="button" id="showSignup" class="primary">Créer mon accès</button><button type="button" id="showLogin" class="secondary">Déjà inscrit ? Connexion</button></div>
+  <form id="playerSignupForm" class="form access-form">
+   <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" placeholder="Ton pseudo"></label>
+   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" placeholder="Ton UID"></label>
+   <label>Mode de combat<select name="mode" required><option value="">Choisir</option><option>1 VS 1</option><option>2 VS 1</option></select></label>
+   <label>Photo de profil<input name="photo" type="file" accept="image/*" required></label>
+   <label>Code PIN personnel<input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="4 à 8 chiffres"></label>
+   <button class="primary" type="submit">Envoyer ma demande</button><p id="signupMsg" class="message" aria-live="polite"></p>
+   <p class="access-note">Ton accès sera activé après validation par l'administration.</p>
+  </form>
+  <form id="playerLoginForm" class="form access-form" hidden>
    <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="username" placeholder="Ton pseudo"></label>
-   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" autocomplete="off" placeholder="Ton UID"></label>
-   <label>Photo de profil <small>Obligatoire lors de la création de ton accès</small><input name="photo" type="file" accept="image/*"></label>
+   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" placeholder="Ton UID"></label>
    <label>Code PIN personnel<input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="current-password" placeholder="4 à 8 chiffres"></label>
-   <button class="primary" type="submit">Valider et entrer</button>
-   <p id="gateMsg" class="message" aria-live="polite"></p>
+   <button class="primary" type="submit">Valider et entrer</button><p id="gateMsg" class="message" aria-live="polite"></p>
   </form>
   <div class="access-admin">
    <p>Tu es administrateur ?</p>
