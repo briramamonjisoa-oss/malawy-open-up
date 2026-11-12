@@ -1,20 +1,24 @@
 (() => {
   'use strict';
-  const signup = document.getElementById('playerSignupForm');
-  const login = document.getElementById('playerLoginForm');
-  const signupButton = document.getElementById('showSignup');
-  const loginButton = document.getElementById('showLogin');
-  if (!signup || !login || !signupButton || !loginButton) return;
-  function show(mode) {
-    const creating = mode === 'signup';
+  document.addEventListener('click', event => {
+    const button = event.target.closest('#showSignup, #showLogin');
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const signup = document.getElementById('playerSignupForm');
+    const login = document.getElementById('playerLoginForm');
+    if (!signup || !login) return;
+    const creating = button.id === 'showSignup';
     signup.hidden = !creating;
     login.hidden = creating;
-    signupButton.classList.toggle('primary', creating);
-    signupButton.classList.toggle('secondary', !creating);
-    loginButton.classList.toggle('primary', !creating);
-    loginButton.classList.toggle('secondary', creating);
-  }
-  signupButton.addEventListener('click', event => { event.preventDefault(); show('signup'); });
-  loginButton.addEventListener('click', event => { event.preventDefault(); show('login'); });
-  show('signup');
+    document.getElementById('showSignup').classList.toggle('primary', creating);
+    document.getElementById('showSignup').classList.toggle('secondary', !creating);
+    document.getElementById('showLogin').classList.toggle('primary', !creating);
+    document.getElementById('showLogin').classList.toggle('secondary', creating);
+  }, true);
+  window.addEventListener('load', () => {
+    const signup = document.getElementById('playerSignupForm');
+    const login = document.getElementById('playerLoginForm');
+    if (signup && login) { signup.hidden = false; login.hidden = true; }
+  });
 })();
