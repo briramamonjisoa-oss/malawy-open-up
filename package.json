@@ -1,0 +1,14 @@
+{
+  "name": "malawy-open-up",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "preview": "npm run build && wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.50.0"
+  }
+}
