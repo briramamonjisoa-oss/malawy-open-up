@@ -71,8 +71,17 @@ async function loadAll(){
  if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];
  else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
  state.adminLoadErrors=errors;
- render();
- if(state.admin)renderAdmin();
+ // Render the admin list independently: a public-page rendering error must not hide player requests.
+ if(state.admin){
+  try{renderAdmin();}
+  catch(error){
+   console.error('Erreur affichage panneau admin:',error);
+   const list=document.getElementById('adminPlayers');
+   if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';
+  }
+ }
+ try{render();}
+ catch(error){console.error('Erreur affichage public:',error);}
 }
 function isAcceptedPlayer(p){const s=String(p.status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');return !s||['accepte','acceptee','accepted','valide','validee','approved'].includes(s)}
 function ranking(){const map=new Map();state.matches.filter(x=>x.status==='Terminé'||!x.status).forEach(x=>{const a=String(x.a||'').trim(),b=String(x.b||'').trim();if(!a||!b)return;[a,b].forEach(n=>{if(!map.has(n)){const player=state.players.find(p=>String(p.pseudo||'').toLowerCase()===n.toLowerCase());map.set(n,{name:n,photo:player?.photo||'',points:0,wins:0,played:0,score:0})}});const A=map.get(a),B=map.get(b),sa=Number(x.sa)||0,sb=Number(x.sb)||0;A.played++;B.played++;A.score+=sa;B.score+=sb;if(sa>sb){A.wins++;A.points+=3}else if(sb>sa){B.wins++;B.points+=3}else{A.points++;B.points++}});return [...map.values()].sort((a,b)=>b.points-a.points||b.wins-a.wins||b.score-a.score||a.name.localeCompare(b.name))}
