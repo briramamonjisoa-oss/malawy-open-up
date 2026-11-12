@@ -197,7 +197,7 @@ $('#pointsForm').addEventListener('change',e=>{if(e.target.name==='targetType'){
 $('#pointsForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#pointsMsg');msg.textContent='Ajout des points…';try{await api('/.netlify/functions/admin-data',{method:'POST',body:JSON.stringify({action:'addPoints',targetType:String(f.get('targetType')),id:String(f.get('targetId')),points:Number(f.get('points'))})});msg.textContent='Points ajoutés avec succès !';e.target.elements.points.value='';await loadAll()}catch(x){msg.textContent='Erreur : '+x.message}});
 $('#matchForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#matchMsg');msg.textContent='Enregistrement…';try{await api('/.netlify/functions/admin-data',{method:'POST',body:JSON.stringify({action:'saveMatch',id:f.get('recordId')||'',a:String(f.get('a')).trim(),b:String(f.get('b')).trim(),sa:Number(f.get('sa')),sb:Number(f.get('sb')),mode:String(f.get('mode')),date:String(f.get('date')||'')})});msg.textContent='Résultat enregistré et partagé.';e.target.reset();await loadAll()}catch(x){msg.textContent=x.message}});
 $('#resetMatch').onclick=()=>$('#matchForm').reset();
-if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;}
+if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;loadAll();}
 let publicRefreshBusy=false;
 async function refreshPublicData(){
  if(publicRefreshBusy||document.hidden)return;
