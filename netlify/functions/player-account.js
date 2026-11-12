@@ -16,16 +16,9 @@ exports.handler=async(event)=>{
    if(matches.length!==1)return{statusCode:401,headers,body:JSON.stringify({error:'Pseudo ou UID incorrect.'})};
    const r=matches[0],fields=r.fields||{},status=fields['Statut inscription']||'En attente';
    if(status!=='Accepté')return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription doit être acceptée par un administrateur avant de te connecter.'})};
-   let pinStored=fields['PIN hash']||'';
-   if(!pinStored){
-    if(typeof photo!=='string'||!/^https:\/\//i.test(photo))return{statusCode:400,headers,body:JSON.stringify({error:'Pour créer ton accès, ajoute une photo de profil.'})};
-    const salt=crypto.randomBytes(16).toString('hex');
-    pinStored=salt+'$'+hashPin(String(pin),salt);
-    await airtable('Inscriptions/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{'PIN hash':pinStored,Photo:photo}})});
-   }else{
-    if(!validPin(String(pin),pinStored))return{statusCode:401,headers,body:JSON.stringify({error:'Code PIN incorrect.'})};
-    if(typeof photo==='string'&&/^https:\/\//i.test(photo))await airtable('Inscriptions/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{Photo:photo}})});
-   }
+   const pinStored=fields['PIN hash']||'';
+   if(!pinStored)return{statusCode:403,headers,body:JSON.stringify({error:'Ton compte n’a pas encore de PIN. Contacte l’administration.'})};
+   if(!validPin(String(pin),pinStored))return{statusCode:401,headers,body:JSON.stringify({error:'Code PIN incorrect.'})};
    const token=sign({role:'player',pinAuth:1,id:r.id,exp:Date.now()+10*365*24*60*60*1000});
    return{statusCode:200,headers,body:JSON.stringify({success:true,token})};
   }
