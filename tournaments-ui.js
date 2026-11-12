@@ -1,3 +1,4 @@
+
 /* MALAWY OPEN UP - TOURNOIS */
 (() => {
 'use strict';
@@ -336,10 +337,12 @@ function renderAdmin() {
         <small>Joueurs : ${esc(players || '—')}</small>
         ${esport ? `<small>Remplaçants : ${esc([s.sub1,s.sub2].filter(Boolean).join(', ') || '—')}</small>` : ''}
         <small>Statut : ${esc(s.status)}</small>
-        <div class="tour-actions">
-          <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
-          <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
-        </div>
+        ${s.status === 'En attente' ? `
+          <div class="tour-actions">
+            <button class="secondary" type="button" data-approve="${esc(s.id)}">Valider</button>
+            <button class="danger" type="button" data-refuse="${esc(s.id)}">Refuser</button>
+          </div>
+        ` : ''}
       </div>
     `;
   }).join('') || '<p class="tour-muted">Aucune inscription reçue.</p>';
@@ -369,7 +372,6 @@ function signupForm(t) {
   box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* ENREGISTREMENT DU TOURNOI */
 async function saveTournament() {
   const form = $('#createTournament');
   const button = $('#saveTournament');
@@ -542,8 +544,9 @@ document.addEventListener('submit', async event => {
       players
     });
 
-    message.textContent = 'Inscription envoyée, en attente de validation.';
     event.target.reset();
+    await refresh();
+    message.textContent = 'Inscription envoyée, en attente de validation.';
 
   } catch (e) {
     message.textContent = 'Erreur : ' + e.message;
