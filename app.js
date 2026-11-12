@@ -172,3 +172,21 @@ window.addEventListener('focus',refreshPublicData);
 window.addEventListener('pageshow',refreshPublicData);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPublicData()});
 setInterval(refreshPublicData,15000);
+
+// Restore an authenticated player session after the WebView/app is reopened.
+(async function restorePlayerSession(){
+ if(!state.playerToken)return;
+ try{
+  await loadPlayerProfile();
+  if(!state.player)return;
+  document.body.classList.remove('access-locked');
+  $('#accessGate').hidden=true;
+  $('#playerLoginForm').hidden=true;
+  $('#playerProfile').hidden=false;
+  const destination=getSavedPage();
+  tab(destination==='admin'&&!state.admin?'home':destination,false);
+ }catch(error){
+  console.error('Session restoration failed:',error);
+ }
+})();
+
