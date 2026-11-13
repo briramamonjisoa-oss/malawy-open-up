@@ -9,6 +9,7 @@ import tournamentRegister from "../netlify/functions/tournament-register.js";
 import tournamentRosters from "../netlify/functions/tournament-rosters.js";
 import tournamentSignups from "../netlify/functions/tournament-signups.js";
 import tournaments from "../netlify/functions/tournaments.js";
+import notifications from "../netlify/functions/notifications.js";
 
 const handlers = {
   admin: admin.handler,
@@ -21,7 +22,8 @@ const handlers = {
   "tournament-register": tournamentRegister.handler,
   "tournament-rosters": tournamentRosters.handler,
   "tournament-signups": tournamentSignups.handler,
-  tournaments: tournaments.handler
+  tournaments: tournaments.handler,
+  notifications: notifications.handler
 };
 
 function json(data, status = 200) {
@@ -38,7 +40,10 @@ export default {
       AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
       AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
     };
-    ctx.waitUntil(handlers.tournaments({httpMethod:"GET",headers:{},body:""}));
+    ctx.waitUntil(Promise.allSettled([
+      handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
+      notifications.processScheduledNotifications(env)
+    ]));
   },
   async fetch(request, env) {
     const url = new URL(request.url);
