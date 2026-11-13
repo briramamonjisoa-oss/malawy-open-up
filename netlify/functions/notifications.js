@@ -44,6 +44,8 @@ async function updateRecord(table, id, fields) {
 
 async function queuePlayerApproval(player) {
   try {
+    const queued = await all(QUEUE);
+    if (queued.some(record => clean(record.fields?.['Notification Key']) === 'player-approved:' + player.id && clean(record.fields?.Status) !== 'Échec')) return;
     await airtable(encodeURIComponent(QUEUE), {
       method: 'POST',
       body: JSON.stringify({
