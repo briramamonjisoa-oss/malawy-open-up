@@ -325,6 +325,10 @@ exports.handler = async event => {
           'Notification Key': 'manual:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8)
         } }] })
       });
+      if (scheduledAt.getTime() <= Date.now()) {
+        try { await processScheduledNotifications(globalThis.__MOU_ENV || process.env); }
+        catch (dispatchError) { console.error('Envoi immédiat différé:', dispatchError); }
+      }
       return response(200, { success: true, id: created.records?.[0]?.id, message: scheduledAt.getTime() <= Date.now() ? 'Notification ajoutée à la file d’envoi.' : 'Notification programmée.' });
     }
 
