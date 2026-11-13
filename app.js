@@ -4,7 +4,7 @@ const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
 // L'API vit sur le Worker Cloudflare, pas nécessairement sur l'origine de la page.
-const API_ORIGIN='https://malawy-open-up.briramonjisoa.workers.dev';
+const API_ORIGIN='https://malawy-open-up.briramamonjisoa.workers.dev';
 const state={players:[],matches:[],teams:[],tournamentGroups:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
 document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
