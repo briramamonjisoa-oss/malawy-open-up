@@ -2,7 +2,7 @@
   'use strict';
   const API = 'https://malawy-open-up.briramamonjisoa.workers.dev';
   // Public VAPID key: add it after generating the VAPID key pair and configuring Cloudflare.
-  const VAPID_PUBLIC_KEY = 'CONFIGURER_CLE_PUBLIQUE_VAPID';
+  const VAPID_PUBLIC_KEY = 'BG_3wtj7SFDESNtPO73TkIWUXQ73sRJmmQjAAS9BE82iwFnrN2eAZ8De9rOrU4kFIYfS1BqZI6NBqo0QUdxDMWo';
   const $ = selector => document.querySelector(selector);
   let historyItems = [];
 
