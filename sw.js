@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v48';
+const CACHE = 'malawy-v49';
 
 const ASSETS = [
   '/',
@@ -10,6 +10,7 @@ const ASSETS = [
   '/admin-access.js',
   '/navigation-fix.js',
   '/tournaments-ui.js',
+  '/push-notifications.js',
   '/manifest.webmanifest',
   '/icon.svg'
 ];
@@ -62,4 +63,34 @@ self.addEventListener('fetch', event => {
       fetch(event.request).catch(() => caches.match('/'))
     )
   );
+});
+
+
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; }
+  catch { data = { body: event.data ? event.data.text() : '' }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'MALAWY OPEN UP', {
+    body: data.body || 'Tu as une nouvelle notification.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'malawy-notification',
+    renotify: false,
+    data: { url: data.url || '/' }
+  }));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) {
+      if ('focus' in client) {
+        await client.navigate(target);
+        return client.focus();
+      }
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(target);
+  })());
 });
