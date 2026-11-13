@@ -75,7 +75,10 @@ export default {
         globalThis.__MOU_ENV = {
           ADMIN_CODE: env.ADMIN_CODE,
           AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
-          AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
+          AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID,
+          VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
+          VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
+          VAPID_SUBJECT: env.VAPID_SUBJECT
         };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const event = {
