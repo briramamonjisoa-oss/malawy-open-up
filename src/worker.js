@@ -60,7 +60,9 @@ export default {
         bindings: {
           ADMIN_CODE: Boolean(env.ADMIN_CODE),
           AIRTABLE_TOKEN: Boolean(env.AIRTABLE_TOKEN),
-          AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID)
+          AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID),
+          VAPID_PUBLIC_KEY: Boolean(env.VAPID_PUBLIC_KEY),
+          VAPID_PRIVATE_KEY: Boolean(env.VAPID_PRIVATE_KEY)
         }
       });
     }
