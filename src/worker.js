@@ -9,6 +9,7 @@ import tournamentRegister from "../netlify/functions/tournament-register.js";
 import tournamentRosters from "../netlify/functions/tournament-rosters.js";
 import tournamentSignups from "../netlify/functions/tournament-signups.js";
 import tournaments from "../netlify/functions/tournaments.js";
+import notifications from "../netlify/functions/notifications.js";
 
 const handlers = {
   admin: admin.handler,
@@ -21,7 +22,8 @@ const handlers = {
   "tournament-register": tournamentRegister.handler,
   "tournament-rosters": tournamentRosters.handler,
   "tournament-signups": tournamentSignups.handler,
-  tournaments: tournaments.handler
+  tournaments: tournaments.handler,
+  notifications: notifications.handler
 };
 
 function json(data, status = 200) {
@@ -36,9 +38,15 @@ export default {
     globalThis.__MOU_ENV = {
       ADMIN_CODE: env.ADMIN_CODE,
       AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
-      AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
+      AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID,
+      VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
+      VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
+      VAPID_SUBJECT: env.VAPID_SUBJECT
     };
-    ctx.waitUntil(handlers.tournaments({httpMethod:"GET",headers:{},body:""}));
+    ctx.waitUntil(Promise.allSettled([
+      handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
+      notifications.processScheduledNotifications(env)
+    ]));
   },
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -52,7 +60,9 @@ export default {
         bindings: {
           ADMIN_CODE: Boolean(env.ADMIN_CODE),
           AIRTABLE_TOKEN: Boolean(env.AIRTABLE_TOKEN),
-          AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID)
+          AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID),
+          VAPID_PUBLIC_KEY: Boolean(env.VAPID_PUBLIC_KEY),
+          VAPID_PRIVATE_KEY: Boolean(env.VAPID_PRIVATE_KEY)
         }
       });
     }
@@ -67,7 +77,10 @@ export default {
         globalThis.__MOU_ENV = {
           ADMIN_CODE: env.ADMIN_CODE,
           AIRTABLE_TOKEN: env.AIRTABLE_TOKEN,
-          AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID
+          AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID,
+          VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
+          VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
+          VAPID_SUBJECT: env.VAPID_SUBJECT
         };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const event = {

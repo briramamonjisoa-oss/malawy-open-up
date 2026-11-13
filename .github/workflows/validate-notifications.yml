@@ -1,0 +1,34 @@
+name: Validate MALAWY OPEN UP
+
+on:
+  push:
+    branches:
+      - feature/push-notifications-safe
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check access-forms.js
+          node --check push-notifications.js
+          node --check sw.js
+          node --check netlify/functions/admin-data.js
+          node --check netlify/functions/notifications.js
+          node --check netlify/functions/push-crypto.js
+          node --check netlify/functions/register.js
+          node --input-type=module --check < src/worker.js
+          node --input-type=module --check < scripts/build.mjs
+      - name: Build static app
+        run: npm run build

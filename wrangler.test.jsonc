@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
+  "name": "malawy-open-up-test",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/.netlify/functions/*"]
+  },
+  "vars": {
+    "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB",
+    "VAPID_PUBLIC_KEY": "BG_3wtj7SFDESNtPO73TkIWUXQ73sRJmmQjAAS9BE82iwFnrN2eAZ8De9rOrU4kFIYfS1BqZI6NBqo0QUdxDMWo",
+    "VAPID_SUBJECT": "https://github.com/briramamonjisoa-oss/malawy-open-up"
+  }
+}

@@ -46,6 +46,10 @@
       };
       let endpoint;
       if (isSignup) {
+        const pendingPush = localStorage.getItem('mou_pending_push_subscription');
+        if (pendingPush) {
+          try { payload.pushSubscription = JSON.parse(pendingPush); } catch { localStorage.removeItem('mou_pending_push_subscription'); }
+        }
         payload.mode = String(data.get('mode') || '');
         const file = data.get('photo');
         if (file && file.size) {
@@ -80,6 +84,7 @@
       if (isSignup) {
         message.textContent = 'Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';
         form.reset();
+        localStorage.removeItem('mou_pending_push_subscription');
       } else {
         if (!result.token) throw new Error('Le serveur n’a pas renvoyé de session. Réessaie.');
         localStorage.setItem('mou_player_token', result.token);
