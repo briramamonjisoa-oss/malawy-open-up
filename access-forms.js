@@ -1,6 +1,8 @@
 (() => {
   'use strict';
   const $ = (selector) => document.querySelector(selector);
+  // L'API est hébergée sur le Worker, indépendamment du domaine qui sert la page.
+  const API = 'https://malawy-open-up.briramonjisoa.workers.dev';
   const signup = $('#playerSignupForm');
   const login = $('#playerLoginForm');
   if (!signup || !login) return;
@@ -60,9 +62,9 @@
             console.warn('Photo non envoyée:', photoError);
           }
         }
-        endpoint = '/.netlify/functions/register';
+        endpoint = API + '/.netlify/functions/register';
       } else {
-        endpoint = '/.netlify/functions/player-account';
+        endpoint = API + '/.netlify/functions/player-account';
       }
 
       message.textContent = isSignup ? 'Enregistrement de la demande…' : 'Connexion en cours…';
