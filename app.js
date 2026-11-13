@@ -113,7 +113,7 @@ function showPublicPlayer(pseudo){
  $('#publicPlayerPhoto').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo de '+esc(p.pseudo)+'">':esc(p.pseudo.slice(0,1).toUpperCase());
  modal.hidden=false;
 }
-function render(){const accepted=state.players.filter(p=>isAcceptedPlayer(p)&&p.participant);const rank=ranking();$('#statPlayers').textContent=accepted.length;$('#statMatches').textContent=state.matches.filter(x=>x.status==='Terminé'||!x.status).length;$('#statWins').textContent=state.matches.filter(x=>Number(x.sa)!==Number(x.sb)).length;
+function render(){const accepted=state.players.filter(isAcceptedPlayer);const rank=ranking();const completedMatches=state.matches.filter(x=>{const status=String(x.status||'').trim().toLocaleLowerCase('fr');return !status||status==='termine'||status==='terminé'||status==='completed';});$('#statPlayers').textContent=accepted.length;$('#statMatches').textContent=completedMatches.length;$('#statWins').textContent=rank.reduce((total,player)=>total+player.wins,0);
 $('#playersList').innerHTML=state.tournamentGroups.length?state.tournamentGroups.map(t=>`<article class="tournament-roster-card">
  <div class="tournament-roster-head">${t.poster?`<img class="tournament-roster-poster" src="${esc(t.poster)}" alt="Logo ${esc(t.name)}">`:'<div class="tournament-roster-placeholder">🏆</div>'}
  <div class="tournament-roster-title"><span class="eyebrow">TOURNOI</span><h3>${esc(t.name)}</h3><small>${esc(t.game)} · ${esc(t.format)}${t.date?' · '+esc(new Date(t.date).toLocaleDateString('fr-FR')):''}</small></div></div>
