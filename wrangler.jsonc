@@ -19,6 +19,6 @@
   "vars": {
     "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB",
     "VAPID_PUBLIC_KEY": "BG_3wtj7SFDESNtPO73TkIWUXQ73sRJmmQjAAS9BE82iwFnrN2eAZ8De9rOrU4kFIYfS1BqZI6NBqo0QUdxDMWo",
-    "VAPID_SUBJECT": "mailto:contact@malawy-open-up.app"
+    "VAPID_SUBJECT": "https://github.com/briramamonjisoa-oss/malawy-open-up"
   }
 }
