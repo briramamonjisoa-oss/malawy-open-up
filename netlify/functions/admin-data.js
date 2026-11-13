@@ -8,7 +8,9 @@ exports.handler=async(event)=>{
  try{
   const x=JSON.parse(event.body||'{}');let out;
   if(x.action==='updatePlayer'){
-   const previous=await airtable('Inscriptions/'+encodeURIComponent(x.id));
+   let previous={fields:{}};
+   try{previous=await airtable('Inscriptions/'+encodeURIComponent(x.id));}
+   catch(readError){console.warn('Lecture avant validation indisponible; validation maintenue sans notification:',readError.message);}
    const oldStatus=String(previous.fields?.['Statut inscription']||'').trim().toLowerCase();
    const fields={'Statut inscription':x.status};if(x.photo)fields.Photo=x.photo;
    out=await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields})});
