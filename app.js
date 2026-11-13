@@ -46,7 +46,7 @@ window.addEventListener('popstate',()=>{
  tab(previous,false);
  if(previous==='home')history.replaceState({mouPage:'home'},'','#home');
 });
-async function api(path,opts={}){const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers,cache:opts.cache||'no-store'});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
+async function api(path,opts={}){if(path.startsWith('/.netlify/functions/'))path=API_ORIGIN+path;const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers,cache:opts.cache||'no-store'});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
 window.addEventListener('mou:admin-auth',()=>{
  state.token=sessionStorage.getItem('mou_admin_token')||'';
  state.admin=Boolean(state.token);
@@ -60,7 +60,7 @@ async function loadAll(){
   api('/.netlify/functions/tournament-rosters')
  ]);
  try{
-  const response=await fetch('/.netlify/functions/players?refresh='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
+  const response=await fetch(API_ORIGIN+'/.netlify/functions/players?refresh='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
   const payload=await response.json();
   if(!response.ok)throw new Error(payload.error||'Erreur '+response.status);
   if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');
@@ -130,7 +130,7 @@ $('#regForm').addEventListener('submit',async e=>{e.preventDefault();const f=new
 $('#gateAdminForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const msg=$('#gateAdminMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification du code…';
  try{
-  const r=await fetch('/.netlify/functions/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:e.target.code.value})});
+  const r=await fetch(API_ORIGIN+'/.netlify/functions/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:e.target.code.value})});
   const d=await r.json();if(!r.ok)throw Error(d.error||'Code administrateur incorrect');
   state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);
   document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
@@ -143,14 +143,14 @@ $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg
 async function loadPlayerProfile(){
  if(!state.playerToken)return;
  try{
-  const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken}});
-  const p=await r.json();if(!r.ok)throw Error(p.error||'Connexion expirée');
+  const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store'});
+  const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
   state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
   $('#profileMatches').innerHTML=p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('')||'<p class="muted">Aucun match terminé pour le moment.</p>';
- }catch(e){state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
+ }catch(e){state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message+' Ton accès reste mémorisé : réessaie sans recréer de compte.';}
 }
 window.addEventListener('mou:player-auth',async()=>{
  const msg=$('#gateMsg');
@@ -182,20 +182,20 @@ $('#playerSignupForm').addEventListener('submit',async e=>{
   msg.textContent='Envoi de ta demande…';
   const payload={pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),mode:String(f.get('mode')),pin:String(f.get('pin'))};
   if(photo)payload.photo=photo;
-  const r=await fetch('/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const r=await fetch(API_ORIGIN+'/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');
   msg.textContent='Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';e.target.reset();
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#playerLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
- try{const r=await fetch('/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
+ try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
  state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
  const file=$('#profilePhoto').files[0],msg=$('#profileMsg');if(!file){msg.textContent='Choisis une photo avant de continuer.';return;}
- try{msg.textContent='Envoi de la photo…';const photo=await uploadPhoto(file);const r=await fetch('/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({photo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Enregistrement impossible');msg.textContent='Photo mise à jour !';await loadPlayerProfile();}
+ try{msg.textContent='Envoi de la photo…';const photo=await uploadPhoto(file);const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({photo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Enregistrement impossible');msg.textContent='Photo mise à jour !';await loadPlayerProfile();}
  catch(e){msg.textContent=e.message;}
 });
 $('#playerLogout').onclick=()=>{state.playerToken='';state.player=null;localStorage.removeItem('mou_player_token');$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;$('#playerLoginForm').reset();document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent='Déconnecté.';};
@@ -207,7 +207,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('#settingsMenu')&&!e.
 const savedTheme=localStorage.getItem('mou_theme')||'dark';document.body.dataset.theme=savedTheme;
 $('#themeToggle').onclick=()=>{const next=document.body.dataset.theme==='light'?'dark':'light';document.body.dataset.theme=next;localStorage.setItem('mou_theme',next);$('#themeToggle').textContent=next==='light'?'🌙 Mode sombre':'☀️ Mode clair';};
 $('#settingsLogout').onclick=()=>{closeSettings();if(state.playerToken)$('#playerLogout').click();if(state.admin)$('#logout').click();if(!state.playerToken&&!state.admin){$('#accessGate').hidden=false;$('#gateMsg').textContent='Tu es déjà déconnecté.';}};
-$('#pinResetForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#pinResetMsg'),button=e.target.querySelector('button[type="submit"]');const currentPin=String(f.get('currentPin')||''),newPin=String(f.get('newPin')||'');if(!/^[0-9]{4,8}$/.test(newPin)){msg.textContent='Le nouveau PIN doit contenir 4 à 8 chiffres.';return;}button.disabled=true;msg.textContent='Mise à jour…';try{const r=await fetch('/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changePin',currentPin,newPin})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le PIN');e.target.reset();msg.textContent='Code PIN modifié avec succès.';}catch(err){msg.textContent=err.message;}finally{button.disabled=false;}});
+$('#pinResetForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#pinResetMsg'),button=e.target.querySelector('button[type="submit"]');const currentPin=String(f.get('currentPin')||''),newPin=String(f.get('newPin')||'');if(!/^[0-9]{4,8}$/.test(newPin)){msg.textContent='Le nouveau PIN doit contenir 4 à 8 chiffres.';return;}button.disabled=true;msg.textContent='Mise à jour…';try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changePin',currentPin,newPin})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le PIN');e.target.reset();msg.textContent='Code PIN modifié avec succès.';}catch(err){msg.textContent=err.message;}finally{button.disabled=false;}});
 
 if(state.playerToken)loadPlayerProfile();
 if(state.admin)renderAdmin();
@@ -216,7 +216,7 @@ async function loadRequestsInbox(){
  const box=$('#inboxPlayers'),msg=$('#inboxMessage'),count=$('#inboxCount');
  if(msg)msg.textContent='Récupération des inscriptions…';
  try{
-  const response=await fetch('/.netlify/functions/players?inbox='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
+  const response=await fetch(API_ORIGIN+'/.netlify/functions/players?inbox='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
   const data=await response.json();
   if(!response.ok)throw Error(data.error||'Erreur '+response.status);
   if(!Array.isArray(data))throw Error('Format de réponse invalide');
