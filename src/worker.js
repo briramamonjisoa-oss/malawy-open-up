@@ -42,6 +42,8 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PATCH, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Access-Control-Max-Age":"86400"};
+    if (request.method === "OPTIONS") return new Response(null, {status:204, headers:corsHeaders});
 
     // Safe diagnostic: reports presence only, never returns secret values.
     if (url.pathname === "/__health") {
@@ -79,6 +81,7 @@ export default {
         };
         const result = await handler(event);
         const responseHeaders = new Headers(result.headers || {});
+        for (const [key, value] of Object.entries(corsHeaders)) responseHeaders.set(key, value);
         if (!responseHeaders.has("Content-Type")) {
           responseHeaders.set("Content-Type", "application/json; charset=utf-8");
         }
