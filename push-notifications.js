@@ -160,7 +160,7 @@
     try {
       const data = await request('');
       historyItems = data.notifications || [];
-      status.textContent = Notification.permission === 'granted'
+      status.textContent = ('Notification' in window && Notification.permission === 'granted')
         ? 'Notifications activées sur cet appareil.'
         : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.';
       list.innerHTML = historyItems.map(item => `
