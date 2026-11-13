@@ -3,6 +3,8 @@ const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 // Configure Cloudinary here to enable photo uploads from the phone gallery.
 const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
+// L'API vit sur le Worker Cloudflare, pas nécessairement sur l'origine de la page.
+const API_ORIGIN='https://malawy-open-up.briramonjisoa.workers.dev';
 const state={players:[],matches:[],teams:[],tournamentGroups:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
 document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -141,7 +143,7 @@ $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg
 async function loadPlayerProfile(){
  if(!state.playerToken)return;
  try{
-  const r=await fetch('/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken}});
+  const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken}});
   const p=await r.json();if(!r.ok)throw Error(p.error||'Connexion expirée');
   state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
