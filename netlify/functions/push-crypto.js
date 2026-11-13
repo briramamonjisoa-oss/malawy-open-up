@@ -41,10 +41,17 @@ function vapidAuthorization(endpoint, env) {
     sub: subject
   }));
   const input = header + '.' + payload;
+  const publicBytes = decodeKey(publicValue);
+  if (publicBytes.length !== 65 || !privateValue) throw new Error('Clé VAPID invalide.');
   const privateKey = crypto.createPrivateKey({
-    key: decodeKey(privateValue),
-    format: 'der',
-    type: 'pkcs8'
+    key: {
+      kty: 'EC',
+      crv: 'P-256',
+      x: b64url(publicBytes.subarray(1, 33)),
+      y: b64url(publicBytes.subarray(33, 65)),
+      d: privateValue
+    },
+    format: 'jwk'
   });
   const signature = crypto.sign('sha256', Buffer.from(input), {
     key: privateKey,
