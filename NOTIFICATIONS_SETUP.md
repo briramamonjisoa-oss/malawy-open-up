@@ -2,7 +2,9 @@
 
 Cette fonctionnalité est développée sur la branche `feature/push-notifications`. Elle ne doit pas être fusionnée dans `main` avant la configuration Airtable, les clés VAPID et les essais sur un vrai téléphone.
 
-## 1. Tables Airtable à créer
+Les trois tables décrites ci-dessous ont déjà été créées dans la base Airtable MALAWY OPEN UP. Cette section sert de référence pour vérifier leurs champs.
+
+## 1. Tables Airtable
 
 Les noms de tables et de champs doivent être respectés exactement. Pour les champs de statut et de type, utiliser du texte sur une seule ligne (pas un champ Select).
 
@@ -57,13 +59,7 @@ npx web-push generate-vapid-keys
 
 Garder les deux valeurs générées. Ne jamais publier ni partager la clé privée.
 
-Dans Cloudflare > Workers & Pages > malawy-open-up > Settings > Variables and Secrets, ajouter :
-
-- `VAPID_PUBLIC_KEY` : variable texte contenant la clé publique.
-- `VAPID_PRIVATE_KEY` : secret contenant la clé privée.
-- `VAPID_SUBJECT` : variable texte, par exemple `mailto:contact@ton-domaine.fr`.
-
-Dans `push-notifications.js`, remplacer `CONFIGURER_CLE_PUBLIQUE_VAPID` par la même clé publique.
+Dans cette branche, la clé publique et `VAPID_SUBJECT` sont déjà renseignés dans `wrangler.jsonc` et la clé publique est intégrée au bouton d’abonnement. Il reste à ajouter uniquement `VAPID_PRIVATE_KEY` comme secret dans Cloudflare > Workers & Pages > malawy-open-up > Settings > Variables and Secrets.
 
 La clé privée ne doit jamais être ajoutée au dépôt GitHub.
 
