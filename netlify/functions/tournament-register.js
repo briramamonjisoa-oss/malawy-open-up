@@ -176,19 +176,8 @@ exports.handler = async (event) => {
     // Vérification des inscriptions existantes
     const existingSignups = await getTournamentSignups(x.tournamentId);
 
-    const activeSignups = existingSignups.filter(record =>
-      record.fields?.Statut !== 'Refusée'
-    );
-
-    // Vérification du nombre maximal d'inscriptions
-    const limit = Math.max(
-      0,
-      Number(f["Nombre maximum d'équipes"]) || 0
-    );
-
-    if (limit > 0 && activeSignups.length >= limit) {
-      throw Error('Le nombre maximum d’inscriptions est atteint');
-    }
+    // Aucune limite de nombre d'équipes : les inscriptions restent ouvertes
+    // jusqu'à la date limite ou la fermeture du tournoi par l'administration.
 
     // Vérification des UID déjà inscrits à ce tournoi
     const existingUIDs = new Set();
