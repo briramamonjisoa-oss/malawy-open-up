@@ -102,7 +102,6 @@ async function sendPush(subscription, payload, env) {
       Authorization: vapidAuthorization(endpoint, env),
       'Content-Type': 'application/octet-stream',
       'Content-Encoding': 'aes128gcm',
-      'Content-Length': String(body.length),
       TTL: '86400',
       Urgency: 'high'
     },
