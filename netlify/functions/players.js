@@ -1,4 +1,3 @@
-const BASE_ID = 'appUXdWXyTbNXBPPB';
 const TABLE_ID = 'tblz0rJpaQBpafBN2';
 
 exports.handler = async (event) => {
@@ -20,6 +19,8 @@ exports.handler = async (event) => {
   try {
     const env = globalThis.__MOU_ENV || process.env;
     const token = env.AIRTABLE_TOKEN;
+    const baseId = env.AIRTABLE_BASE_ID;
+    if (!baseId) throw new Error('AIRTABLE_BASE_ID absent du Worker Cloudflare.');
     if (!token) throw new Error('AIRTABLE_TOKEN absent du Worker Cloudflare.');
 
     const records = [];
@@ -28,7 +29,7 @@ exports.handler = async (event) => {
       const query = new URLSearchParams({ pageSize: '100' });
       if (offset) query.set('offset', offset);
       const response = await fetch(
-        'https://api.airtable.com/v0/' + BASE_ID + '/' + TABLE_ID + '?' + query.toString(),
+        'https://api.airtable.com/v0/' + baseId + '/' + TABLE_ID + '?' + query.toString(),
         { headers: { Authorization: 'Bearer ' + token } }
       );
       const data = await response.json();
