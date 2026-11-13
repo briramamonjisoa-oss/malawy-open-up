@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { airtable } = require('./auth');
+const TABLE_ID = 'tblz0rJpaQBpafBN2';
 
 const hashPin = (pin, salt) => crypto.scryptSync(pin, salt, 64).toString('hex');
 
@@ -39,7 +40,7 @@ exports.handler = async (event) => {
     do {
       const query = new URLSearchParams({ pageSize: '100' });
       if (offset) query.set('offset', offset);
-      const data = await airtable('Inscriptions?' + query);
+      const data = await airtable(TABLE_ID + '?' + query);
       records.push(...(data.records || []));
       offset = data.offset;
     } while (offset);
@@ -68,7 +69,7 @@ exports.handler = async (event) => {
     };
     if (photo) fields.Photo = photo;
 
-    const created = await airtable('Inscriptions', {
+    const created = await airtable(TABLE_ID, {
       method: 'POST',
       body: JSON.stringify({ records: [{ fields }] })
     });
