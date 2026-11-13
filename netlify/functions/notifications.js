@@ -180,7 +180,7 @@ async function processScheduledNotifications(env) {
     VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
     VAPID_SUBJECT: env.VAPID_SUBJECT
   };
-  const [tournaments, queue, subscriptions, players] = await Promise.all([
+  if (!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY) return;\n  const [tournaments, queue, subscriptions, players] = await Promise.all([
     all('Tournois'), all(QUEUE), all(SUBSCRIPTIONS), all('Inscriptions')
   ]);
   const now = Date.now();
