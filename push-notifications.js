@@ -45,6 +45,50 @@
     document.head.append(style);
   }
 
+  function createPendingApprovalOptIn() {
+    const form = $('#playerSignupForm');
+    if (!form || $('#mouPendingApprovalPush')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'mouPendingApprovalPush';
+    button.className = 'secondary';
+    button.textContent = '🔔 Recevoir une notification quand mon inscription est acceptée';
+    const note = document.createElement('p');
+    note.id = 'mouPendingApprovalStatus';
+    note.className = 'mou-notice-muted';
+    note.textContent = 'Facultatif : autorise les notifications sur ce téléphone pour être prévenu dès la validation.';
+    form.insertBefore(button, form.querySelector('button[type="submit"]'));
+    form.insertBefore(note, button.nextSibling);
+    button.addEventListener('click', async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+        note.textContent = 'Les notifications push ne sont pas prises en charge par ce navigateur.';
+        return;
+      }
+      if (VAPID_PUBLIC_KEY === 'CONFIGURER_CLE_PUBLIQUE_VAPID') {
+        note.textContent = 'Le service de notification est en cours de configuration. Tu pourras activer cette option ensuite.';
+        return;
+      }
+      button.disabled = true;
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') throw new Error('Autorisation de notification refusée.');
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationKey()
+        });
+        localStorage.setItem('mou_pending_push_subscription', JSON.stringify(subscription.toJSON()));
+        note.textContent = 'Notifications autorisées. Tu recevras un message lorsque ton inscription sera acceptée.';
+        button.textContent = '✓ Notification de validation activée';
+      } catch (error) {
+        note.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
   function createPlayerUI() {
     const header = $('.header-actions');
     if (!header || $('#mouNotificationBell')) return;
@@ -275,6 +319,7 @@
   function init() {
     styles();
     createPlayerUI();
+    createPendingApprovalOptIn();
     createAdminUI();
     if (playerToken()) loadHistory();
     if (adminToken()) createAdminUI();
