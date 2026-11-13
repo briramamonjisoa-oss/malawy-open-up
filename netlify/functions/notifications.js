@@ -180,7 +180,7 @@ async function processScheduledNotifications(env) {
     VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
     VAPID_SUBJECT: env.VAPID_SUBJECT
   };
-  if (!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY) return;\n  const [tournaments, queue, subscriptions, players] = await Promise.all([
+  const [tournaments, queue, subscriptions, players] = await Promise.all([
     all('Tournois'), all(QUEUE), all(SUBSCRIPTIONS), all('Inscriptions')
   ]);
   const now = Date.now();
@@ -217,8 +217,10 @@ async function processScheduledNotifications(env) {
     }
   }
   if (newRows.length) await createBatch(QUEUE, newRows);
+  if (!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY) return;
+  const currentQueue = newRows.length ? await all(QUEUE) : queue;
 
-  const pending = [...queue, ...newRows.map((r, i) => ({ id: null, fields: r.fields }))].filter(r =>
+  const pending = currentQueue.filter(r =>
     r.id && clean(r.fields?.Status) === 'En attente' &&
     new Date(r.fields?.['Scheduled At'] || 0).getTime() <= now
   );
