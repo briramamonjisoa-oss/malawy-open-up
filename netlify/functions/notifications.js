@@ -119,6 +119,7 @@ async function dispatchQueueRecord(record, env, subscriptions, players) {
 
   const historyRows = [];
   let sent = 0, failed = 0;
+  const failureDetails = [];
   for (const player of recipients) {
     const playerSubscriptions = byPlayer.get(player.id) || [];
     if (!playerSubscriptions.length) continue;
@@ -142,10 +143,12 @@ async function dispatchQueueRecord(record, env, subscriptions, players) {
           await airtable(encodeURIComponent(SUBSCRIPTIONS) + '/' + encodeURIComponent(sub.id), { method: 'DELETE' });
         } else {
           failed++;
+          failureDetails.push('HTTP ' + result.status + ' (' + clean(sub.fields.Pseudo || 'joueur') + ')');
           console.warn('Push provider returned', result.status);
         }
       } catch (error) {
         failed++;
+        failureDetails.push(clean(error.message).slice(0, 180));
         console.error('Push delivery failed:', error.message);
       }
     }
@@ -168,7 +171,7 @@ async function dispatchQueueRecord(record, env, subscriptions, players) {
     Status: failed && !sent ? 'Échec' : 'Envoyée',
     'Sent At': new Date().toISOString(),
     'Recipient Count': sent,
-    Error: failed ? failed + ' appareil(s) non notifié(s).' : ''
+    Error: failed ? failed + ' appareil(s) non notifié(s). ' + failureDetails.slice(0, 3).join(' | ') : ''
   });
   return { sent, failed };
 }
