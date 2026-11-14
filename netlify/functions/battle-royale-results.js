@@ -8,7 +8,17 @@ exports.handler=async event=>{
  if(event.httpMethod!=='POST')return R(405,{error:'Méthode non autorisée'});
  if(!verify(event))return R(401,{error:'Session administrateur expirée.'});
  try{
-  const x=JSON.parse(event.body||'{}'),tid=String(x.tournamentId||''),count=Number(x.mapCount);
+  const x=JSON.parse(event.body||'{}');
+  if(x.action==='reset'){
+   const records=await all(TABLE);
+   for(let i=0;i<records.length;i+=10){
+    const q=new URLSearchParams();
+    records.slice(i,i+10).forEach(r=>q.append('records[]',r.id));
+    await airtable(encodeURIComponent(TABLE)+'?'+q.toString(),{method:'DELETE'});
+   }
+   return R(200,{success:true,deleted:records.length,message:'Classement Battle Royale réinitialisé.'});
+  }
+  const tid=String(x.tournamentId||''),count=Number(x.mapCount);
   if(!tid||![2,3].includes(count)||!Array.isArray(x.maps)||x.maps.length!==count)throw Error('Choisis un tournoi et 2 ou 3 maps.');
   const [tournaments,signups]=await Promise.all([all('Tournois'),all('Inscriptions tournois')]);
   const t=tournaments.find(r=>r.id===tid);if(!t)throw Error('Tournoi introuvable.');
@@ -31,7 +41,7 @@ exports.handler=async event=>{
   });
   if(!prepared.length)throw Error('Aucun résultat valide.');
   const old=(await all(TABLE)).filter(r=>String(r.fields?.['ID tournoi']||'')===tid);
-  for(let i=0;i<old.length;i+=10)await airtable(encodeURIComponent(TABLE),{method:'DELETE',body:JSON.stringify({records:old.slice(i,i+10).map(r=>({id:r.id}))})});
+  for(let i=0;i<old.length;i+=10){const q=new URLSearchParams();old.slice(i,i+10).forEach(r=>q.append('records[]',r.id));await airtable(encodeURIComponent(TABLE)+'?'+q.toString(),{method:'DELETE'});}
   for(let i=0;i<prepared.length;i+=10)await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:prepared.slice(i,i+10)})});
   const totals=new Map();prepared.forEach(r=>{const f=r.fields,row=totals.get(f.Pseudo)||{pseudo:f.Pseudo,kills:0,placement:0,total:0};row.kills+=f.Kills;row.placement+=f['Points classement'];row.total+=f['Total points'];totals.set(f.Pseudo,row);});
   return R(200,{success:true,saved:prepared.length,players:[...totals.values()].sort((a,b)=>b.total-a.total)});
