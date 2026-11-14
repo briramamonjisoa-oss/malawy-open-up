@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   const $ = (selector) => document.querySelector(selector);
-  // L'API est hébergée sur le Worker, indépendamment du domaine qui sert la page.
-  const API = 'https://malawy-open-up.briramamonjisoa.workers.dev';
+  // Utilise le même Worker que celui qui sert la page (test ou production).
+  const API = window.location.origin;
   const signup = $('#playerSignupForm');
   const login = $('#playerLoginForm');
   if (!signup || !login) return;
