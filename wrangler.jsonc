@@ -20,7 +20,7 @@
   },
   "vars": {
     "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB",
-    "VAPID_PUBLIC_KEY": "CONFIGURER_CLE_PUBLIQUE_VAPID",
+    "VAPID_PUBLIC_KEY": "BAQzPZ87WagrcSiTwGVy9V_ll0DmS1eS4e1LJ07JphI_IMWV0dtK6D5MibHx_GiR6faChiVMFtxEwr0gfajf4BA",
     "VAPID_SUBJECT": "https://github.com/briramamonjisoa-oss/malawy-open-up"
   }
 }
