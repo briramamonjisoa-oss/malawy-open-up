@@ -20,7 +20,7 @@
   },
   "vars": {
     "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB",
-    "VAPID_PUBLIC_KEY": "BAQzPZ87WagrcSiTwGVy9V_ll0DmS1eS4e1LJ07JphI_IMWV0dtK6D5MibHx_GiR6faChiVMFtxEwr0gfajf4BA",
+    "VAPID_PUBLIC_KEY": "BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI",
     "VAPID_SUBJECT": "https://github.com/briramamonjisoa-oss/malawy-open-up"
   }
 }
