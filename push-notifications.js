@@ -2,7 +2,7 @@
   'use strict';
   const API = window.location.origin;
   // Public VAPID key: add it after generating the VAPID key pair and configuring Cloudflare.
-  const VAPID_PUBLIC_KEY = 'BAQzPZ87WagrcSiTwGVy9V_ll0DmS1eS4e1LJ07JphI_IMWV0dtK6D5MibHx_GiR6faChiVMFtxEwr0gfajf4BA';
+  const VAPID_PUBLIC_KEY = 'BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI';
   const $ = selector => document.querySelector(selector);
   let historyItems = [];
 
