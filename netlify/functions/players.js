@@ -58,7 +58,7 @@ exports.handler = async (event) => {
         points: Number(fields.Points) || 0,
         wins: Number(fields.Victoires) || 0,
         matchesPlayed: fields['Matchs joués'] == null ? null : (Number(fields['Matchs joués']) || 0),
-        statsManual: fields['Matchs joués'] != null || fields.Victoires != null,
+        statsManual: fields['Matchs joués'] != null,
         losses: Number(fields.Défaites) || 0,
         photo: fields.Photo || '',
         participant: false
