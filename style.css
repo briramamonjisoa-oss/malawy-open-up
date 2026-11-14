@@ -73,9 +73,11 @@ body[data-theme="light"] .tournament-player-names span{background:#e8edf5;color:
 .admin-shortcut-count{margin-left:auto;border-radius:99px;background:#c9ff38;color:#10131d;padding:3px 8px;font-size:11px}
 @media(max-width:360px){.admin-shortcuts{grid-template-columns:1fr}}
 
-/* Admin sections as social-style overlays */
-.admin-modal-backdrop{position:fixed;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:0;background:rgba(3,6,13,.78);backdrop-filter:blur(5px);z-index:1000}
-body.admin-modal-active{overflow:hidden}
-#adminContent .admin-accordion[open]{position:fixed;z-index:1001;top:max(18px,env(safe-area-inset-top));left:12px;right:12px;width:auto;max-width:680px;max-height:calc(100dvh - 36px - env(safe-area-inset-bottom));margin:0 auto;overflow-y:auto;overscroll-behavior:contain;box-shadow:0 24px 80px rgba(0,0,0,.55);border-color:#46536e}
-#adminContent .admin-accordion[open]>summary{position:sticky;top:0;z-index:2;background:#1a2232;border-bottom:1px solid var(--line)}
-#adminContent .admin-accordion[open] .admin-accordion-body{padding-bottom:22px}
+/* Admin panels are moved to document.body and displayed as true modal overlays */
+.admin-modal-backdrop{position:fixed;inset:0;width:100%;height:100%;padding:0;margin:0;border:0;border-radius:0;background:rgba(3,6,13,.78);backdrop-filter:blur(5px);z-index:9998}
+body.admin-modal-active{overflow:hidden!important}
+.admin-accordion[open][data-in-modal="1"],body>.admin-accordion[open]{position:fixed!important;z-index:9999!important;top:max(18px,env(safe-area-inset-top))!important;bottom:max(18px,env(safe-area-inset-bottom))!important;left:12px!important;right:12px!important;width:auto!important;max-width:680px!important;max-height:none!important;height:auto!important;margin:0 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;box-shadow:0 24px 80px rgba(0,0,0,.65)!important;border:1px solid #46536e!important;background:#1a2232!important}
+body>.admin-accordion[open]>summary{position:sticky;top:0;z-index:2;background:#1a2232;border-bottom:1px solid var(--line)}
+body>.admin-accordion[open] .admin-accordion-body{padding-bottom:24px}
+body>.admin-accordion[open]>summary:before{content:' ';display:block}
+
