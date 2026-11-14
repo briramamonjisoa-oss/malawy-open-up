@@ -9,6 +9,16 @@ exports.handler=async event=>{
  if(!verify(event))return R(401,{error:'Session administrateur expirée.'});
  try{
   const x=JSON.parse(event.body||'{}');
+  if(x.action==='restore'){
+   if(!Array.isArray(x.records)||!x.records.length||x.records.length>500)throw Error('Sauvegarde de restauration invalide.');
+   let restored=0;
+   for(let i=0;i<x.records.length;i+=10){
+    const batch=x.records.slice(i,i+10).map(fields=>({fields}));
+    const result=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:batch})});
+    restored+=(result.records||[]).length;
+   }
+   return R(200,{success:true,restored});
+  }
   if(x.action==='reset'){
    const records=await all(TABLE);
    for(let i=0;i<records.length;i+=10){
@@ -16,7 +26,7 @@ exports.handler=async event=>{
     records.slice(i,i+10).forEach(r=>q.append('records[]',r.id));
     await airtable(encodeURIComponent(TABLE)+'?'+q.toString(),{method:'DELETE'});
    }
-   return R(200,{success:true,deleted:records.length,message:'Classement Battle Royale réinitialisé.'});
+   return R(200,{success:true,deleted:records.length,backup:records.map(r=>r.fields),message:'Classement Battle Royale réinitialisé.'});
   }
   const tid=String(x.tournamentId||''),count=Number(x.mapCount);
   if(!tid||![2,3].includes(count)||!Array.isArray(x.maps)||x.maps.length!==count)throw Error('Choisis un tournoi et 2 ou 3 maps.');
