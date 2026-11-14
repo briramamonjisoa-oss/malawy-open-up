@@ -91,7 +91,7 @@
 
     const launch = $('.admin-inbox-launch', root);
     const inbox = $('#requestsInbox', root);
-    if (launch && inbox && !launch.dataset.adminAccordion) {
+    if (launch && inbox && !launch.closest('.admin-accordion')) {
       const holder = document.createElement('div');
       holder.className = 'admin-inbox-holder';
       launch.parentNode.insertBefore(holder, launch);
