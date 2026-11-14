@@ -41,12 +41,14 @@
     return details;
   }
   function setup(root) {
-    if (!root || $('#adminShortcuts', root)) return;
+    if (!root) return;
     const toolbar = $('.admin-toolbar', root);
     if (!toolbar) return;
-    const grid = document.createElement('div');
-    grid.id = 'adminShortcuts';
-    grid.className = 'admin-shortcuts';
+    let grid = $('#adminShortcuts', root);
+    if (!grid) {
+      grid = document.createElement('div');
+      grid.id = 'adminShortcuts';
+      grid.className = 'admin-shortcuts';
     const order = ['requests','points','matches','inbox','notifications','photos'];
     const targets = {
       requests: () => $('[data-admin-panel="requests"]', root),
@@ -69,7 +71,8 @@
       });
       grid.append(button);
     });
-    toolbar.after(grid);
+      toolbar.after(grid);
+    }
     const blocks = [...root.querySelectorAll(':scope > .admin-block')];
     blocks.forEach(block => {
       const heading = $('h3', block)?.textContent || '';
