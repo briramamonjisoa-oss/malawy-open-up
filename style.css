@@ -81,3 +81,5 @@ body>.admin-accordion[open]>summary{position:sticky;top:0;z-index:2;background:#
 body>.admin-accordion[open] .admin-accordion-body{padding-bottom:24px}
 body>.admin-accordion[open]>summary:before{content:' ';display:block}
 
+
+#publicPlayerStats .item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px;margin:8px 0}
