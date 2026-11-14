@@ -147,6 +147,17 @@
     badge.hidden = unread === 0;
   }
 
+  async function syncCurrentSubscription() {
+    if (!playerToken() || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) return;
+    const endpoint = subscription.endpoint;
+    if (localStorage.getItem('mou_push_saved_endpoint') === endpoint) return;
+    await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe', subscription: subscription.toJSON() }) });
+    localStorage.setItem('mou_push_saved_endpoint', endpoint);
+  }
+
   async function loadHistory() {
     const list = $('#mouNotificationList');
     const status = $('#mouPushStatus');
@@ -158,6 +169,7 @@
     }
     status.textContent = 'Chargement…';
     try {
+      await syncCurrentSubscription();
       const data = await request('');
       historyItems = data.notifications || [];
       status.textContent = ('Notification' in window && Notification.permission === 'granted')
@@ -217,6 +229,7 @@
         });
       }
       await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe', subscription: subscription.toJSON() }) });
+      localStorage.setItem('mou_push_saved_endpoint', subscription.endpoint);
       status.textContent = 'Parfait ! Cet appareil est inscrit aux notifications MALAWY OPEN UP.';
     } catch (error) {
       status.textContent = error.message || 'Impossible d’activer les notifications.';
