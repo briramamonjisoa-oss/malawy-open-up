@@ -15,7 +15,7 @@ Créer dans Airtable la table `Résultats Battle Royale` avec ces champs :
 - `Points classement` — nombre
 - `Points kills` — nombre
 - `Total points` — nombre
-- `Capture résultat` — texte sur une ligne
+- `Capture résultat` — URL
 
 Barème : Top 1 = 20, Top 2 = 15, Top 3 = 10, autres = 0, chaque kill = 1 point. Les joueurs retenus doivent avoir une inscription acceptée dans le tournoi sélectionné. Les résultats sont saisis manuellement map par map (2 ou 3 maps). Le classement BR est séparé du classement général actuel.
 
@@ -23,7 +23,7 @@ Le bouton de réinitialisation supprime uniquement les résultats BR du tournoi 
 
 ## Notifications push
 
-Les quatre tables Airtable ci-dessous doivent exister avec les noms et champs exacts.
+Les trois tables Airtable ci-dessous doivent exister avec les noms et champs exacts.
 
 Générer une nouvelle paire VAPID sur un poste de confiance :
 ```powershell
