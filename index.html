@@ -141,6 +141,7 @@
 <h2>MATCHS</h2>
 <p class="muted">Les résultats validés par l'administration sont partagés avec tous les joueurs.</p>
 <div id="publicMatchList" class="stack"></div>
+<h3>STATISTIQUES DES JOUEURS</h3><p class="muted">Matchs joués et victoires enregistrés par l’administration.</p><div id="publicPlayerStats" class="stack"></div>
 </section>
 
 <section id="ranking" class="page">
@@ -226,6 +227,12 @@
 <p id="matchMsg" class="message"></p>
 </form>
 
+<div class="admin-block">
+<h3>Statistiques individuelles</h3><p class="muted">Renseigne le total de matchs joués et de victoires pour chaque joueur.</p>
+<form id="playerStatsForm" class="panel form"><label>Joueur<select name="playerId" required><option value="">Choisir un joueur</option></select></label>
+<label>Matchs joués<input name="matchesPlayed" type="number" min="0" step="1" required></label>
+<label>Victoires<input name="wins" type="number" min="0" step="1" required></label>
+<button class="primary" type="submit">Enregistrer les statistiques</button><p id="playerStatsMsg" class="message"></p></form></div>
 <div id="adminMatches" class="stack"></div>
 </div>
 
