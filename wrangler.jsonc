@@ -7,7 +7,9 @@
     "nodejs_compat"
   ],
   "triggers": {
-    "crons": ["*/15 * * * *"]
+    "crons": [
+      "*/15 * * * *"
+    ]
   },
   "assets": {
     "directory": "./public",
@@ -17,6 +19,8 @@
     ]
   },
   "vars": {
-    "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB"
+    "AIRTABLE_BASE_ID": "appUXdWXyTbNXBPPB",
+    "VAPID_PUBLIC_KEY": "BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI",
+    "VAPID_SUBJECT": "https://github.com/briramamonjisoa-oss/malawy-open-up"
   }
 }
