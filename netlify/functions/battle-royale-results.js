@@ -10,11 +10,18 @@ exports.handler=async event=>{
  try{
   const x=JSON.parse(event.body||'{}');
   if(x.action==='restore'){
-   if(!Array.isArray(x.records)||!x.records.length||x.records.length>500)throw Error('Sauvegarde de restauration invalide.');
+   if(!Array.isArray(x.records)||!x.records.length||x.records.length>500)throw Error('Sauvegarde de restauration invalide ou vide.');
+   const allowed=['ID tournoi','ID inscription tournoi','Nom tournoi','Pseudo','Map','Classement','Kills','Points classement','Points kills','Total points','Capture résultat'];
+   const clean=x.records.map(row=>{
+    const source=row&&row.fields?row.fields:row;
+    const fields={};
+    for(const key of allowed)if(source&&source[key]!==undefined&&source[key]!==null)fields[key]=source[key];
+    if(!fields['ID tournoi']||!fields.Pseudo)throw Error('Une ligne sauvegardée est incomplète.');
+    return {fields};
+   });
    let restored=0;
-   for(let i=0;i<x.records.length;i+=10){
-    const batch=x.records.slice(i,i+10).map(fields=>({fields}));
-    const result=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:batch})});
+   for(let i=0;i<clean.length;i+=10){
+    const result=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:clean.slice(i,i+10)})});
     restored+=(result.records||[]).length;
    }
    return R(200,{success:true,restored});
