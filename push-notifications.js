@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const API = 'https://malawy-open-up.briramamonjisoa.workers.dev';
+  const API = window.location.origin;
   // Public VAPID key: add it after generating the VAPID key pair and configuring Cloudflare.
   const VAPID_PUBLIC_KEY = 'BG_3wtj7SFDESNtPO73TkIWUXQ73sRJmmQjAAS9BE82iwFnrN2eAZ8De9rOrU4kFIYfS1BqZI6NBqo0QUdxDMWo';
   const $ = selector => document.querySelector(selector);
