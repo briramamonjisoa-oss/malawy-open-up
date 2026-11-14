@@ -29,19 +29,14 @@ exports.handler=async(event)=>{
    if(pseudo)photoByPseudo.set(pseudo,photo);
   }
   const tournamentMap=new Map(tournaments.map(t=>[t.id,t.fields||{}]));
-  const groups=new Map();
+  const groups=new Map(tournaments.map(record=>{const t=record.fields||{};return [record.id,{id:record.id,name:t['Nom du tournoi']||'Tournoi',poster:t['Affiche du tournoi']||'',game:t.Jeu||'',format:t.Format||'',date:t['Date du tournoi']||'',signups:[]}];}));
   for(const signup of signups){
    const f=signup.fields||{};
    if(['Refusée','Annulée'].includes(f.Statut))continue;
    const id=String(f['ID tournoi']||'');
    if(!id)continue;
    const t=tournamentMap.get(id)||{};
-   if(!groups.has(id))groups.set(id,{
-    id,name:t['Nom du tournoi']||f['Nom tournoi']||'Tournoi',
-    poster:t['Affiche du tournoi']||'',game:t.Jeu||f.Jeu||'',
-    format:t.Format||f.Format||'',date:t['Date du tournoi']||'',
-    signups:[]
-   });
+   if(!groups.has(id))continue;
    const players=[];
    const playerDetails=[];
    const count=f.Format==='E_sport'?4:(Number(String(f.Format||'1v1')[0])||1);
