@@ -96,6 +96,7 @@
 
     const notificationSection = $('#mouNotificationAdmin', root);
     if (notificationSection) makePanel(notificationSection, 'notifications', root);
+    installModalBehavior(root);
   }
 
 
