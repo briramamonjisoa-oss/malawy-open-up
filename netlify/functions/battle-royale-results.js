@@ -46,7 +46,7 @@ exports.handler=async event=>{
     if(seen.has(key))throw Error('Joueur en double sur la map '+(m+1)+'.');seen.add(key);
     const rank=Number(p.rank),kills=Number(p.kills);if(!Number.isSafeInteger(rank)||rank<1||!Number.isSafeInteger(kills)||kills<0)throw Error('Top ou kills invalide.');
     const placement=rank===1?20:rank===2?15:rank===3?10:0,player=eligible.get(key);
-    prepared.push({fields:{'ID tournoi':tid,'ID inscription tournoi':player.signupId,'Nom tournoi':String(t.fields?.['Nom du tournoi']||''),'Pseudo':player.pseudo,'Map':m+1,'Classement':rank,'Kills':kills,'Points classement':placement,'Points kills':kills,'Total points':placement+kills}});
+    prepared.push({fields:{'ID tournoi':tid,'ID inscription tournoi':player.signupId,'Nom tournoi':String(t.fields?.['Nom du tournoi']||''),'Pseudo':player.pseudo,'Map':m+1,'Classement':rank,'Kills':kills,'Points classement':placement,'Points kills':kills,'Total points':placement+kills,'Capture résultat':String(map.photo||'')}});
    });
   });
   if(!prepared.length)throw Error('Aucun résultat valide.');
