@@ -1,4 +1,5 @@
 const {verify,airtable}=require('./auth');
+const {queuePlayerApproval}=require('./notifications');
 exports.handler=async(event)=>{
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'POST, OPTIONS'};
  if(event.httpMethod==='OPTIONS')return{statusCode:200,headers,body:''};
@@ -9,6 +10,10 @@ exports.handler=async(event)=>{
   if(x.action==='updatePlayer'){
    const fields={'Statut inscription':x.status};if(x.photo)fields.Photo=x.photo;
    out=await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields})});
+   const status=String(x.status||'').trim().toLocaleLowerCase('fr');
+   if(['acceptée','acceptee','accepté','accepte','accepted'].includes(status)){
+    await queuePlayerApproval({id:x.id,pseudo:out.fields?.['Pseudo Free Fire']||out.fields?.['Pseudo']||''});
+   }
   }else if(x.action==='deletePlayer'){
    await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'DELETE'});out={success:true};
   }else if(x.action==='addPoints'){
