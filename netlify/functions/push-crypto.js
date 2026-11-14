@@ -53,8 +53,11 @@ function vapidAuthorization(endpoint, env) {
     },
     format: 'jwk'
   });
+  // Cloudflare Workers Node compatibility expects a PEM/string key in
+  // the signing options; passing a KeyObject here throws an options.key error.
+  const privateKeyPem = privateKey.export({ format: 'pem', type: 'pkcs8' });
   const signature = crypto.sign('sha256', Buffer.from(input), {
-    key: privateKey,
+    key: privateKeyPem,
     dsaEncoding: 'ieee-p1363'
   });
   return 'vapid t=' + input + '.' + b64url(signature) + ', k=' + publicValue;
