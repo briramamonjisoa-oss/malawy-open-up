@@ -23,7 +23,7 @@ Le bouton de réinitialisation supprime les résultats BR de tous les tournois. 
 
 ## Notifications push
 
-Les tables Airtable `Push subscriptions`, `Notification queue` et `Notifications` doivent exister avec les champs exacts décrits dans `NOTIFICATIONS_SETUP.md`.
+Les quatre tables Airtable ci-dessous doivent exister avec les noms et champs exacts.
 
 Générer une nouvelle paire VAPID sur un poste de confiance :
 ```powershell
@@ -40,3 +40,42 @@ Les variables `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID` et `ADMIN_CODE` de production
 ## Déploiement
 
 Avant déploiement, vérifier la configuration avec `/__health` et tester un compte joueur de test, l’activation push, l’envoi immédiat, la programmation, la saisie BR et le reset/restore. Ne pas fusionner tant que les tables et les clés VAPID ne sont pas prêtes.
+
+### Table `Push subscriptions`
+| Champ | Type |
+|---|---|
+| Endpoint | Texte sur une ligne |
+| P256dh | Texte sur une ligne |
+| Auth | Texte sur une ligne |
+| Player record ID | Texte sur une ligne |
+| Pseudo | Texte sur une ligne |
+| UID | Texte sur une ligne |
+| Active | Case à cocher |
+| Created At | Date avec heure |
+
+### Table `Notification queue`
+| Champ | Type |
+|---|---|
+| Title | Texte sur une ligne |
+| Message | Texte long |
+| URL | Texte sur une ligne |
+| Target type | Texte sur une ligne |
+| Target ID | Texte sur une ligne |
+| Scheduled At | Date avec heure |
+| Status | Texte sur une ligne |
+| Sent At | Date avec heure |
+| Notification Key | Texte sur une ligne |
+| Recipient Count | Nombre |
+| Error | Texte long |
+
+### Table `Notifications`
+| Champ | Type |
+|---|---|
+| Title | Texte sur une ligne |
+| Player record ID | Texte sur une ligne |
+| Message | Texte long |
+| URL | Texte sur une ligne |
+| Created At | Date avec heure |
+| Read At | Date avec heure |
+| Notification Key | Texte sur une ligne |
+
