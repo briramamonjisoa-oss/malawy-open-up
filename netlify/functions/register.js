@@ -74,13 +74,38 @@ exports.handler = async (event) => {
       body: JSON.stringify({ records: [{ fields }] })
     });
 
+    const createdId = created.records?.[0]?.id;
+    let pushOptInSaved = false;
+    const push = event.body ? JSON.parse(event.body).pushSubscription : null;
+    if (createdId && push?.endpoint && push?.keys?.p256dh && push?.keys?.auth && String(push.endpoint).startsWith('https://')) {
+      try {
+        await airtable(encodeURIComponent('Push subscriptions'), {
+          method: 'POST',
+          body: JSON.stringify({ records: [{ fields: {
+            Endpoint: String(push.endpoint),
+            P256dh: String(push.keys.p256dh),
+            Auth: String(push.keys.auth),
+            'Player record ID': createdId,
+            Pseudo: cleanPseudo,
+            UID: cleanPlayerId,
+            Active: true,
+            'Created At': new Date().toISOString()
+          } }] })
+        });
+        pushOptInSaved = true;
+      } catch (pushError) {
+        console.warn('Abonnement de notification non enregistré; inscription conservée:', pushError.message);
+      }
+    }
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
         message: 'Inscription envoyée',
-        id: created.records?.[0]?.id
+        id: createdId,
+        pushOptInSaved
       })
     };
   } catch (error) {

@@ -102,11 +102,16 @@ async function cleanupExpiredTournaments() {
   return tournaments.filter(t=>!expiredIds.has(t.id));
 }
 
-// Vérifier et convertir une date
+// Les champs datetime-local du formulaire sont des heures locales de Madagascar.
+// Le Worker Cloudflare tourne en UTC : on ajoute donc explicitement UTC+3
+// avant la conversion ISO pour éviter qu'une date tardive passe au lendemain.
 function parseDate(value, label) {
   if (!value) return null;
 
-  const date = new Date(value);
+  const raw = String(value).trim();
+  const isLocalDateTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(raw);
+  const normalized = isLocalDateTime ? raw + '+03:00' : raw;
+  const date = new Date(normalized);
 
   if (Number.isNaN(date.getTime())) {
     throw Error(label + ' invalide');
