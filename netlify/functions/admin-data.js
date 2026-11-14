@@ -28,6 +28,11 @@ exports.handler=async(event)=>{
    const field='Points';
    const current=Number(record.fields?.[field])||0;
    out=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{[field]:current+amount}})});
+  }else if(x.action==='setPlayerStats'){
+   const played=Number(x.matchesPlayed),wins=Number(x.wins);
+   if(!x.id)throw new Error('Choisis un joueur.');
+   if(!Number.isSafeInteger(played)||played<0||!Number.isSafeInteger(wins)||wins<0||wins>played)throw new Error('Victoires doit être compris entre 0 et matchs joués.');
+   out=await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{'Matchs joués':played,'Victoires':wins}})});
   }else if(x.action==='saveMatch'){
    if(!x.a||!x.b||x.a.toLowerCase()===x.b.toLowerCase())throw new Error('Indique deux joueurs différents.');
    const fields={'Équipe A':x.a,'Équipe B':x.b,'Score A':Number(x.sa)||0,'Score B':Number(x.sb)||0,'Mode':x.mode||'1 VS 1','Statut':'Terminé'};
