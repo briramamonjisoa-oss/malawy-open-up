@@ -153,7 +153,7 @@
     const subscription = await registration.pushManager.getSubscription();
     if (!subscription) return;
     const endpoint = subscription.endpoint;
-    if (localStorage.getItem('mou_push_saved_endpoint') === endpoint) return;
+    // Re-sync on every refresh: the server upserts by endpoint, so this is safe and repairs missing Airtable rows.
     await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe', subscription: subscription.toJSON() }) });
     localStorage.setItem('mou_push_saved_endpoint', endpoint);
   }
