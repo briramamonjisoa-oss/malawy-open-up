@@ -27,13 +27,15 @@ exports.handler=async event=>{
    return R(200,{success:true,restored});
   }
   if(x.action==='reset'){
-   const records=await all(TABLE);
+   const tournamentId=String(x.tournamentId||'');
+   if(!tournamentId)throw Error('Choisis un tournoi avant de réinitialiser son classement.');
+   const records=(await all(TABLE)).filter(r=>String(r.fields?.['ID tournoi']||'')===tournamentId);
    for(let i=0;i<records.length;i+=10){
     const q=new URLSearchParams();
     records.slice(i,i+10).forEach(r=>q.append('records[]',r.id));
     await airtable(encodeURIComponent(TABLE)+'?'+q.toString(),{method:'DELETE'});
    }
-   return R(200,{success:true,deleted:records.length,backup:records.map(r=>r.fields),message:'Classement Battle Royale réinitialisé.'});
+   return R(200,{success:true,tournamentId,deleted:records.length,backup:records.map(r=>r.fields),message:'Résultats du tournoi réinitialisés.'});
   }
   const tid=String(x.tournamentId||''),count=Number(x.mapCount);
   if(!tid||![2,3].includes(count)||!Array.isArray(x.maps)||x.maps.length!==count)throw Error('Choisis un tournoi et 2 ou 3 maps.');
