@@ -20,6 +20,13 @@ exports.handler=async(event)=>{
    const field='Points';
    const current=Number(record.fields?.[field])||0;
    out=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{[field]:current+amount}})});
+  }else if(x.action==='setPoints'){
+   const amount=Number(x.points);
+   if(!Number.isSafeInteger(amount)||amount<0)throw new Error('Le total de points doit être un entier positif ou égal à zéro.');
+   const table=x.targetType==='team'?'Equipes':x.targetType==='player'?'Inscriptions':'';
+   if(!table||!x.id)throw new Error('Joueur ou équipe invalide.');
+   const record=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id));
+   out=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{Points:amount}})});
   }else if(x.action==='saveMatch'){
    if(!x.a||!x.b||x.a.toLowerCase()===x.b.toLowerCase())throw new Error('Indique deux joueurs différents.');
    const fields={'Équipe A':x.a,'Équipe B':x.b,'Score A':Number(x.sa)||0,'Score B':Number(x.sb)||0,'Mode':x.mode||'1 VS 1','Statut':'Terminé'};
