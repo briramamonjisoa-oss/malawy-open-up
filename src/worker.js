@@ -10,6 +10,7 @@ import tournamentRosters from "../netlify/functions/tournament-rosters.js";
 import tournamentSignups from "../netlify/functions/tournament-signups.js";
 import tournaments from "../netlify/functions/tournaments.js";
 import notifications from "../netlify/functions/notifications.js";
+import battleRoyaleResults from "../netlify/functions/battle-royale-results.js";
 
 const handlers = {
   admin: admin.handler,
@@ -23,7 +24,8 @@ const handlers = {
   "tournament-rosters": tournamentRosters.handler,
   "tournament-signups": tournamentSignups.handler,
   tournaments: tournaments.handler,
-  notifications: notifications.handler
+  notifications: notifications.handler,
+  "battle-royale-results": battleRoyaleResults.handler
 };
 
 function json(data, status = 200) {
