@@ -109,7 +109,7 @@ function parseDate(value, label) {
   if (!value) return null;
 
   const raw = String(value).trim();
-  const isLocalDateTime = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?$/.test(raw);
+  const isLocalDateTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(raw);
   const normalized = isLocalDateTime ? raw + '+03:00' : raw;
   const date = new Date(normalized);
 
