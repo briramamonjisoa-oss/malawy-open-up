@@ -6,9 +6,8 @@
     { key: 'requests', icon: '👥', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
     { key: 'points', icon: '🏆', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
     { key: 'matches', icon: '⚔️', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
-    { key: 'inbox', icon: '📥', title: 'Boîte des demandes', subtitle: 'Consulter toutes les inscriptions' },
     { key: 'notifications', icon: '🔔', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
-    { key: 'photos', icon: '🖼️', title: 'Configuration des photos', subtitle: 'Paramètres des images' }
+    { key: 'tournamentSignups', icon: '📥', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' }
   ];
 
   function makePanel(element, key, root) {
@@ -70,10 +69,17 @@
           '<span class="shortcut-icon">' + definition.icon + '</span>' +
           '<span>' + definition.title + '<small>' + definition.subtitle + '</small></span>';
         button.addEventListener('click', () => {
+          if (definition.key === 'tournamentSignups') {
+            const tournamentTab = $('[data-tab="tournaments"]');
+            if (tournamentTab) tournamentTab.click();
+            window.setTimeout(() => {
+              const target = document.querySelector('#adminSignups');
+              (target || document.querySelector('#tournamentAdmin'))?.scrollIntoView({behavior:'smooth',block:'start'});
+            }, 450);
+            return;
+          }
           const panel = $('[data-admin-panel="' + definition.key + '"]', root);
-          if (!panel) return;
-          panel.open = true;
-          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (panel) panel.open = true;
         });
         grid.append(button);
       });
@@ -85,23 +91,47 @@
       if (heading.startsWith('Demandes en attente')) key = 'requests';
       else if (heading === 'Attribuer des points') key = 'points';
       else if (heading.toLowerCase().includes('résultat')) key = 'matches';
-      else if (heading === 'Configuration des photos') key = 'photos';
       if (key) makePanel(block, key, root);
     });
-
-    const launch = $('.admin-inbox-launch', root);
-    const inbox = $('#requestsInbox', root);
-    if (launch && inbox && !launch.closest('.admin-accordion')) {
-      const holder = document.createElement('div');
-      holder.className = 'admin-inbox-holder';
-      launch.parentNode.insertBefore(holder, launch);
-      holder.append(launch, inbox);
-      makePanel(holder, 'inbox', root);
-    }
 
     const notificationSection = $('#mouNotificationAdmin', root);
     if (notificationSection) makePanel(notificationSection, 'notifications', root);
   }
+
+
+  function installModalBehavior(root) {
+    root.querySelectorAll('.admin-accordion').forEach(panel => {
+      if (panel.dataset.modalReady === '1') return;
+      panel.dataset.modalReady = '1';
+      panel.addEventListener('toggle', () => {
+        if (panel.open) {
+          root.querySelectorAll('.admin-accordion[open]').forEach(other => {
+            if (other !== panel) other.open = false;
+          });
+          let backdrop = panel.previousElementSibling;
+          if (!backdrop || !backdrop.classList.contains('admin-modal-backdrop')) {
+            backdrop = document.createElement('button');
+            backdrop.type = 'button';
+            backdrop.className = 'admin-modal-backdrop';
+            backdrop.setAttribute('aria-label', 'Fermer le panneau');
+            panel.parentNode.insertBefore(backdrop, panel);
+            backdrop.addEventListener('click', () => { panel.open = false; });
+          }
+          document.body.classList.add('admin-modal-active');
+        } else {
+          const backdrop = panel.previousElementSibling;
+          if (backdrop && backdrop.classList.contains('admin-modal-backdrop')) backdrop.remove();
+          if (!root.querySelector('.admin-accordion[open]')) document.body.classList.remove('admin-modal-active');
+        }
+      });
+    });
+  }
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      document.querySelectorAll('#adminContent .admin-accordion[open]').forEach(panel => { panel.open = false; });
+    }
+  });
 
   function init() {
     const root = $('#adminContent');
@@ -109,7 +139,8 @@
     const observer = new MutationObserver(() => setup(root));
     observer.observe(root, { childList: true, subtree: true });
     setup(root);
-    window.addEventListener('mou:admin-auth', () => setup(root));
+    installModalBehavior(root);
+    window.addEventListener('mou:admin-auth', () => { setup(root); installModalBehavior(root); });
   }
 
   if (document.readyState === 'loading') {
