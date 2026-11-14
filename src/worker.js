@@ -56,7 +56,7 @@ export default {
     // Safe diagnostic: reports presence only, never returns secret values.
     if (url.pathname === "/__health") {
       return json({
-        worker: "malawy-open-up",
+        worker: "malawy-open-up-test",
         bindings: {
           ADMIN_CODE: Boolean(env.ADMIN_CODE),
           AIRTABLE_TOKEN: Boolean(env.AIRTABLE_TOKEN),
