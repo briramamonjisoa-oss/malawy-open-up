@@ -104,25 +104,40 @@
     root.querySelectorAll('.admin-accordion').forEach(panel => {
       if (panel.dataset.modalReady === '1') return;
       panel.dataset.modalReady = '1';
+      const placeholder = document.createComment('admin-panel-position');
+      panel.parentNode.insertBefore(placeholder, panel);
+
       panel.addEventListener('toggle', () => {
         if (panel.open) {
-          root.querySelectorAll('.admin-accordion[open]').forEach(other => {
+          document.querySelectorAll('.admin-accordion[open]').forEach(other => {
             if (other !== panel) other.open = false;
           });
-          let backdrop = panel.previousElementSibling;
-          if (!backdrop || !backdrop.classList.contains('admin-modal-backdrop')) {
+          if (!panel.dataset.inModal) {
+            document.body.appendChild(panel);
+            panel.dataset.inModal = '1';
+          }
+          let backdrop = document.querySelector('.admin-modal-backdrop');
+          if (!backdrop) {
             backdrop = document.createElement('button');
             backdrop.type = 'button';
             backdrop.className = 'admin-modal-backdrop';
             backdrop.setAttribute('aria-label', 'Fermer le panneau');
-            panel.parentNode.insertBefore(backdrop, panel);
-            backdrop.addEventListener('click', () => { panel.open = false; });
+            document.body.appendChild(backdrop);
+            backdrop.addEventListener('click', () => {
+              document.querySelectorAll('.admin-accordion[open]').forEach(item => { item.open = false; });
+            });
           }
           document.body.classList.add('admin-modal-active');
+          panel.scrollTop = 0;
         } else {
-          const backdrop = panel.previousElementSibling;
-          if (backdrop && backdrop.classList.contains('admin-modal-backdrop')) backdrop.remove();
-          if (!root.querySelector('.admin-accordion[open]')) document.body.classList.remove('admin-modal-active');
+          if (panel.dataset.inModal) {
+            if (placeholder.parentNode) placeholder.parentNode.insertBefore(panel, placeholder.nextSibling);
+            delete panel.dataset.inModal;
+          }
+          if (!document.querySelector('.admin-accordion[open]')) {
+            document.querySelector('.admin-modal-backdrop')?.remove();
+            document.body.classList.remove('admin-modal-active');
+          }
         }
       });
     });
@@ -130,7 +145,7 @@
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
-      document.querySelectorAll('#adminContent .admin-accordion[open]').forEach(panel => { panel.open = false; });
+      document.querySelectorAll('.admin-accordion[open]').forEach(panel => { panel.open = false; });
     }
   });
 
