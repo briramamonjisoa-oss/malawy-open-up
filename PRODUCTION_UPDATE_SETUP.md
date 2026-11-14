@@ -19,7 +19,7 @@ Créer dans Airtable la table `Résultats Battle Royale` avec ces champs :
 
 Barème : Top 1 = 20, Top 2 = 15, Top 3 = 10, autres = 0, chaque kill = 1 point. Les joueurs retenus doivent avoir une inscription acceptée dans le tournoi sélectionné. Les résultats sont saisis manuellement map par map (2 ou 3 maps). Le classement BR est séparé du classement général actuel.
 
-Le bouton de réinitialisation supprime les résultats BR de tous les tournois. Une sauvegarde locale sur l’appareil de l’administrateur est proposée pour annuler, mais elle n’est pas une sauvegarde serveur et ne doit pas être considérée comme une garantie de restauration.
+Le bouton de réinitialisation supprime uniquement les résultats BR du tournoi sélectionné. Une sauvegarde locale sur l’appareil de l’administrateur est proposée pour annuler, mais elle n’est pas une sauvegarde serveur et ne doit pas être considérée comme une garantie de restauration. Une notification push est mise en file lorsqu’un administrateur accepte une inscription joueur, si le joueur a activé les notifications.
 
 ## Notifications push
 
