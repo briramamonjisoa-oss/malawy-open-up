@@ -1,109 +1,120 @@
 (() => {
   'use strict';
-  const $ = (s, root=document) => root.querySelector(s);
-  const icons = {
-    requests: '👥', points: '🏆', matches: '⚔️',
-    inbox: '📥', notifications: '🔔', photos: '🖼️'
-  };
-  const labels = {
-    requests: ['Demandes joueurs', 'Valider ou refuser les inscriptions'],
-    points: ['Attribuer des points', 'Joueurs et équipes'],
-    matches: ['Résultats des matchs', 'Ajouter ou modifier un score'],
-    inbox: ['Boîte des demandes', 'Consulter toutes les inscriptions'],
-    notifications: ['Notifications', 'Envoyer ou programmer un message'],
-    photos: ['Photos', 'Configuration des photos']
-  };
-  function wrapPanel(root, element, key) {
-    if (!element || element.dataset.adminAccordion === '1') return;
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const definitions = [
+    { key: 'requests', icon: '👥', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
+    { key: 'points', icon: '🏆', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
+    { key: 'matches', icon: '⚔️', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
+    { key: 'inbox', icon: '📥', title: 'Boîte des demandes', subtitle: 'Consulter toutes les inscriptions' },
+    { key: 'notifications', icon: '🔔', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
+    { key: 'photos', icon: '🖼️', title: 'Configuration des photos', subtitle: 'Paramètres des images' }
+  ];
+
+  function makePanel(element, key, root) {
+    if (!element || element.dataset.adminAccordion === '1') return null;
+    const definition = definitions.find(item => item.key === key);
+    if (!definition) return null;
+
     const details = document.createElement('details');
     details.className = 'admin-accordion';
     details.dataset.adminPanel = key;
+
     const summary = document.createElement('summary');
-    summary.innerHTML = '<span class="shortcut-icon">' + icons[key] + '</span><span>' + labels[key][0] + '</span>';
+    summary.innerHTML = '<span class="shortcut-icon">' + definition.icon + '</span><span>' + definition.title + '</span>';
+
     const body = document.createElement('div');
     body.className = 'admin-accordion-body';
+
     element.dataset.adminAccordion = '1';
     element.parentNode.insertBefore(details, element);
     details.append(summary, body);
     body.append(element);
+
     if (key === 'requests') {
-      const count = $('#pendingRequestsTitle');
-      const update = () => {
-        const match = (count?.textContent || '').match(/\((\d+)\)/);
-        const badge = summary.querySelector('.admin-shortcut-count') || document.createElement('span');
-        badge.className = 'admin-shortcut-count';
+      const updateCount = () => {
+        const heading = $('#pendingRequestsTitle', root);
+        const match = (heading?.textContent || '').match(/\((\d+)\)/);
+        let badge = $('.admin-shortcut-count', summary);
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'admin-shortcut-count';
+          summary.append(badge);
+        }
         badge.textContent = match ? match[1] : '0';
-        summary.append(badge);
       };
-      update();
-      if (count) new MutationObserver(update).observe(count, {childList:true,subtree:true,characterData:true});
+      updateCount();
+      const heading = $('#pendingRequestsTitle', root);
+      if (heading) new MutationObserver(updateCount).observe(heading, { childList: true, subtree: true, characterData: true });
     }
     return details;
   }
+
   function setup(root) {
-    if (!root) return;
     const toolbar = $('.admin-toolbar', root);
     if (!toolbar) return;
+
     let grid = $('#adminShortcuts', root);
     if (!grid) {
       grid = document.createElement('div');
       grid.id = 'adminShortcuts';
       grid.className = 'admin-shortcuts';
-    const order = ['requests','points','matches','inbox','notifications','photos'];
-    const targets = {
-      requests: () => $('[data-admin-panel="requests"]', root),
-      points: () => $('[data-admin-panel="points"]', root),
-      matches: () => $('[data-admin-panel="matches"]', root),
-      inbox: () => $('[data-admin-panel="inbox"]', root),
-      notifications: () => $('[data-admin-panel="notifications"]', root),
-      photos: () => $('[data-admin-panel="photos"]', root)
-    };
-    order.forEach(key => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'admin-shortcut';
-      button.innerHTML = '<span class="shortcut-icon">' + icons[key] + '</span><span>' + labels[key][0] + '<small>' + labels[key][1] + '</small></span>';
-      button.addEventListener('click', () => {
-        const panel = targets[key]();
-        if (!panel) return;
-        panel.open = true;
-        panel.scrollIntoView({behavior:'smooth',block:'start'});
-      });
-      grid.append(button);
-    });
       toolbar.after(grid);
+
+      definitions.forEach(definition => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'admin-shortcut';
+        button.dataset.openAdminPanel = definition.key;
+        button.innerHTML =
+          '<span class="shortcut-icon">' + definition.icon + '</span>' +
+          '<span>' + definition.title + '<small>' + definition.subtitle + '</small></span>';
+        button.addEventListener('click', () => {
+          const panel = $('[data-admin-panel="' + definition.key + '"]', root);
+          if (!panel) return;
+          panel.open = true;
+          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        grid.append(button);
+      });
     }
-    const blocks = [...root.querySelectorAll(':scope > .admin-block')];
-    blocks.forEach(block => {
-      const heading = $('h3', block)?.textContent || '';
-      const key = heading.includes('Demandes en attente') ? 'requests'
-        : heading.includes('Attribuer des points') ? 'points'
-        : heading.includes('résultat') ? 'matches'
-        : heading.includes('Configuration des photos') ? 'photos' : '';
-      if (key) wrapPanel(root, block, key);
+
+    [...root.querySelectorAll(':scope > .admin-block')].forEach(block => {
+      const heading = $('h3', block)?.textContent?.trim() || '';
+      let key = '';
+      if (heading.startsWith('Demandes en attente')) key = 'requests';
+      else if (heading === 'Attribuer des points') key = 'points';
+      else if (heading.toLowerCase().includes('résultat')) key = 'matches';
+      else if (heading === 'Configuration des photos') key = 'photos';
+      if (key) makePanel(block, key, root);
     });
+
     const launch = $('.admin-inbox-launch', root);
     const inbox = $('#requestsInbox', root);
-    if (launch && inbox && !launch.closest('[data-admin-accordion="1"]')) {
+    if (launch && inbox && !launch.dataset.adminAccordion) {
       const holder = document.createElement('div');
       holder.className = 'admin-inbox-holder';
       launch.parentNode.insertBefore(holder, launch);
       holder.append(launch, inbox);
-      const details = wrapPanel(root, holder, 'inbox');
-      if (details) details.open = false;
-      launch.hidden = true;
+      makePanel(holder, 'inbox', root);
     }
-    const notice = $('#mouNotificationAdmin', root);
-    if (notice) wrapPanel(root, notice, 'notifications');
+
+    const notificationSection = $('#mouNotificationAdmin', root);
+    if (notificationSection) makePanel(notificationSection, 'notifications', root);
   }
+
   function init() {
     const root = $('#adminContent');
     if (!root) return;
     const observer = new MutationObserver(() => setup(root));
-    observer.observe(root, {childList:true,subtree:true});
+    observer.observe(root, { childList: true, subtree: true });
     setup(root);
-    document.addEventListener('mou:admin-auth', () => setup(root));
+    window.addEventListener('mou:admin-auth', () => setup(root));
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 })();
