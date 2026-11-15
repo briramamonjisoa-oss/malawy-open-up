@@ -44,7 +44,8 @@ export default {
       VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
       VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
       VAPID_SUBJECT: env.VAPID_SUBJECT,
-      FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON
+      FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON,
+      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY
     };
     ctx.waitUntil(Promise.allSettled([
       handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
