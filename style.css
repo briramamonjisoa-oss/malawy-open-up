@@ -154,7 +154,7 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 .freefire-rank-section{display:flex;flex-direction:column;gap:8px;padding:13px;border-radius:15px;background:rgba(127,127,127,.10);border:1px solid var(--line)}
 .freefire-rank-section>small{font-size:.68rem;letter-spacing:.12em;font-weight:900;color:var(--muted)}
 .freefire-rank-tile{display:flex;align-items:center;gap:10px;min-height:52px}
-.freefire-rank-emblem{display:block;flex:0 0 42px;width:42px;height:42px;background-image:url('assets/freefire-ranks.webp');background-repeat:no-repeat;background-size:700% 500%;filter:drop-shadow(0 4px 5px #0008)}
+.freefire-rank-emblem{display:block;flex:0 0 42px;width:42px;height:42px;background-image:url('assets/freefire-ranks-hd.webp');background-repeat:no-repeat;background-size:700% 500%;filter:drop-shadow(0 4px 5px #0008)}
 .freefire-rank-section{min-width:0}
 .freefire-rank-tile{min-width:0}
 .freefire-rank-copy{min-width:0}
