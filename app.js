@@ -183,7 +183,7 @@ function freeFireRankCard(rankCode,points,mode='br'){
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
-async function loadPlayerProfile(){
+async function loadPlayerProfile(options={}){
  if(!state.playerToken)return;
  try{
   const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store'});
@@ -221,7 +221,7 @@ async function loadPlayerProfile(){
   const profilePlayed=(Number(p.wins)||0)+(Number(p.losses)||0);
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
   $('#profileMatches').innerHTML='<div class="item"><div><b>Statistiques cumulées</b><small>'+profilePlayed+' match(s) · '+(Number(p.wins)||0)+' victoire(s) · '+(Number(p.losses)||0)+' défaite(s)</small></div><strong>'+(Number(p.wins)||0)+'/'+profilePlayed+'</strong></div>'+p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('');
- }catch(e){state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message+' Ton accès reste mémorisé : réessaie sans recréer de compte.';}
+ }catch(e){if(options.silent&&state.player){console.warn('Actualisation du rang Free Fire impossible :',e.message);return;}state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message+' Ton accès reste mémorisé : réessaie sans recréer de compte.';}
 }
 window.addEventListener('mou:player-auth',async()=>{
  const msg=$('#gateMsg');
@@ -350,6 +350,14 @@ window.addEventListener('focus',refreshPublicData);
 window.addEventListener('pageshow',refreshPublicData);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPublicData()});
 setInterval(refreshPublicData,60000);
+let freeFireProfileRefreshBusy=false;
+async function refreshConnectedFreeFireProfile(){
+ if(freeFireProfileRefreshBusy||document.hidden||!state.playerToken||!state.player||$('#playerProfile').hidden)return;
+ freeFireProfileRefreshBusy=true;
+ try{await loadPlayerProfile({silent:true});}finally{freeFireProfileRefreshBusy=false;}
+}
+setInterval(refreshConnectedFreeFireProfile,300000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshConnectedFreeFireProfile()});
 
 // Restore an authenticated player session after the WebView/app is reopened.
 (async function restorePlayerSession(){
