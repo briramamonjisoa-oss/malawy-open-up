@@ -465,3 +465,13 @@ body>.admin-accordion[open]>summary{background:#050505!important;border-bottom:1
 .admin-accordion-body>.admin-block{background:transparent}
 @media(max-width:600px){.admin-shortcuts{grid-template-columns:1fr;gap:8px}.admin-shortcut{min-height:68px}.admin-accordion[open][data-in-modal="1"],body>.admin-accordion[open]{left:8px!important;right:8px!important;top:max(10px,env(safe-area-inset-top))!important;bottom:max(10px,env(safe-area-inset-bottom))!important}}
 @media(prefers-reduced-motion:reduce){.admin-shortcut,.admin-accordion,.admin-accordion>summary{transition:none!important}}
+
+
+/* Keep one visible admin navigation: shortcuts are the menu,
+   accordion panels are opened as modal content only. */
+#adminContent>.admin-accordion:not([open]),
+#adminContent>.admin-accordion[data-admin-panel]:not([open]){
+ display:none!important;
+}
+#adminContent>.admin-shortcuts{display:grid}
+#adminContent>.admin-toolbar{margin-bottom:16px}
