@@ -36,7 +36,15 @@ exports.handler=async(event)=>{
    const played=Number(x.played),wins=Number(x.wins);
    if(!x.id||!Number.isSafeInteger(played)||!Number.isSafeInteger(wins)||played<0||wins<0||wins>played)throw new Error('Statistiques invalides : les victoires doivent être comprises entre 0 et les matchs joués.');
    const losses=played-wins;
-   out=await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{'Victoires':wins,'Défaites':losses}})});
+   // Use the known Airtable table ID and verify the write actually persisted.
+   const tableId='tblz0rJpaQBpafBN2';
+   const recordPath=tableId+'/'+encodeURIComponent(x.id);
+   const before=await airtable(recordPath);
+   if(!before?.id)throw new Error('Joueur introuvable dans Airtable.');
+   const out=await airtable(recordPath,{method:'PATCH',body:JSON.stringify({fields:{'Victoires':wins,'Défaites':losses}})});
+   const savedWins=Number(out.fields?.['Victoires']);
+   const savedLosses=Number(out.fields?.['Défaites']);
+   if(savedWins!==wins||savedLosses!==losses)throw new Error('Airtable n’a pas confirmé les statistiques. Vérifie que les champs « Victoires » et « Défaites » sont des champs modifiables de type nombre.');
   }else if(x.action==='saveMatch'){
    if(!x.a||!x.b||x.a.toLowerCase()===x.b.toLowerCase())throw new Error('Indique deux joueurs différents.');
    const fields={'Équipe A':x.a,'Équipe B':x.b,'Score A':Number(x.sa)||0,'Score B':Number(x.sb)||0,'Mode':x.mode||'1 VS 1','Statut':'Terminé'};
