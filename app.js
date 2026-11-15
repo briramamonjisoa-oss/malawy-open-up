@@ -348,13 +348,15 @@ if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').
 let publicRefreshBusy=false;
 async function refreshPublicData(){
  if(publicRefreshBusy||document.hidden)return;
+ const active=document.activeElement;
+ if(active&&active.matches('input,textarea,select,[contenteditable="true"]'))return;
  publicRefreshBusy=true;
  try{await loadAll()}finally{publicRefreshBusy=false}
 }
 window.addEventListener('focus',refreshPublicData);
 window.addEventListener('pageshow',refreshPublicData);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPublicData()});
-setInterval(refreshPublicData,15000);
+setInterval(refreshPublicData,60000);
 
 // Restore an authenticated player session after the WebView/app is reopened.
 (async function restorePlayerSession(){

@@ -515,3 +515,12 @@ body:after{
 #adminContent>.admin-accordion:not([open]){display:none!important}
 @media(max-width:600px){#adminContent>.admin-shortcuts{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){body:after{animation:none!important}.panel:before,.admin-shortcut:before{display:none!important}}
+
+@media (max-width:700px), (hover:none) and (pointer:coarse){
+ body:after{opacity:.22;animation:none!important;transform:none!important;background-size:420px 480px,520px 560px,610px 640px,480px 520px,680px 720px}
+ .page.active{animation:none!important}
+ .panel:before,.admin-shortcut:before,.admin-accordion:not([data-in-modal="1"]):before{display:none!important;content:none!important}
+ #tournaments .tour-card,#tournaments .signup-card,#tournaments .my-tournament-card,#tournaments .tour-form,#tournaments .my-tournaments,#tournaments .tour-admin{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(0,0,0,.88)!important}
+ #tournaments .tour-card:hover,#tournaments .signup-card:hover,#tournaments .my-tournament-card:hover{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){body:after,.page.active{animation:none!important}}
