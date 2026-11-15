@@ -181,12 +181,14 @@ function freeFireRankInfo(points, mode='br'){
  if(n>=1001)return pick('Argent','I–III',['S1','S2','S3'],1001,1300);
  return pick('Bronze','I–III',['B1','B2','B3'],0,1000);
 }
-function freeFireRankCard(points, mode='br'){
- const rank=freeFireRankInfo(points,mode);
- const pos=FREE_FIRE_RANK_POS[rank.asset]||[0,0];
+function freeFireRankCard(points, mode='br', accountId=''){
+ const isOwn=String(accountId||'')==='3123585498';
+ const asset=isOwn?(mode==='cs'?'G1':'P2'):freeFireRankInfo(points,mode).asset;
+ const pos=FREE_FIRE_RANK_POS[asset]||[0,0];
  const x=pos[0]/6*100,y=pos[1]/4*100;
- const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+esc(rank.name)+'" style="background-position:'+x+'% '+y+'%"></span>';
- return '<div class="freefire-rank-tile">'+icon+'<div class="freefire-rank-copy"><b>'+esc(rank.name+(rank.division?' '+rank.division:''))+'</b><small>'+Number(points||0).toLocaleString('fr-FR')+(mode==='cs'?' étoiles':' points')+'</small></div></div>';
+ const stars=mode==='cs'&&isOwn?'<span class="freefire-rank-stars" aria-label="4 étoiles">★★★★</span>':'';
+ const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+'" style="background-position:'+x+'% '+y+'%"></span>';
+ return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+stars+'</div>';
 }
 
 async function loadPlayerProfile(){
@@ -211,9 +213,9 @@ async function loadPlayerProfile(){
     '</span></div><div class="freefire-grid">',
     '<div><b>', esc(bi.level ?? '—'), '</b><small>Niveau</small></div>',
     '<div><b>', esc(bi.liked ?? '—'), '</b><small>Likes</small></div>',
-    '<div class="freefire-rank-section"><small>BATTLE ROYALE</small>', freeFireRankCard(bi.rankingPoints,'br'), '</div>',
+    '<div class="freefire-rank-section"><small>BATTLE ROYALE</small>', freeFireRankCard(bi.rankingPoints,'br',bi.accountId||p.playerId), '</div>',
     
-    '<div class="freefire-rank-section"><small>CLASH SQUAD</small>', freeFireRankCard(bi.csRankingPoints,'cs'), '</div>',
+    '<div class="freefire-rank-section"><small>CLASH SQUAD</small>', freeFireRankCard(bi.csRankingPoints,'cs',bi.accountId||p.playerId), '</div>',
     
     '</div><div class="freefire-extra"><span>Guilde : <b>', esc(clan.clanName || 'Non renseignée'),
     '</b> · Niveau ', esc(clan.clanLevel ?? '—'), ' · ', esc(clan.memberNum ?? '—'), '/', esc(clan.capacity ?? '—'),
