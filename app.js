@@ -167,7 +167,7 @@ function freeFireRankInfo(points, mode='br'){
   if(n>=107)return pick('Élite héroïque','',['H3','H4','H5'],107,131);
   if(n>=82)return pick('Héroïque','',['H1','H2'],82,106);
   if(n>=37)return pick('Diamant','I–V',['D1','D2','D3','D4','D5'],37,81);
-  if(n>=17)return pick('Platine','I–V',['P1','P2','P3','P4','D45'],17,36);
+  if(n>=17)return pick('Platine','I–V',['P1','P2','P3','P4','P4'],17,36);
   if(n>=1)return pick('Or','I–IV',['G1','G2','G3','G4'],1,16);
   return tier('Argent','III','S1');
  }
