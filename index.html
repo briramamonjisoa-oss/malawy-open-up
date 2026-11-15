@@ -4,12 +4,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0d1018">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MALAWY OPEN UP">
 
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/style.css?v=freefire-emblems-20261115">
+<link rel="stylesheet" href="/style.css?v=black-velvet-gold-20261115">
 
 <title>MALAWY OPEN UP — Free Fire</title>
 </head>
@@ -54,11 +54,11 @@
 <span class="logo">M</span>
 <span class="brand-name">MALAWY <b>OPEN UP</b><small>FREE FIRE COMMUNITY</small></span>
 </a>
-<div class="header-actions"><span class="live">● ESPORT</span><button type="button" id="settingsToggle" class="settings-toggle" aria-label="Paramètres" aria-expanded="false">⚙</button></div>
+<div class="header-actions"><span class="live">● ESPORT</span><button type="button" id="settingsToggle" class="settings-toggle" aria-label="Paramètres" aria-expanded="false"><span aria-hidden="true">≡</span></button></div>
 </header>
 <div id="settingsMenu" class="settings-menu" hidden>
  <div class="settings-title">PARAMÈTRES</div>
- <button type="button" id="themeToggle" class="settings-option">☀️ Mode clair</button>
+ <button type="button" id="themeToggle" class="settings-option">Mode clair</button>
  <div id="pinResetWrap" class="pin-reset-wrap" hidden><form id="pinResetForm" class="form"><b>Réinitialiser le code PIN</b><label>Ancien PIN<input name="currentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><label>Nouveau PIN<input name="newPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><button class="primary" type="submit">Enregistrer le nouveau PIN</button><p id="pinResetMsg" class="message" aria-live="polite"></p></form></div>
  <button type="button" id="settingsLogout" class="settings-option danger-text">↪ Déconnexion</button>
 </div>
@@ -264,10 +264,10 @@
 </div>
 
 <div class="admin-inbox-launch">
-<button type="button" id="openRequestsInbox" class="primary">📥 Boîte des demandes <span id="inboxCount">0</span></button>
+<button type="button" id="openRequestsInbox" class="primary">Boîte des demandes <span id="inboxCount">0</span></button>
 </div>
 <div id="requestsInbox" class="requests-inbox" hidden>
-<div class="admin-toolbar"><h3>TOUTES LES INSCRIPTIONS</h3><div class="button-row"><button type="button" id="refreshRequestsInbox" class="secondary">Actualiser</button><button type="button" id="closeRequestsInbox" class="secondary">Fermer ✕</button></div></div>
+<div class="admin-toolbar"><h3>TOUTES LES INSCRIPTIONS</h3><div class="button-row"><button type="button" id="refreshRequestsInbox" class="secondary">Actualiser</button><button type="button" id="closeRequestsInbox" class="secondary">Fermer</button></div></div>
 <p id="inboxMessage" class="muted">Chargement des demandes…</p>
 <div id="inboxPlayers" class="stack"></div>
 </div>
@@ -290,10 +290,10 @@
 <nav class="bottom" aria-label="Navigation mobile">
 <button data-tab="home">⌂<small>Accueil</small></button>
 <button data-tab="register">＋<small>Inscription</small></button>
-<button data-tab="players">♙<small>Joueurs</small></button>
-<button data-tab="profile">◎<small>Mon profil</small></button>
-<button data-tab="ranking">♛<small>Classement</small></button>
-<button data-tab="admin">⚙<small>Admin</small></button>
+<button data-tab="players">◉<small>Joueurs</small></button>
+<button data-tab="profile">◌<small>Mon profil</small></button>
+<button data-tab="ranking">≡<small>Classement</small></button>
+<button data-tab="admin">⌘<small>Admin</small></button>
 </nav>
 
 <script src="/navigation-fix.js"></script>

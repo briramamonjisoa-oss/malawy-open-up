@@ -19,7 +19,7 @@
    const next = document.body.dataset.theme === 'light' ? 'dark' : 'light';
    document.body.dataset.theme = next;
    try { localStorage.setItem('mou_theme', next); } catch (_) {}
-   const b = $('#themeToggle'); if(b) b.textContent = next === 'light' ? '🌙 Mode sombre' : '☀️ Mode clair';
+   const b = $('#themeToggle'); if(b) b.textContent = next === 'light' ? 'Mode sombre' : 'Mode clair';
    return;
   }
   if(el.closest('#settingsLogout') || el.closest('#logout')) {
