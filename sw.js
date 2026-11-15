@@ -14,7 +14,8 @@ const ASSETS = [
   '/battle-royale-scoring.js',
   '/push-notifications.js',
   '/manifest.webmanifest',
-  '/icon.svg'
+  '/icon.svg',
+  '/assets/freefire-ranks-hd.webp'
 ];
 
 self.addEventListener('install', event => {
