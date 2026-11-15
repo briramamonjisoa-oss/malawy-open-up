@@ -574,3 +574,21 @@ body:after{
  #players .tournament-roster-card{background:rgba(0,0,0,.88)}
  #players .tournament-roster-head{background:rgba(0,0,0,.72)}
 }
+
+/* Communauté : liste générale des joueurs et présence Free Fire */
+.tournament-participants-section{margin-top:32px;padding-top:24px;border-top:1px solid var(--line)}
+.tournament-participants-section h3{margin:8px 0}
+.guild-live-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px;margin:18px 0;background:linear-gradient(135deg,#171b23,#101010);border:1px solid var(--line);border-radius:20px}
+.guild-live-summary>div:first-child{display:grid;gap:5px}.guild-live-summary strong{font-size:22px}.guild-live-summary small{color:var(--muted)}
+.guild-online-total{text-align:right;display:grid;gap:3px}.guild-online-total b{font-size:30px;color:#4bd39a}.guild-online-total small{font-size:11px;color:var(--muted)}
+.community-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0}
+.community-toolbar input{min-width:180px;flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text)}
+.community-player-card{display:flex;width:100%;align-items:center;gap:12px;padding:13px;margin:8px 0;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text)}
+.community-avatar{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#242424;font-weight:800}
+.community-avatar img{width:100%;height:100%;object-fit:cover}
+.community-player-main{min-width:0;flex:1;display:grid;gap:4px}.community-player-main b{font-size:15px;overflow-wrap:anywhere}.community-player-main small{color:var(--muted);font-size:11px}
+.community-presence{display:flex;align-items:center;gap:6px;max-width:120px;font-size:10px;text-align:right;color:var(--muted)}
+.community-presence i{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#858585}
+.community-presence.online{color:#4bd39a}.community-presence.online i{background:#4bd39a;box-shadow:0 0 9px #4bd39a80}
+.community-presence.offline{color:#aaa}.community-presence-note{font-size:11px;color:var(--muted);margin-top:16px}
+@media(max-width:480px){.community-player-card{gap:8px;padding:10px}.community-avatar{width:40px;height:40px;flex-basis:40px}.community-presence{max-width:96px;font-size:9px}}
