@@ -47,8 +47,16 @@ body[data-theme="light"]{--bg:#f4f6fa;--panel:#ffffff;--line:#dce2ec;--text:#172
 body[data-theme="light"] .tournament-roster-head{background:linear-gradient(135deg,#e8edf5,#fff)}
 body[data-theme="light"] .tournament-player-names span{background:#e8edf5;color:#172033}
 
-.admin-inbox-launch{position:sticky;bottom:82px;z-index:20;margin:22px 0;padding:10px;background:#0d1018ed;border:1px solid var(--line);border-radius:16px}.admin-inbox-launch button{width:100%;display:flex;justify-content:center;gap:10px}.admin-inbox-launch span{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:99px;background:#101520;color:var(--lime)}.requests-inbox{margin:14px 0 28px;padding:14px;background:var(--panel);border:1px solid var(--lime);border-radius:16px}.requests-inbox[hidden]{display:none!important}.requests-inbox .admin-player{display:grid}.requests-inbox .admin-player-controls{width:100%;grid-template-columns:1fr auto;align-items:center}.requests-inbox .admin-player-controls select{min-width:0}
+.admin-inbox-launch{position:static;z-index:auto;margin:22px 0;padding:10px;background:#0d1018ed;border:1px solid var(--line);border-radius:16px}.admin-inbox-launch button{width:100%;display:flex;justify-content:center;gap:10px}.admin-inbox-launch span{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:99px;background:#101520;color:var(--lime)}.requests-inbox{margin:14px 0 28px;padding:14px;background:var(--panel);border:1px solid var(--lime);border-radius:16px}.requests-inbox[hidden]{display:none!important}.requests-inbox .admin-player{display:grid}.requests-inbox .admin-player-controls{width:100%;grid-template-columns:1fr auto;align-items:center}.requests-inbox .admin-player-controls select{min-width:0}
 
 .tournament-player-chip{display:inline-flex;align-items:center;gap:7px;background:#29344a;border-radius:10px;padding:5px 9px 5px 5px;font-size:12px;font-weight:700}.tournament-player-chip>img{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none}.tournament-player-chip>span{overflow-wrap:anywhere}body[data-theme="light"] .tournament-player-chip{background:#e8edf5;color:#172033}
 
 .tournament-player-chip{appearance:none;border:0;cursor:pointer;font:700 12px Inter;color:var(--text)}.tournament-player-chip:focus-visible{outline:2px solid var(--lime);outline-offset:2px}.tournament-player-chip:hover{filter:brightness(1.12);border-color:var(--lime)}
+
+/* Boîte des demandes : vraie fenêtre modale, indépendante du flux de la page admin */
+body.requests-inbox-open{overflow:hidden}
+#requestsInbox:not([hidden]){position:fixed;z-index:120;top:calc(var(--header) + 12px);left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));width:min(760px,calc(100vw - 24px));margin:0 auto;padding:16px;overflow:auto;overscroll-behavior:contain;background:var(--panel);border:1px solid var(--lime);border-radius:20px;box-shadow:0 0 0 100vmax #05070dcc,0 20px 70px #000b}
+#requestsInbox:not([hidden]) .admin-toolbar{position:sticky;top:-16px;z-index:2;padding:8px 0 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+#requestsInbox:not([hidden]) .admin-player{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}
+#requestsInbox:not([hidden]) .admin-player-controls{width:100%;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+@media(min-width:700px){#requestsInbox:not([hidden]){bottom:20px}}
