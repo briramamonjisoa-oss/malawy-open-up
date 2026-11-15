@@ -37,7 +37,7 @@ exports.handler=async(event)=>{
    // Le profil de base doit répondre immédiatement. Les historiques seront chargés séparément.
    const history=[];
    const tournamentSignups=[];
-   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,status:f['Statut inscription']||'',matches:history,tournamentSignups})};
+   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,matchesPlayed:(Number(f.Victoires)||0)+(Number(f.Défaites)||0),status:f['Statut inscription']||'',matches:history,tournamentSignups})};
   }
   if(event.httpMethod==='PATCH'){
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
