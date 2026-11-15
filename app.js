@@ -5,7 +5,7 @@ const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
 // L'API vit sur le Worker Cloudflare, pas nécessairement sur l'origine de la page.
 const API_ORIGIN='https://malawy-open-up.briramamonjisoa.workers.dev';
-const state={players:[],matches:[],teams:[],tournamentGroups:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
+const state={players:[],guildInfo:null,matches:[],teams:[],tournamentGroups:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
 document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let pageHistory=[];
@@ -57,7 +57,8 @@ async function loadAll(){
  const jobs=await Promise.allSettled([
   api('/.netlify/functions/matches'),
   api('/.netlify/functions/teams'),
-  api('/.netlify/functions/tournament-rosters')
+  api('/.netlify/functions/tournament-rosters'),
+  api('/.netlify/functions/guild-info')
  ]);
  try{
   const response=await fetch(API_ORIGIN+'/.netlify/functions/players?refresh='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
@@ -73,6 +74,8 @@ async function loadAll(){
  else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
  if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];
  else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
+ if(jobs[3].status==='fulfilled'&&jobs[3].value?.id)state.guildInfo=jobs[3].value;
+ else console.warn('Présence globale de la guilde indisponible:',jobs[3].reason||'données non retournées');
  state.adminLoadErrors=errors;
  // Render the admin list independently: a public-page rendering error must not hide player requests.
  if(state.admin){
@@ -126,6 +129,22 @@ $('#playersList').innerHTML=state.tournamentGroups.length?state.tournamentGroups
  <div class="tournament-roster-body"><b>JOUEURS INSCRITS</b>
  ${t.signups.map(s=>`<div class="tournament-signup-row">${s.logo?`<img class="tournament-team-logo" src="${esc(s.logo)}" alt="Logo équipe">`:''}<div class="tournament-signup-info">${s.teamName?`<strong>${esc(s.teamName)}</strong>`:''}<div class="tournament-player-names">${(s.playerDetails||s.players.map(name=>({name,photo:''}))).map(player=>`<button type="button" class="tournament-player-chip public-player-row" data-public-player="${esc(player.name.replace(/ \(remplaçant\)$/i,''))}" aria-label="Voir le profil de ${esc(player.name)}">${player.photo?`<img src="${esc(player.photo)}" alt="Photo ${esc(player.name)}" loading="lazy" onerror="this.remove()">`:''}<span>${esc(player.name)}</span></button>`).join('')}</div></div><span class="tournament-signup-status ${s.status==='Acceptée'?'approved':'pending'}">${esc(s.status)}</span></div>`).join('')}
  </div></article>`).join(''):'<p class="muted">Aucune inscription à un tournoi pour le moment.</p>';
+const community=state.players.slice().sort((a,b)=>String(a.pseudo||'').localeCompare(String(b.pseudo||''),'fr'));
+const guild=state.guildInfo,onlineCount=Number(guild?.online);
+const search=String(document.getElementById('communityPlayerSearch')?.value||'').trim().toLocaleLowerCase('fr');
+const visiblePlayers=community.filter(p=>!search||String(p.pseudo||'').toLocaleLowerCase('fr').includes(search)||String(p.playerId||'').includes(search));
+const guildSummary=guild?'<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild.name||'CIA')+'</strong><small>Niveau '+esc(guild.level??'—')+' · '+esc(guild.members??'—')+'/'+esc(guild.capacity??'—')+' membres</small></div><div class="guild-online-total"><b>'+ (Number.isFinite(onlineCount)?onlineCount:'—') +'</b><small>connectés dans le jeu</small></div></article>':'<p class="muted">Informations de guilde indisponibles pour le moment.</p>';
+$('#communityGuildSummary').innerHTML=guildSummary;
+$('#communityPlayersCount').textContent=community.length+' joueur(s) dans MALAWY OPEN UP';
+$('#communityPlayersList').innerHTML=visiblePlayers.length?visiblePlayers.map(p=>{
+ const bi=p.freeFireProfile?.basicInfo||{},clan=p.freeFireProfile?.clanBasicInfo||{};
+ const isGuild=String(clan.clanId||'')==='3076348376';
+ const onlineFlag=typeof bi.isOnline==='boolean'?bi.isOnline:(typeof bi.online==='boolean'?bi.online:null);
+ const presence=onlineFlag===true?'En ligne':onlineFlag===false?'Hors ligne':'Présence individuelle non fournie';
+ const presenceClass=onlineFlag===true?'online':onlineFlag===false?'offline':'unknown';
+ const last=bi.lastLoginAt?new Date(Number(bi.lastLoginAt)*1000).toLocaleString('fr-FR'):'Non communiquée';
+ return '<button type="button" class="community-player-card public-player-row" data-public-player="'+esc(p.pseudo)+'"><span class="community-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy">':esc(String(p.pseudo||'?').slice(0,1).toUpperCase()))+'</span><span class="community-player-main"><b>'+esc(p.pseudo)+'</b><small>UID '+esc(p.playerId||'—')+' · Niveau '+esc(bi.level??'—')+'</small><small>'+(isGuild?'Membre de CIA':'Guilde non confirmée')+' · '+esc(p.status||'Statut inconnu')+'</small><small>Dernière connexion : '+esc(last)+'</small></span><span class="community-presence '+presenceClass+'"><i></i>'+presence+'</span></button>';
+}).join(''):'<p class="muted">Aucun joueur ne correspond à cette recherche.</p>';
 const manualStats=rank;
 $('#publicMatchList').innerHTML=(manualStats.length?'<h3>STATISTIQUES DES JOUEURS</h3>'+manualStats.map(p=>'<div class="item"><div><b>'+esc(p.name)+'</b><small>'+p.played+' match(s) · '+p.wins+' victoire(s) · '+p.losses+' défaite(s)</small></div><strong>'+p.wins+'/'+p.played+'</strong></div>').join(''):'')+(state.matches.filter(x=>x.status==='Terminé'||!x.status).length?'<h3>RÉSULTATS DES MATCHS</h3>'+state.matches.filter(x=>x.status==='Terminé'||!x.status).map(x=>'<div class="item"><div><b>'+esc(x.a)+' vs '+esc(x.b)+'</b><small>'+esc(x.date||'')+'</small></div><strong>'+(Number(x.sa)||0)+' — '+(Number(x.sb)||0)+'</strong></div>').join(''):'')||'<p class="muted">Aucune statistique ni résultat enregistré pour le moment.</p>';
 $('#topPlayers').innerHTML=rank.length?rank.slice(0,3).map((p,i)=>`<button type="button" class="top-player rank-${i+1} public-player-row" data-public-player="${esc(p.name)}"><b>${i===0?'TOP 1':'TOP '+(i+1)}</b><div class="player-avatar">${avatar(p)}</div><strong>${esc(p.name)}</strong><big>${p.points} <small>PTS</small></big><span>${p.wins} victoire(s) · ${p.played} match(s)</span></button>`).join(''):'<p class="muted">Le podium apparaîtra après les premiers matchs.</p>';
@@ -146,6 +165,8 @@ $('#gateAdminForm')?.addEventListener('submit',async e=>{
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#refresh').onclick=loadAll;
+$('#refreshCommunity')?.addEventListener('click',loadAll);
+$('#communityPlayerSearch')?.addEventListener('input',()=>render());
 $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg=$('#adminMsg');msg.textContent='Connexion…';try{const d=await api('/.netlify/functions/admin',{method:'POST',body:JSON.stringify({code:e.target.pin.value})});state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);window.dispatchEvent(new Event('mou:admin-auth'));e.target.hidden=true;$('#adminContent').hidden=false;msg.textContent='Connecté';await loadAll();}catch(x){msg.textContent=x.message}});
 
 
