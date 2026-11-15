@@ -6,7 +6,7 @@ const syncFreeFireProfile=async(record)=>{
  const fields=record.fields||{},uid=String(fields['ID Free Fire']||'').trim();
  const cached=fields['Profil Free Fire JSON'];
  const cachedAt=fields['Profil Free Fire synchronisé le'];
- const fresh=cachedAt&&Date.now()-new Date(cachedAt).getTime()<15*60*1000;
+ const fresh=cachedAt&&Date.now()-new Date(cachedAt).getTime()<5*60*1000;
  if(fresh&&cached){try{return{data:JSON.parse(cached),syncedAt:cachedAt,cached:true};}catch{}}
  const key=(globalThis.__MOU_ENV||process.env).FREE_FIRE_API_KEY;
  if(!key||!uid)return{data:cached?(()=>{try{return JSON.parse(cached)}catch{return null}})():null,syncedAt:cachedAt||null,cached:true};
