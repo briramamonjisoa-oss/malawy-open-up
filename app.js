@@ -234,11 +234,11 @@ async function loadRequestsInbox(){
   }));
  }catch(error){if(msg)msg.textContent='Erreur de chargement : '+error.message;console.error('Boîte des demandes:',error);}
 }
-$('#openRequestsInbox')?.addEventListener('click',async()=>{
- const panel=$('#requestsInbox');panel.hidden=!panel.hidden;
- if(!panel.hidden)await loadRequestsInbox();
-});
+function setRequestsInboxOpen(open){const panel=$('#requestsInbox');if(!panel)return;panel.hidden=!open;document.body.classList.toggle('requests-inbox-open',open);if(open)loadRequestsInbox();}
+$('#openRequestsInbox')?.addEventListener('click',()=>setRequestsInboxOpen($('#requestsInbox').hidden));
+$('#closeRequestsInbox')?.addEventListener('click',()=>setRequestsInboxOpen(false));
 $('#refreshRequestsInbox')?.addEventListener('click',loadRequestsInbox);
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#requestsInbox')?.hidden)setRequestsInboxOpen(false);});
 
 async function uploadPhoto(file){if(!CLOUDINARY_CLOUD_NAME||!CLOUDINARY_UPLOAD_PRESET)throw Error('Cloudinary non configuré dans app.js.');const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);const r=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{method:'POST',body:fd});const d=await r.json();if(!r.ok)throw Error(d.error?.message||'Échec de l’envoi de la photo');return d.secure_url}
 async function renderAdmin(){if(!state.admin)return;$('#adminContent').hidden=false;$('#adminForm').hidden=true;const pending=state.players.filter(p=>!isAcceptedPlayer(p)&&!['refuse','refusee','banni','banned'].includes(String(p.status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'')));const pendingTitle=document.getElementById('pendingRequestsTitle');if(pendingTitle)pendingTitle.textContent='Demandes en attente ('+pending.length+')';$('#adminPlayers').innerHTML=(state.players.map(p=>`<article class="item admin-player"><div class="admin-player-main"><div class="mini-avatar">${avatar({name:p.pseudo,photo:p.photo})}</div><div><b>${esc(p.pseudo)}</b><small>ID : ${esc(p.playerId||'non renseigné')} · ${esc(p.mode||'')}</small><small>Statut : ${esc(p.status||'En attente')}</small></div></div><div class="admin-player-controls"><select data-status="${esc(p.id)}"><option ${p.status==='En attente'?'selected':''}>En attente</option><option ${p.status==='Accepté'?'selected':''}>Accepté</option><option ${p.status==='Refusé'?'selected':''}>Refusé</option><option ${p.status==='Banni'?'selected':''}>Banni</option></select><input class="photo-input" type="file" accept="image/*"data-photo="${esc(p.id)}"><div class="item-actions"><button class="secondary" data-save-player="${esc(p.id)}">Enregistrer</button><button class="danger" data-delete-player="${esc(p.id)}">Supprimer</button></div></div></article>`).join('')||'<p class="muted">Aucune inscription retournée par Airtable.</p>')+(state.adminLoadErrors?.length?'<p class="message">Erreur de chargement : '+esc(state.adminLoadErrors.join(' · '))+'</p>':'');
