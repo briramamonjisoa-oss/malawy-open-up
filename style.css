@@ -423,3 +423,45 @@ button:focus-visible{outline-color:var(--gold);outline-offset:3px}
 @keyframes gold-text-glint{0%,55%{background-position:100% 50%}82%,100%{background-position:0% 50%}}
 @media(hover:none){.top-player:hover,.ranking-player-row:hover,.item:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){.page.active,.top-player.rank-1:before,.top-player.rank-1>big{animation:none!important}.top-player,.player-avatar,.ranking-player-row,.item,.panel,.stats article,.freefire-rank-section,.admin-shortcut,.tab,.bottom button{transition:none!important}}
+
+
+/* ADMIN — CONTROL ROOM / BLACK VELVET */
+#admin.page{max-width:1040px;margin-inline:auto}
+#admin>.eyebrow{margin-bottom:9px}
+#admin>h2{font-size:clamp(30px,5vw,42px);margin:0 0 24px;letter-spacing:-.055em}
+#adminForm{max-width:560px;margin:0 auto 26px;padding:22px;background:#030303;border:1px solid var(--line);border-radius:16px}
+#adminContent{display:block}
+#adminContent[hidden]{display:none!important}
+.admin-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 0 20px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.admin-toolbar h3{margin:0;font-size:18px;letter-spacing:-.035em}
+.admin-toolbar #logout{font-size:12px;padding:9px 13px}
+.admin-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 26px}
+.admin-shortcut{position:relative;min-height:78px;padding:14px 15px;gap:13px;border:1px solid var(--line);border-radius:14px;background:#030303;color:#f0f0f0;font:500 13px Inter,sans-serif;letter-spacing:-.01em}
+.admin-shortcut .shortcut-icon{width:36px;height:36px;flex-basis:36px;display:grid;place-items:center;border:1px solid #51452f;border-radius:9px;background:#100e0a;color:var(--gold-soft);font:400 11px 'Commit Mono',monospace;letter-spacing:.08em}
+.admin-shortcut small{font-size:11px;line-height:1.4;color:#85858d;font-weight:400;letter-spacing:0}
+.admin-shortcut-count{min-width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:var(--gold);color:#090909;font:600 11px Inter,sans-serif}
+.admin-accordion{margin:10px 0;border:1px solid var(--line);border-radius:14px;background:#030303;overflow:hidden}
+.admin-accordion>summary{min-height:64px;padding:13px 16px;color:#f0f0f0;font-size:13px;font-weight:500;letter-spacing:-.01em}
+.admin-accordion>summary:after{content:'+';font:400 20px Inter,sans-serif;color:var(--gold)}
+.admin-accordion[open]>summary:after{content:'−'}
+.admin-accordion>summary .shortcut-icon{width:34px;height:34px;display:grid;place-items:center;border:1px solid #51452f;border-radius:9px;background:#100e0a;color:var(--gold-soft);font:400 11px 'Commit Mono',monospace}
+.admin-accordion-body{padding:0 16px 18px;border-top:1px solid var(--line)}
+.admin-accordion-body>.admin-block{padding-top:18px}
+.admin-accordion-body .admin-block>h3{font-size:16px;font-weight:500;letter-spacing:-.03em}
+.admin-accordion-body .admin-block>p{font-size:13px;color:#85858d}
+.admin-accordion-body .panel,.admin-accordion-body form.panel{padding:17px;background:#050505;border:1px solid #22262b;border-radius:12px;gap:13px}
+.admin-accordion-body .form label{display:grid;gap:7px}
+.admin-accordion-body .form input,.admin-accordion-body .form select{width:100%;min-height:44px;padding:10px 12px;background:#000;border:1px solid #292d30;border-radius:6px;color:#f0f0f0}
+.admin-accordion-body .button-row{display:flex;gap:9px;flex-wrap:wrap}
+.admin-accordion-body .button-row button{flex:1 1 140px}
+.admin-accordion-body .admin-player,.admin-accordion-body .item{background:#050505;border:1px solid #292d30;border-radius:12px;padding:13px}
+.admin-accordion-body .admin-player-controls{gap:8px}
+.admin-accordion-body .admin-player-controls select,.admin-accordion-body .admin-player-controls input{min-height:40px;background:#000;border:1px solid #292d30;border-radius:6px;color:#f0f0f0}
+.admin-inbox-launch{margin:18px 0;padding:16px;border:1px solid #51452f;border-radius:14px;background:linear-gradient(110deg,rgba(216,189,122,.07),transparent 65%)}
+.admin-inbox-launch button{width:100%;justify-content:center;background:transparent;border:1px solid #6b5937;color:var(--gold-soft)}
+.admin-modal-backdrop{background:rgba(0,0,0,.84)!important;backdrop-filter:blur(18px)!important}
+.admin-accordion[open][data-in-modal="1"],body>.admin-accordion[open]{background:#050505!important;border:1px solid #51452f!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.72)!important}
+body>.admin-accordion[open]>summary{background:#050505!important;border-bottom:1px solid var(--line)}
+.admin-accordion-body>.admin-block{background:transparent}
+@media(max-width:600px){.admin-shortcuts{grid-template-columns:1fr;gap:8px}.admin-shortcut{min-height:68px}.admin-accordion[open][data-in-modal="1"],body>.admin-accordion[open]{left:8px!important;right:8px!important;top:max(10px,env(safe-area-inset-top))!important;bottom:max(10px,env(safe-area-inset-bottom))!important}}
+@media(prefers-reduced-motion:reduce){.admin-shortcut,.admin-accordion,.admin-accordion>summary{transition:none!important}}

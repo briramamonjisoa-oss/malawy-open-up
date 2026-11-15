@@ -3,12 +3,12 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const definitions = [
-    { key: 'requests', icon: '👥', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
-    { key: 'points', icon: '🏆', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
-    { key: 'playerStats', icon: '📊', title: 'Statistiques des joueurs', subtitle: 'Matchs joués, victoires et défaites' },
-    { key: 'matches', icon: '⚔️', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
-    { key: 'notifications', icon: '🔔', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
-    { key: 'tournamentSignups', icon: '📥', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' }
+    { key: 'requests', icon: '01', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
+    { key: 'points', icon: '02', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
+    { key: 'playerStats', icon: '03', title: 'Statistiques des joueurs', subtitle: 'Matchs joués, victoires et défaites' },
+    { key: 'matches', icon: '04', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
+    { key: 'notifications', icon: '05', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
+    { key: 'tournamentSignups', icon: '06', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' }
   ];
 
   function makePanel(element, key, root) {
