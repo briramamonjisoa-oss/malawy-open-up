@@ -158,26 +158,47 @@ const FREE_FIRE_RANK_POS={
  M1:[4,3],M3:[5,3],M4:[6,3],M5:[0,4],
  BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
 };
-const FREE_FIRE_RANK_CODES={
- 301:{name:'Bronze',division:'I',asset:'B1'},302:{name:'Bronze',division:'II',asset:'B2'},303:{name:'Bronze',division:'III',asset:'B3'},
- 304:{name:'Argent',division:'I',asset:'S1'},305:{name:'Argent',division:'II',asset:'S2'},306:{name:'Argent',division:'III',asset:'S3'},
- 307:{name:'Or',division:'I',asset:'G1'},308:{name:'Or',division:'II',asset:'G2'},309:{name:'Or',division:'III',asset:'G3'},310:{name:'Or',division:'IV',asset:'G4'},
- 311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
- 315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
- 319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque',division:'+',asset:'H2'},321:{name:'Maître',division:'',asset:'M1'},
- 322:{name:'Grand maître',division:'I',asset:'BRGM1'},323:{name:'Grand maître',division:'II',asset:'BRGM2'},324:{name:'Grand maître',division:'III',asset:'BRGM3'},325:{name:'Grand maître',division:'',asset:'BRGM4'}
-};
+// Les rangs sont calculés avec les points RP (BR) et les étoiles (CS).
+// Les codes API sont conservés à titre d'information, jamais utilisés seuls pour deviner le grade.
 function freeFireRankInfo(rankCode,points,mode='br'){
- const code=Number(rankCode);
- const known=FREE_FIRE_RANK_CODES[code];
- if(known)return {...known,tier:known.asset,code,points:Number(points)||0,mode};
- return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:Number(points)||0,mode};
+ const score=Number(points);
+ if(!Number.isFinite(score)||score<0)return {name:'Rang indisponible',division:'',asset:'',code:Number.isFinite(Number(rankCode))?Number(rankCode):null,points:0,mode};
+ let rank;
+ if(mode==='cs'){
+  if(score===0)rank={name:'Argent',division:'III',asset:'S3'};
+  else if(score<=4)rank={name:'Or',division:'I',asset:'G1'};
+  else if(score<=8)rank={name:'Or',division:'II',asset:'G2'};
+  else if(score<=12)rank={name:'Or',division:'III',asset:'G3'};
+  else if(score<=16)rank={name:'Or',division:'IV',asset:'G4'};
+  else if(score<=21)rank={name:'Platine',division:'I',asset:'P1'};
+  else if(score<=26)rank={name:'Platine',division:'II',asset:'P2'};
+  else if(score<=31)rank={name:'Platine',division:'III',asset:'P3'};
+  else if(score<=36)rank={name:'Platine',division:'IV',asset:'P4'};
+  else if(score<=45)rank={name:'Diamant',division:'I',asset:'D1'};
+  else if(score<=54)rank={name:'Diamant',division:'II',asset:'D2'};
+  else if(score<=63)rank={name:'Diamant',division:'III',asset:'D3'};
+  else if(score<=72)rank={name:'Diamant',division:'IV',asset:'D4'};
+  else if(score<=81)rank={name:'Diamant',division:'V',asset:'D5'};
+  else if(score<=106)rank={name:'Héroïque',division:'',asset:'H1'};
+  else if(score<=131)rank={name:'Héroïque élite',division:'',asset:'H2'};
+  else if(score<=156)rank={name:'Maître',division:'',asset:'M1'};
+  else rank={name:'Grand maître',division:'',asset:'BRGM1'};
+ }else{
+  if(score<=1000)rank={name:'Bronze',division:score<=800?'I':score<=900?'II':'III',asset:score<=800?'B1':score<=900?'B2':'B3'};
+  else if(score<=1300)rank={name:'Argent',division:score<=1100?'I':score<=1200?'II':'III',asset:score<=1100?'S1':score<=1200?'S2':'S3'};
+  else if(score<=1800)rank={name:'Or',division:score<=1425?'I':score<=1550?'II':score<=1675?'III':'IV',asset:score<=1425?'G1':score<=1550?'G2':score<=1675?'G3':'G4'};
+  else if(score<=2300)rank={name:'Platine',division:score<=1925?'I':score<=2050?'II':score<=2175?'III':'IV',asset:score<=1925?'P1':score<=2050?'P2':score<=2175?'P3':'P4'};
+  else if(score<=3200)rank={name:'Diamant',division:score<=2525?'I':score<=2750?'II':score<=2975?'III':'IV',asset:score<=2525?'D1':score<=2750?'D2':score<=2975?'D3':'D4'};
+  else if(score<=6000)rank={name:'Héroïque',division:'',asset:'H1'};
+  else rank={name:'Maître',division:'',asset:'M1'};
+ }
+ return {...rank,tier:rank.asset,code:Number.isFinite(Number(rankCode))?Number(rankCode):null,points:score,mode};
 }
 function freeFireRankCard(rankCode,points,mode='br'){
  const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=Math.max(0,Number(points)||0);
- const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
+ const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire indisponible">?</span>';
  const grade=info.name+(info.division?' '+info.division:'');
- const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+' points · code '+(info.code??'—')+'</small></span>';
+ const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+(mode==='cs'?' étoiles':' points')+' · code '+(info.code??'—')+'</small></span>';
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
