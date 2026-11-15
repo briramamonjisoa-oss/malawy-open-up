@@ -45,8 +45,9 @@ exports.handler = async (event) => {
     } while (offset);
 
     const approved=records.filter(r=>APPROVED.includes(normalizeStatus(r.fields?.['Statut inscription']))&&r.fields?.['ID Free Fire']);
-    const stale=approved.filter(r=>{const f=r.fields||{};return !f['Profil Free Fire JSON']||!f['Profil Free Fire synchronisé le']||Date.now()-new Date(f['Profil Free Fire synchronisé le']).getTime()>=86400000;}).slice(0,8);
-    await Promise.all(stale.map(syncRank));
+    const stale=approved.filter(r=>{const f=r.fields||{};return !f['Profil Free Fire JSON']||!f['Profil Free Fire synchronisé le']||Date.now()-new Date(f['Profil Free Fire synchronisé le']).getTime()>=86400000;}).slice(0,2);
+    // Synchroniser par petits lots séquentiels pour éviter de saturer l'API Free Fire et laisser progresser tous les joueurs au fil des rafraîchissements.
+    for (const record of stale) await syncRank(record);
 
     const players = records.map(record => {
       const fields = record.fields || {};
