@@ -65,7 +65,8 @@ export default {
           AIRTABLE_TOKEN: Boolean(env.AIRTABLE_TOKEN),
           AIRTABLE_BASE_ID: Boolean(env.AIRTABLE_BASE_ID),
           VAPID_PUBLIC_KEY: Boolean(env.VAPID_PUBLIC_KEY),
-          VAPID_PRIVATE_KEY: Boolean(env.VAPID_PRIVATE_KEY)
+          VAPID_PRIVATE_KEY: Boolean(env.VAPID_PRIVATE_KEY),
+          FIREBASE_SERVICE_ACCOUNT_JSON: Boolean(env.FIREBASE_SERVICE_ACCOUNT_JSON)
         }
       });
     }
@@ -84,7 +85,7 @@ export default {
           VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
           VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
           VAPID_SUBJECT: env.VAPID_SUBJECT,
-      FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON
+          FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON
         };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const event = {
