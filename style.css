@@ -592,3 +592,15 @@ body:after{
 .community-presence.online{color:#4bd39a}.community-presence.online i{background:#4bd39a;box-shadow:0 0 9px #4bd39a80}
 .community-presence.offline{color:#aaa}.community-presence-note{font-size:11px;color:var(--muted);margin-top:16px}
 @media(max-width:480px){.community-player-card{gap:8px;padding:10px}.community-avatar{width:40px;height:40px;flex-basis:40px}.community-presence{max-width:96px;font-size:9px}}
+
+/* Tournament roster is the main content of the Inscription page */
+#register .tournament-roster-card{overflow:hidden;margin:18px 0 22px;background:var(--panel);border:1px solid var(--line);border-radius:22px}
+#register .tournament-roster-head{display:flex;align-items:center;gap:15px;padding:17px;background:linear-gradient(135deg,#202b40,#141b29);border-bottom:1px solid var(--line)}
+#register .tournament-roster-poster,#register .tournament-roster-placeholder{width:82px;height:82px;flex:0 0 82px;object-fit:cover;border-radius:16px;border:1px solid #ffffff30}
+#register .tournament-roster-placeholder{display:grid;place-items:center;background:#303b51;font-size:34px}
+#register .tournament-roster-title{min-width:0}#register .tournament-roster-title h3{margin:3px 0 5px;font-size:23px;color:#fff}#register .tournament-roster-title small{color:#a1a4a5;font-size:11px}
+#register .tournament-roster-body{padding:16px;background:transparent}#register .tournament-roster-body>b{display:block;color:#a1a4a5;font-size:10px;letter-spacing:.14em;margin-bottom:12px}
+#register .tournament-signup-row{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid var(--line)}
+#register .tournament-player-registration{margin-top:36px;padding-top:26px;border-top:1px solid var(--line)}
+#register .tournament-player-registration h3{font-size:22px;margin:8px 0}
+@media(max-width:700px),(hover:none) and (pointer:coarse){#register .tournament-roster-card{background:rgba(0,0,0,.88)}#register .tournament-roster-head{background:rgba(0,0,0,.72)}}
