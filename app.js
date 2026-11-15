@@ -164,10 +164,10 @@ const FREE_FIRE_RANK_CODES={
  307:{name:'Or',division:'I',asset:'G1'},308:{name:'Or',division:'II',asset:'G2'},309:{name:'Or',division:'III',asset:'G3'},310:{name:'Or',division:'IV',asset:'G4'},
  311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
  315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
- 319:{name:'Héroïque',division:'I',asset:'H1'},320:{name:'Héroïque',division:'II',asset:'H2'},321:{name:'Héroïque',division:'III',asset:'H3'},322:{name:'Héroïque',division:'IV',asset:'H4'},323:{name:'Héroïque',division:'V',asset:'H5'},
- 324:{name:'Maître',division:'I',asset:'M1'},325:{name:'Maître',division:'II',asset:'M2'},326:{name:'Maître',division:'III',asset:'M3'},327:{name:'Maître',division:'IV',asset:'M4'},
- 328:{name:'Grand maître',division:'I',asset:'BRGM1'},329:{name:'Grand maître',division:'II',asset:'BRGM2'},330:{name:'Grand maître',division:'III',asset:'BRGM3'},
- 331:{name:'Grand maître',division:'IV',asset:'BRGM4'},332:{name:'Grand maître',division:'V',asset:'BRGM5'},333:{name:'Grand maître',division:'VI',asset:'BRGM6'}
+ 319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque élite',division:'',asset:'H2'},
+ 321:{name:'Maître',division:'',asset:'M1'},322:{name:'Maître élite',division:'',asset:'M2'},
+ 323:{name:'Grand maître',division:'I',asset:'BRGM1'},324:{name:'Grand maître',division:'II',asset:'BRGM2'},325:{name:'Grand maître',division:'III',asset:'BRGM3'},
+ 326:{name:'Grand maître',division:'IV',asset:'BRGM4'},327:{name:'Grand maître',division:'V',asset:'BRGM5'},328:{name:'Grand maître',division:'VI',asset:'BRGM6'}
 };
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode);
