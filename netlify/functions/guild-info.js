@@ -22,7 +22,7 @@ async function sync(env){
   level:Number(data.level??data.clanLevel??0)||0,region:data.region||'ME',
   members:Number(detail.total_members??data.total_members??data.memberNum??0)||0,
   capacity:Number(data.capacity??detail.capacity??55)||55,
-  online:Number(detail.members_online??data.members_online??0)||0,
+  online:(()=>{const value=detail.members_online??data.members_online??data.online_members??data.online??null;return value===null||value===undefined||value===''?null:(Number.isFinite(Number(value))?Number(value):null);})(),
   leader:captain?.nickname||'',leaderUid:String(captain?.accountId||data.captain_id||''),
   leaderJson:captain?JSON.stringify(captain):'',raw:JSON.stringify(data),synced:new Date().toISOString()
  };
@@ -39,6 +39,6 @@ exports.handler=async(event)=>{
   let rec=await cached(env),age=rec?Date.now()-new Date(rec.fields?.['Synchronisé le']||0).getTime():Infinity;
   if(event.queryStringParameters?.refresh==='1'||!rec||age>15*60*1000){try{const fresh=await sync(env);return{statusCode:200,headers,body:JSON.stringify(fresh)}}catch(e){console.warn('Guild sync failed:',e.message);if(!rec)return{statusCode:503,headers,body:JSON.stringify({error:e.message})};}}
   const f=rec.fields||{};
-  return{statusCode:200,headers,body:JSON.stringify({id:f['ID guilde'],name:f['Nom guilde'],level:f.Niveau,region:f.Région,members:f.Membres,capacity:f.Capacité,online:f['Membres connectés'],leader:f['Chef de guilde'],leaderUid:f['UID chef'],leaderProfile:(()=>{try{return JSON.parse(f['Profil chef JSON']||'null')}catch{return null}})(),syncedAt:f['Synchronisé le'],cached:true})};
+  return{statusCode:200,headers,body:JSON.stringify({id:f['ID guilde'],name:f['Nom guilde'],level:f.Niveau,region:f.Région,members:f.Membres,capacity:f.Capacité,online:(f['Membres connectés']===undefined||f['Membres connectés']===''?null:Number(f['Membres connectés'])),leader:f['Chef de guilde'],leaderUid:f['UID chef'],leaderProfile:(()=>{try{return JSON.parse(f['Profil chef JSON']||'null')}catch{return null}})(),syncedAt:f['Synchronisé le'],cached:true})};
  }catch(e){return{statusCode:500,headers,body:JSON.stringify({error:e.message||'Erreur synchronisation guilde'})};}
 };
