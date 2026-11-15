@@ -604,3 +604,9 @@ body:after{
 #register .tournament-player-registration{margin-top:36px;padding-top:26px;border-top:1px solid var(--line)}
 #register .tournament-player-registration h3{font-size:22px;margin:8px 0}
 @media(max-width:700px),(hover:none) and (pointer:coarse){#register .tournament-roster-card{background:rgba(0,0,0,.88)}#register .tournament-roster-head{background:rgba(0,0,0,.72)}}
+
+/* Compteur visible des membres actuellement connectés dans la guilde */
+#communityGuildSummary{display:block!important;margin:18px 0}
+#communityGuildSummary .guild-live-summary{min-height:104px;margin:0;padding:20px 18px;display:flex!important;visibility:visible!important;opacity:1!important}
+#communityGuildSummary .guild-online-total b{font-size:38px;line-height:1.1;color:#b8f34a}
+#communityGuildSummary .guild-online-total small{font-size:11px;letter-spacing:.04em}
