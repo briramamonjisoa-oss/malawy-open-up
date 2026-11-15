@@ -7,7 +7,7 @@ async function airtable(env,path,options={}){const r=await fetch('https://api.ai
 async function cached(env){const q=new URLSearchParams({maxRecords:'1',filterByFormula:"{ID guilde}='"+GUILD_ID+"'"});const d=await airtable(env,encodeURIComponent(GUILD_TABLE)+'?'+q);return d.records?.[0]||null;}
 async function sync(env){
  const key=env.FREE_FIRE_API_KEY;if(!key)throw new Error('FREE_FIRE_API_KEY absent');
- const u=new URL('https://siambhau69.eu.cc/guild/info');u.searchParams.set('clan_id',GUILD_ID);u.searchParams.set('key',key);
+ const u=new URL('http://siambhau69.eu.cc/guild/info');u.searchParams.set('clan_id',GUILD_ID);u.searchParams.set('key',key);
  const response=await fetch(u,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000)});
  const data=await response.json().catch(()=>({}));
  if(!response.ok||data.error||String(data.id||data.guild_details?.clan_id||'')!==GUILD_ID)throw new Error(data.error||'Réponse /guild/info invalide (vérifier permission guildinfo)');
