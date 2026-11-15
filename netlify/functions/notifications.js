@@ -1,5 +1,6 @@
 const { verify, verifyPlayer, airtable } = require('./auth');
 const { sendPush } = require('./push-crypto');
+const { sendFcm } = require('./fcm');
 
 const SUBSCRIPTIONS = 'Push subscriptions';
 const QUEUE = 'Notification queue';
@@ -125,25 +126,29 @@ async function dispatchQueueRecord(record, env, subscriptions, players) {
     if (!playerSubscriptions.length) continue;
     let delivered = false;
     for (const sub of playerSubscriptions) {
-      const subscription = {
-        endpoint: sub.fields.Endpoint,
-        keys: { p256dh: sub.fields.P256dh, auth: sub.fields.Auth }
-      };
+      const endpoint = clean(sub.fields?.Endpoint);
+      const isFcm = endpoint.startsWith('fcm:');
+      const subscription = isFcm
+        ? { token: endpoint.slice(4) }
+        : { endpoint, keys: { p256dh: sub.fields.P256dh, auth: sub.fields.Auth } };
       try {
-        const result = await sendPush(subscription, {
+        const payload = {
           title: clean(f.Title) || 'MALAWY OPEN UP',
           body: clean(f.Message),
           url: clean(f.URL) || '/',
           tag: clean(f['Notification Key']) || record.id
-        }, env);
+        };
+        const result = isFcm
+          ? await sendFcm(subscription, payload, env)
+          : await sendPush(subscription, payload, env);
         if (result.ok) {
           delivered = true;
           sent++;
-        } else if (result.status === 404 || result.status === 410) {
+        } else if (result.invalid || result.status === 404 || result.status === 410) {
           await airtable(encodeURIComponent(SUBSCRIPTIONS) + '/' + encodeURIComponent(sub.id), { method: 'DELETE' });
         } else {
           failed++;
-          failureDetails.push('HTTP ' + result.status + ' (' + clean(sub.fields.Pseudo || 'joueur') + ')');
+          failureDetails.push((isFcm ? 'FCM ' : 'HTTP ') + result.status + ' (' + clean(sub.fields.Pseudo || 'joueur') + ')');
           console.warn('Push provider returned', result.status);
         }
       } catch (error) {
@@ -278,26 +283,32 @@ exports.handler = async event => {
 
     if (event.httpMethod === 'POST') {
       const x = JSON.parse(event.body || '{}');
-      if (x.action === 'subscribe' || x.action === 'unsubscribe') {
+      if (['subscribe', 'unsubscribe', 'subscribe-fcm', 'unsubscribe-fcm'].includes(x.action)) {
         const session = verifyPlayer(event);
         if (!session) return response(401, { error: 'Connecte-toi pour activer les notifications.' });
         const player = await airtable('Inscriptions/' + encodeURIComponent(session.id));
         const records = await all(SUBSCRIPTIONS);
-        const endpoint = clean(x.subscription?.endpoint || x.endpoint);
-        if (!endpoint.startsWith('https://')) return response(400, { error: 'Abonnement push invalide.' });
+        const isFcm = x.action.endsWith('-fcm');
+        const endpoint = isFcm
+          ? 'fcm:' + clean(x.fcmToken)
+          : clean(x.subscription?.endpoint || x.endpoint);
+        if (isFcm && (!clean(x.fcmToken) || clean(x.fcmToken).length < 40)) {
+          return response(400, { error: 'Jeton Firebase invalide.' });
+        }
+        if (!isFcm && !endpoint.startsWith('https://')) return response(400, { error: 'Abonnement push invalide.' });
         const existing = records.find(r => clean(r.fields?.Endpoint) === endpoint);
-        if (x.action === 'unsubscribe') {
+        if (x.action === 'unsubscribe' || x.action === 'unsubscribe-fcm') {
           if (existing && clean(existing.fields?.['Player record ID']) === session.id) {
             await airtable(encodeURIComponent(SUBSCRIPTIONS) + '/' + encodeURIComponent(existing.id), { method: 'DELETE' });
           }
           return response(200, { success: true });
         }
         const keys = x.subscription?.keys || {};
-        if (!keys.p256dh || !keys.auth) return response(400, { error: 'Clés push manquantes.' });
+        if (!isFcm && (!keys.p256dh || !keys.auth)) return response(400, { error: 'Clés push manquantes.' });
         const fields = {
           Endpoint: endpoint,
-          P256dh: clean(keys.p256dh),
-          Auth: clean(keys.auth),
+          P256dh: isFcm ? 'FCM' : clean(keys.p256dh),
+          Auth: isFcm ? 'FCM' : clean(keys.auth),
           'Player record ID': session.id,
           Pseudo: clean(player.fields?.['Pseudo Free Fire']),
           UID: clean(player.fields?.['ID Free Fire']),
@@ -306,7 +317,7 @@ exports.handler = async event => {
         };
         if (existing) await updateRecord(SUBSCRIPTIONS, existing.id, fields);
         else await airtable(encodeURIComponent(SUBSCRIPTIONS), { method: 'POST', body: JSON.stringify({ records: [{ fields }] }) });
-        return response(200, { success: true });
+        return response(200, { success: true, provider: isFcm ? 'fcm' : 'webpush' });
       }
 
       if (!verify(event)) return response(401, { error: 'Accès administrateur requis.' });
