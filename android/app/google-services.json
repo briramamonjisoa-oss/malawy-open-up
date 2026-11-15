@@ -1,0 +1,16 @@
+{
+  "project_info": {
+    "project_number": "641278267425",
+    "project_id": "malawy-open-up-fdb78",
+    "storage_bucket": "malawy-open-up-fdb78.firebasestorage.app"
+  },
+  "client": [{
+    "client_info": {
+      "mobilesdk_app_id": "1:641278267425:android:692e3e6648c728ccadd360",
+      "android_client_info": {"package_name": "mg.malawy.openup"}
+    },
+    "api_key": [{"current_key": "AIzaSyClg89cyzdGPyEmFVklfrr_j3OQqLL6AMA"}],
+    "services": {"appinvite_service": {"other_platform_oauth_client": []}}
+  }],
+  "configuration_version": "1"
+}
