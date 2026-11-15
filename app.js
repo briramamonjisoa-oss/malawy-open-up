@@ -115,7 +115,7 @@ function showPublicPlayer(pseudo){
  $('#publicPlayerWins').textContent=Number(p.wins)||rank?.wins||0;
  $('#publicPlayerLosses').textContent=Number(p.losses)||0;
  $('#publicPlayerPlayed').textContent=played+' match(s) enregistré(s)';
- const profile=p.freeFireProfile||{},ff=profile.basicInfo||{},clanValue=profile.clanBasicInfo,clan=Array.isArray(clanValue)?(clanValue[0]||{}):(clanValue||{}),captain=profile.captainBasicInfo||{};const rankBox=$('#publicPlayerFreeFireRanks');if(rankBox)rankBox.innerHTML=p.freeFireProfile?'<h4>RANGS FREE FIRE</h4><div class="public-rank-grid"><div class="freefire-rank-section"><small>BATTLE ROYALE</small>'+freeFireRankCard(ff.rankingPoints,'br')+'</div><div class="freefire-rank-section"><small>CLASH SQUAD</small>'+freeFireRankCard(ff.csRankingPoints,'cs')+'</div></div><h4 class="public-player-extra-title">INFORMATIONS DU JOUEUR</h4><div class="public-player-extra-grid"><article><small>NIVEAU FREE FIRE</small><b>⭐ Niveau '+(Number(ff.level)||'—')+'</b></article><article><small>LIKES</small><b>'+(Number(ff.liked)||0).toLocaleString('fr-FR')+'</b></article><article><small>GUILDE</small><b>'+esc(clan.clanName||'Aucune guilde')+'</b><span>Niveau '+(Number(clan.clanLevel)||'—')+' · '+(Number(clan.memberNum)||0)+' membres</span></article><article><small>CHEF DE GUILDE</small><b>'+esc(captain.nickname||'Non disponible')+'</b><span>'+(captain.accountId?'UID : '+esc(captain.accountId):'')+'</span></article></div>':'<p class="muted">Profil Free Fire : en attente de synchronisation.</p>';
+ const profile=p.freeFireProfile||{},ff=profile.basicInfo||{},clanValue=profile.clanBasicInfo,clan=Array.isArray(clanValue)?(clanValue[0]||{}):(clanValue||{}),captain=profile.captainBasicInfo||{};const rankBox=$('#publicPlayerFreeFireRanks');if(rankBox)rankBox.innerHTML=p.freeFireProfile?'<h4>RANGS FREE FIRE</h4><div class="public-rank-grid"><div class="freefire-rank-section"><small>BATTLE ROYALE</small>'+freeFireRankCard(ff.rank,ff.rankingPoints,'br')+'</div><div class="freefire-rank-section"><small>CLASH SQUAD</small>'+freeFireRankCard(ff.csRank,ff.csRankingPoints,'cs')+'</div></div><h4 class="public-player-extra-title">INFORMATIONS DU JOUEUR</h4><div class="public-player-extra-grid"><article><small>NIVEAU FREE FIRE</small><b>⭐ Niveau '+(Number(ff.level)||'—')+'</b></article><article><small>LIKES</small><b>'+(Number(ff.liked)||0).toLocaleString('fr-FR')+'</b></article><article><small>GUILDE</small><b>'+esc(clan.clanName||'Aucune guilde')+'</b><span>Niveau '+(Number(clan.clanLevel)||'—')+' · '+(Number(clan.memberNum)||0)+' membres</span></article><article><small>CHEF DE GUILDE</small><b>'+esc(captain.nickname||'Non disponible')+'</b><span>'+(captain.accountId?'UID : '+esc(captain.accountId):'')+'</span></article></div>':'<p class="muted">Profil Free Fire : en attente de synchronisation.</p>';
  $('#publicPlayerPhoto').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo de '+esc(p.pseudo)+'">':esc(p.pseudo.slice(0,1).toUpperCase());
  modal.hidden=false;
 }
@@ -129,7 +129,7 @@ $('#playersList').innerHTML=state.tournamentGroups.length?state.tournamentGroups
 const manualStats=rank;
 $('#publicMatchList').innerHTML=(manualStats.length?'<h3>STATISTIQUES DES JOUEURS</h3>'+manualStats.map(p=>'<div class="item"><div><b>'+esc(p.name)+'</b><small>'+p.played+' match(s) · '+p.wins+' victoire(s) · '+p.losses+' défaite(s)</small></div><strong>'+p.wins+'/'+p.played+'</strong></div>').join(''):'')+(state.matches.filter(x=>x.status==='Terminé'||!x.status).length?'<h3>RÉSULTATS DES MATCHS</h3>'+state.matches.filter(x=>x.status==='Terminé'||!x.status).map(x=>'<div class="item"><div><b>'+esc(x.a)+' vs '+esc(x.b)+'</b><small>'+esc(x.date||'')+'</small></div><strong>'+(Number(x.sa)||0)+' — '+(Number(x.sb)||0)+'</strong></div>').join(''):'')||'<p class="muted">Aucune statistique ni résultat enregistré pour le moment.</p>';
 $('#topPlayers').innerHTML=rank.length?rank.slice(0,3).map((p,i)=>`<button type="button" class="top-player rank-${i+1} public-player-row" data-public-player="${esc(p.name)}"><b>${i===0?'TOP 1':'TOP '+(i+1)}</b><div class="player-avatar">${avatar(p)}</div><strong>${esc(p.name)}</strong><big>${p.points} <small>PTS</small></big><span>${p.wins} victoire(s) · ${p.played} match(s)</span></button>`).join(''):'<p class="muted">Le podium apparaîtra après les premiers matchs.</p>';
-$('#rankingList').innerHTML=rank.map((p,i)=>{const bi=p.freeFireProfile?.basicInfo||{};return `<button type="button" class="item public-player-row ranking-player-row" data-public-player="${esc(p.name)}"><div class="ranking-player-main"><b>#${i+1} ${esc(p.name)}</b><small>${p.wins} victoire(s) · ${p.played} match(s) · score ${p.score}</small><span class="ranking-mini-ranks">${p.freeFireProfile?'BR '+esc(freeFireRankInfo(bi.rankingPoints,'br').name)+' · CS '+esc(freeFireRankInfo(bi.csRankingPoints,'cs').name):'Rangs Free Fire non synchronisés'}</span></div><strong>${p.points} pts</strong></button>`}).join('')||'<p class="muted">Aucun joueur classé pour le moment.</p>';
+$('#rankingList').innerHTML=rank.map((p,i)=>{const bi=p.freeFireProfile?.basicInfo||{};return `<button type="button" class="item public-player-row ranking-player-row" data-public-player="${esc(p.name)}"><div class="ranking-player-main"><b>#${i+1} ${esc(p.name)}</b><small>${p.wins} victoire(s) · ${p.played} match(s) · score ${p.score}</small><span class="ranking-mini-ranks">${p.freeFireProfile?'BR '+esc(freeFireRankInfo(bi.rank,bi.rankingPoints,'br').name)+' · CS '+esc(freeFireRankInfo(bi.csRank,bi.csRankingPoints,'cs').name):'Rangs Free Fire non synchronisés'}</span></div><strong>${p.points} pts</strong></button>`}).join('')||'<p class="muted">Aucun joueur classé pour le moment.</p>';
 const teams=[...state.teams].sort((a,b)=>b.points-a.points||b.wins-a.wins||a.name.localeCompare(b.name));
 $('#topTeams').innerHTML=teams.length?teams.slice(0,3).map((t,i)=>`<article class="top-player rank-${i+1}"><b>${i===0?'TOP 1':'TOP '+(i+1)}</b><strong>${esc(t.name)}</strong><big>${t.points} <small>PTS</small></big><span>${esc(t.format||'Équipe')} · ${esc(t.tournament||'')}</span></article>`).join(''):'<p class="muted">Le podium des équipes apparaîtra après les premières validations.</p>';
 $('#teamsRankingList').innerHTML=teams.map((t,i)=>`<div class="item"><div><b>#${i+1} ${esc(t.name)}</b><small>${esc(t.format||'Équipe')} · ${esc(t.tournament||'')} · ${esc(t.players||'')}</small></div><strong>${t.points} pts</strong></div>`).join('')||'<p class="muted">Aucune équipe pour le moment.</p>';}
@@ -158,35 +158,26 @@ const FREE_FIRE_RANK_POS={
  M1:[4,3],M3:[5,3],M4:[6,3],M5:[0,4],
  BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
 };
-function freeFireRankInfo(points, mode='br'){
- const n=Math.max(0,Number(points)||0);
- const tier=(name,division,key)=>({name,division,tier:key,asset:key});
- const pick=(name,division,keys,min,max)=>{const i=Math.min(keys.length-1,Math.floor(Math.max(0,n-min)/(max-min+1)*keys.length));return tier(name,division,keys[i]);};
- if(mode==='cs'){
-  if(n>=157)return pick('Grand maître','IV–VI',['BRGM1','BRGM2','BRGM3','BRGM4','BRGM5','BRGM6'],157,999);
-  if(n>=132)return pick('Élite maître','',['M3','M4','M5'],132,156);
-  if(n>=107)return pick('Élite héroïque','',['H3','H4','H5'],107,131);
-  if(n>=82)return pick('Héroïque','',['H1','H2'],82,106);
-  if(n>=37)return pick('Diamant','I–V',['D1','D2','D3','D4','D5'],37,81);
-  if(n>=17)return pick('Platine','I–V',['P1','P2','P3','P4','P4'],17,36);
-  if(n>=1)return pick('Or','I–IV',['G1','G2','G3','G4'],1,16);
-  return tier('Argent','III','S1');
- }
- if(n>=6001)return pick('Grand maître','I–VI',['BRGM1','BRGM2','BRGM3','BRGM4','BRGM5','BRGM6'],6001,12000);
- if(n>=5001)return tier('Élite maître','','M3');
- if(n>=4001)return tier('Maître','','M1');
- if(n>=3201)return tier('Héroïque','','H1');
- if(n>=2301)return pick('Diamant','I–V',['D1','D2','D3','D4','D5'],2301,3200);
- if(n>=1801)return pick('Platine','I–V',['P1','P2','P3','P4','P4'],1801,2300);
- if(n>=1301)return pick('Or','I–IV',['G1','G2','G3','G4'],1301,1800);
- if(n>=1001)return pick('Argent','I–III',['S1','S2','S3'],1001,1300);
- return pick('Bronze','I–III',['B1','B2','B3'],0,1000);
+const FREE_FIRE_RANK_CODES={
+ 301:{name:'Bronze',division:'I',asset:'B1'},302:{name:'Bronze',division:'II',asset:'B2'},303:{name:'Bronze',division:'III',asset:'B3'},
+ 304:{name:'Argent',division:'I',asset:'S1'},305:{name:'Argent',division:'II',asset:'S2'},306:{name:'Argent',division:'III',asset:'S3'},
+ 307:{name:'Or',division:'I',asset:'G1'},308:{name:'Or',division:'II',asset:'G2'},309:{name:'Or',division:'III',asset:'G3'},310:{name:'Or',division:'IV',asset:'G4'},
+ 311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
+ 315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
+ 319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque',division:'+',asset:'H2'},321:{name:'Maître',division:'',asset:'M1'},
+ 322:{name:'Grand maître',division:'I',asset:'BRGM1'},323:{name:'Grand maître',division:'II',asset:'BRGM2'},324:{name:'Grand maître',division:'III',asset:'BRGM3'},325:{name:'Grand maître',division:'',asset:'BRGM4'}
+};
+function freeFireRankInfo(rankCode,points,mode='br'){
+ const code=Number(rankCode);
+ const known=FREE_FIRE_RANK_CODES[code];
+ if(known)return {...known,tier:known.asset,code,points:Number(points)||0,mode};
+ return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:Number(points)||0,mode};
 }
-function freeFireRankCard(points, mode='br'){
- const info=freeFireRankInfo(points,mode),pos=FREE_FIRE_RANK_POS[info.asset]||[0,0],value=Math.max(0,Number(points)||0);
- const x=pos[0]/6*100,y=pos[1]/4*100;
- const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+x+'% '+y+'%"></span>';
- const label='<span class="freefire-rank-copy"><b>'+esc(info.name)+(info.division?' '+esc(info.division):'')+'</b><small>'+value.toLocaleString('fr-FR')+' points</small></span>';
+function freeFireRankCard(rankCode,points,mode='br'){
+ const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=Math.max(0,Number(points)||0);
+ const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
+ const grade=info.name+(info.division?' '+info.division:'');
+ const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+' points · code '+(info.code??'—')+'</small></span>';
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
@@ -212,9 +203,9 @@ async function loadPlayerProfile(){
     '</span></div><div class="freefire-grid">',
     '<div><b>', esc(bi.level ?? '—'), '</b><small>Niveau</small></div>',
     '<div><b>', esc(bi.liked ?? '—'), '</b><small>Likes</small></div>',
-    '<div class="freefire-rank-section"><small>BATTLE ROYALE</small>', freeFireRankCard(bi.rankingPoints,'br',bi.accountId||p.playerId), '</div>',
+    '<div class="freefire-rank-section"><small>BATTLE ROYALE</small>', freeFireRankCard(bi.rank,bi.rankingPoints,'br'), '</div>',
     
-    '<div class="freefire-rank-section"><small>CLASH SQUAD</small>', freeFireRankCard(bi.csRankingPoints,'cs',bi.accountId||p.playerId), '</div>',
+    '<div class="freefire-rank-section"><small>CLASH SQUAD</small>', freeFireRankCard(bi.csRank,bi.csRankingPoints,'cs'), '</div>',
     
     '</div><div class="freefire-extra"><span>Guilde : <b>', esc(clan.clanName || 'Non renseignée'),
     '</b> · Niveau ', esc(clan.clanLevel ?? '—'), ' · ', esc(clan.memberNum ?? '—'), '/', esc(clan.capacity ?? '—'),
