@@ -153,8 +153,8 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 
 .freefire-rank-section{display:flex;flex-direction:column;gap:8px;padding:13px;border-radius:15px;background:rgba(127,127,127,.10);border:1px solid var(--line)}
 .freefire-rank-section>small{font-size:.68rem;letter-spacing:.12em;font-weight:900;color:var(--muted)}
-.freefire-rank-tile{display:flex;align-items:center;gap:12px;min-height:64px}
-.freefire-rank-emblem{display:block;flex:0 0 58px;width:58px;height:58px;background-image:url('assets/freefire-ranks.webp');background-repeat:no-repeat;background-size:700% 500%;filter:drop-shadow(0 4px 5px #0008)}
+.freefire-rank-tile{display:flex;align-items:center;gap:10px;min-height:52px}
+.freefire-rank-emblem{display:block;flex:0 0 42px;width:42px;height:42px;background-image:url('assets/freefire-ranks.webp');background-repeat:no-repeat;background-size:700% 500%;filter:drop-shadow(0 4px 5px #0008)}
 .freefire-rank-section{min-width:0}
 .freefire-rank-tile{min-width:0}
 .freefire-rank-copy{min-width:0}
@@ -169,8 +169,8 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
  .freefire-rank-copy small{font-size:.72rem}
 }
 .freefire-rank-copy{display:flex;flex-direction:column;gap:4px}
-.freefire-rank-copy b{font-size:1rem}
-.freefire-rank-copy small{color:var(--muted)}
+.freefire-rank-copy b{font-size:.88rem;line-height:1.2}
+.freefire-rank-copy small{color:var(--muted);font-size:.72rem}
 
 
 /* FIX: Free Fire rank cards must remain readable on narrow mobile screens. */
@@ -198,10 +198,10 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 }
 #freeFireProfileCard .freefire-rank-emblem{
   display:block;
-  flex:0 0 64px;
-  width:64px;
-  height:64px;
-  min-width:64px;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  min-width:42px;
   background-size:700% 500%;
   background-repeat:no-repeat;
 }
@@ -214,6 +214,7 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
   overflow:visible;
 }
 #freeFireProfileCard .freefire-rank-copy b{
+  font-size:.88rem;
   display:block;
   width:auto;
   white-space:normal;
@@ -222,12 +223,13 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
   line-height:1.25;
 }
 #freeFireProfileCard .freefire-rank-copy small{
+  font-size:.72rem;
   display:block;
   white-space:normal;
   overflow-wrap:normal;
 }
 @media(max-width:420px){
   #freeFireProfileCard .freefire-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #freeFireProfileCard .freefire-rank-section{padding:12px}
-  #freeFireProfileCard .freefire-rank-emblem{flex-basis:56px;width:56px;height:56px;min-width:56px}
+  #freeFireProfileCard .freefire-rank-section{padding:10px}
+  #freeFireProfileCard .freefire-rank-emblem{flex-basis:38px;width:38px;height:38px;min-width:38px}
 }
