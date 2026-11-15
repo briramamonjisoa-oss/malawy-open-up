@@ -573,3 +573,13 @@ body:after{
  #players .tournament-roster-card{background:rgba(0,0,0,.88)}
  #players .tournament-roster-head{background:rgba(0,0,0,.72)}
 }
+
+
+/* Rank data: prefer the exact fields returned by Free Fire over guessed point thresholds. */
+#freeFireProfileCard .freefire-rank-copy{display:flex!important;flex-direction:column;gap:4px;text-align:center;overflow-wrap:anywhere}
+#freeFireProfileCard .freefire-rank-copy b{font-size:.86rem;line-height:1.2;color:var(--text)}
+#freeFireProfileCard .freefire-rank-copy small{font-size:.68rem;color:var(--muted);line-height:1.25}
+.freefire-rank-code{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border:1px solid var(--gold);border-radius:14px;color:var(--gold);font-weight:900;letter-spacing:.08em;background:linear-gradient(145deg,#29231a,#080808);box-shadow:inset 0 0 0 3px #d8bd7a12}
+#freeFireProfileCard .freefire-rank-tile{min-height:100px;gap:8px}
+#freeFireProfileCard .freefire-rank-section{min-height:148px}
+@media(max-width:420px){#freeFireProfileCard .freefire-rank-section{min-height:142px}#freeFireProfileCard .freefire-rank-code{width:48px;height:48px}}
