@@ -610,3 +610,5 @@ body:after{
 #communityGuildSummary .guild-live-summary{min-height:104px;margin:0;padding:20px 18px;display:flex!important;visibility:visible!important;opacity:1!important}
 #communityGuildSummary .guild-online-total b{font-size:38px;line-height:1.1;color:#b8f34a}
 #communityGuildSummary .guild-online-total small{font-size:11px;letter-spacing:.04em}
+
+.guild-api-error{display:block!important;color:#ff9b83!important;font-size:11px!important;line-height:1.4;max-width:260px;overflow-wrap:anywhere}
