@@ -45,6 +45,7 @@ export default {
       VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
       VAPID_SUBJECT: env.VAPID_SUBJECT,
       FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON,
+      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY,
       FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY
     };
     ctx.waitUntil(Promise.allSettled([
@@ -86,7 +87,8 @@ export default {
           VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
           VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
           VAPID_SUBJECT: env.VAPID_SUBJECT,
-          FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON
+          FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON,
+      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY
         };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const event = {
