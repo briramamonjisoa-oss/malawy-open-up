@@ -178,14 +178,17 @@ const FREE_FIRE_CS_RANK_CODES={
  323:{name:'Grand maître',division:'I',asset:'BRGM1'},
  324:{name:'Grand maître',division:'II',asset:'BRGM2'}
 };
+const FREE_FIRE_CS_STAR_OFFSETS={321:87,323:87};
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode),table=mode==='cs'?FREE_FIRE_CS_RANK_CODES:FREE_FIRE_BR_RANK_CODES;
  const known=table[code],raw=Math.max(0,Number(points)||0);
  if(!known)return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:raw,mode,known:false};
- return {...known,tier:known.asset,asset:known.asset,code,points:raw,displayValue:raw,mode,known:true};
+ const stars=mode==='cs'&&Number.isFinite(FREE_FIRE_CS_STAR_OFFSETS[code])
+  ?Math.max(0,raw-FREE_FIRE_CS_STAR_OFFSETS[code]):raw;
+ return {...known,tier:known.asset,asset:known.asset,code,points:raw,displayValue:stars,mode,known:true};
 }
 function freeFireRankCard(rankCode,points,mode='br'){
- const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=info.points;
+ const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=info.displayValue??info.points;
  const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>': '<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
  const grade=info.name+(info.division?' '+info.division:'');
  const label=mode==='cs'
