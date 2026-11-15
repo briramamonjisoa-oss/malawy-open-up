@@ -257,3 +257,28 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 .public-player-extra-grid b{font-size:1rem;overflow-wrap:anywhere;color:var(--text,#f5f6fa)}
 .public-player-extra-grid span{font-size:.78rem;color:var(--muted,#a5aec0);overflow-wrap:anywhere}
 @media(max-width:420px){.public-player-extra-grid{grid-template-columns:1fr}.public-player-extra-grid article:first-child{grid-column:auto}}
+
+
+/* Compact public player modal: fit phone screens while keeping every stat readable */
+.public-player-overlay{padding:10px;overflow-y:auto;align-items:center}
+.public-player-card{width:min(100%,420px);max-height:calc(100dvh - 20px);overflow-y:auto;overscroll-behavior:contain;padding:15px 14px;border-radius:20px}
+.public-player-card>.player-avatar{width:68px;height:68px;margin:2px auto 8px}
+.public-player-card h3{font-size:clamp(21px,6vw,26px);margin:5px 0}
+.public-player-card #publicPlayerMode,.public-player-card #publicPlayerUid{margin:6px 0;font-size:.9rem}
+.public-player-card .stats{margin:12px 0 7px;gap:8px}
+.public-player-card .stats article{padding:12px 7px;min-height:82px}
+.public-player-card .stats strong{font-size:clamp(25px,7vw,34px)}
+.public-player-card #publicPlayerPlayed{margin:7px 0;font-size:.85rem}
+.public-player-ranks{margin-top:11px}
+.public-player-ranks h4{margin-bottom:7px}
+.public-rank-grid{gap:7px}
+.public-rank-grid .freefire-rank-section{min-height:100px;padding:7px}
+.public-rank-grid .freefire-rank-tile{min-height:76px;gap:2px}
+.public-rank-grid .freefire-rank-emblem{flex-basis:60px;width:60px;height:60px;min-width:60px}
+.public-player-extra-title{margin:12px 0 7px;font-size:.82rem}
+.public-player-extra-grid{gap:7px}
+.public-player-extra-grid article{padding:9px 10px;border-radius:14px;gap:4px}
+.public-player-extra-grid b{font-size:.92rem}
+.public-player-extra-grid span{font-size:.72rem}
+.public-player-close{width:34px;height:34px;right:9px;top:9px}
+@media(max-height:760px){.public-player-card{max-height:calc(100dvh - 12px);padding:11px}.public-player-card>.player-avatar{width:58px;height:58px}.public-player-card .stats article{min-height:72px}.public-rank-grid .freefire-rank-section{min-height:88px}.public-rank-grid .freefire-rank-emblem{flex-basis:52px;width:52px;height:52px;min-width:52px}}
