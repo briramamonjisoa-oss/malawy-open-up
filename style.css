@@ -171,3 +171,63 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 .freefire-rank-copy{display:flex;flex-direction:column;gap:4px}
 .freefire-rank-copy b{font-size:1rem}
 .freefire-rank-copy small{color:var(--muted)}
+
+
+/* FIX: Free Fire rank cards must remain readable on narrow mobile screens. */
+#freeFireProfileCard .freefire-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+}
+#freeFireProfileCard .freefire-grid>div:nth-child(1),
+#freeFireProfileCard .freefire-grid>div:nth-child(2){
+  min-width:0;
+}
+#freeFireProfileCard .freefire-grid>.freefire-rank-section{
+  grid-column:1/-1;
+  min-width:0;
+  min-height:0;
+}
+#freeFireProfileCard .freefire-rank-tile{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  width:100%;
+  min-width:0;
+  gap:12px;
+}
+#freeFireProfileCard .freefire-rank-emblem{
+  display:block;
+  flex:0 0 64px;
+  width:64px;
+  height:64px;
+  min-width:64px;
+  background-size:700% 500%;
+  background-repeat:no-repeat;
+}
+#freeFireProfileCard .freefire-rank-copy{
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-width:0;
+  width:auto;
+  overflow:visible;
+}
+#freeFireProfileCard .freefire-rank-copy b{
+  display:block;
+  width:auto;
+  white-space:normal;
+  word-break:normal;
+  overflow-wrap:normal;
+  line-height:1.25;
+}
+#freeFireProfileCard .freefire-rank-copy small{
+  display:block;
+  white-space:normal;
+  overflow-wrap:normal;
+}
+@media(max-width:420px){
+  #freeFireProfileCard .freefire-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #freeFireProfileCard .freefire-rank-section{padding:12px}
+  #freeFireProfileCard .freefire-rank-emblem{flex-basis:56px;width:56px;height:56px;min-width:56px}
+}
