@@ -117,6 +117,7 @@
 <button class="primary">Envoyer mon inscription</button>
 <p id="regMsg" class="message" aria-live="polite"></p>
 </form>
+<div class="tournament-participants-section"><div class="eyebrow">COMPÉTITIONS</div><h3>PARTICIPANTS DES TOURNOIS</h3><p class="muted">Les listes des joueurs inscrits à chaque tournoi sont regroupées ici.</p><button id="refresh" class="secondary">Actualiser les participants</button><div id="playersList" class="stack"></div></div>
 </section>
 
 <section id="profile" class="page">
@@ -129,11 +130,14 @@
 </section>
 
 <section id="players" class="page">
-<div class="eyebrow">COMMUNAUTÉ</div>
-<h2>PARTICIPANTS</h2>
-<p class="muted">Chaque tournoi possède son propre espace avec son affiche et la liste de ses joueurs inscrits.</p>
-<button id="refresh" class="secondary">Actualiser la liste</button>
-<div id="playersList" class="stack"></div>
+<div class="eyebrow">COMMUNAUTÉ CIA</div>
+<h2>JOUEURS</h2>
+<p class="muted">Tous les joueurs enregistrés dans MALAWY OPEN UP, avec leur profil Free Fire et les informations de présence disponibles.</p>
+<div id="communityGuildSummary"></div>
+<div class="community-toolbar"><b id="communityPlayersCount">Chargement des joueurs…</b><input id="communityPlayerSearch" type="search" placeholder="Rechercher un pseudo ou UID"></div>
+<button id="refreshCommunity" class="secondary">Actualiser les joueurs et la guilde</button>
+<div id="communityPlayersList" class="stack"></div>
+<p class="community-presence-note">La guilde fournit un total de membres connectés, mais pas l'identité de chacun. Le statut individuel reste « non fourni » tant que l'API ne donne pas cette information.</p>
 </section>
 
 <section id="matches" class="page">
