@@ -203,10 +203,11 @@ async function loadPlayerProfile(options={}){
  try{
   const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store'});
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
+  try{const gr=await fetch(API_ORIGIN+'/.netlify/functions/guild-info',{cache:'no-store'});const gd=await gr.json();if(gr.ok&&gd.id)state.guildInfo=gd;}catch(e){console.warn('Guilde Free Fire non actualisée:',e.message);}
   state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
-  const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=ff.clanBasicInfo||{},pet=ff.petInfo||{};
+  const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=state.guildInfo&&String(state.guildInfo.id)==='3076348376'?{...ff.clanBasicInfo,clanName:state.guildInfo.name,clanLevel:state.guildInfo.level,memberNum:state.guildInfo.members,capacity:state.guildInfo.capacity}:ff.clanBasicInfo||{},pet=ff.petInfo||{};
   const ffCard=$('#freeFireProfileCard');
   if(ffCard){
    const dateValue=Number(bi.lastLoginAt||0),lastLogin=dateValue?new Date(dateValue*1000).toLocaleString('fr-FR'):'Non communiqué';
@@ -226,7 +227,7 @@ async function loadPlayerProfile(options={}){
     
     '</div><div class="freefire-extra"><span>Guilde : <b>', esc(clan.clanName || 'Non renseignée'),
     '</b> · Niveau ', esc(clan.clanLevel ?? '—'), ' · ', esc(clan.memberNum ?? '—'), '/', esc(clan.capacity ?? '—'),
-    '</span><span>Dernière connexion connue : ', esc(lastLogin),
+    '</span><span>Chef de guilde : <b>',esc(state.guildInfo?.leader||ff.captainBasicInfo?.nickname||'Non renseigné'),'</b> · UID : ',esc(state.guildInfo?.leaderUid||ff.captainBasicInfo?.accountId||'—'),'</span><span>Dernière connexion connue : ', esc(lastLogin),
     '</span><span>Crédit : ', esc(ff.creditScoreInfo?.creditScore ?? '—'), ' · Compagnon : ',
     esc(pet.name || '—'), ' (niv. ', esc(pet.level ?? '—'), ')</span><span>Synchronisé : ',
     esc(p.freeFireSyncedAt ? new Date(p.freeFireSyncedAt).toLocaleString('fr-FR') : 'Pas encore'),
