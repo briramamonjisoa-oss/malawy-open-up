@@ -32,6 +32,11 @@ exports.handler=async(event)=>{
    if(!table||!x.id)throw new Error('Joueur ou équipe invalide.');
    const record=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id));
    out=await airtable(encodeURIComponent(table)+'/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{Points:amount}})});
+  }else if(x.action==='setPlayerStats'){
+   const played=Number(x.played),wins=Number(x.wins);
+   if(!x.id||!Number.isSafeInteger(played)||!Number.isSafeInteger(wins)||played<0||wins<0||wins>played)throw new Error('Statistiques invalides : les victoires doivent être comprises entre 0 et les matchs joués.');
+   const losses=played-wins;
+   out=await airtable('Inscriptions/'+encodeURIComponent(x.id),{method:'PATCH',body:JSON.stringify({fields:{'Victoires':wins,'Défaites':losses}})});
   }else if(x.action==='saveMatch'){
    if(!x.a||!x.b||x.a.toLowerCase()===x.b.toLowerCase())throw new Error('Indique deux joueurs différents.');
    const fields={'Équipe A':x.a,'Équipe B':x.b,'Score A':Number(x.sa)||0,'Score B':Number(x.sb)||0,'Mode':x.mode||'1 VS 1','Statut':'Terminé'};
