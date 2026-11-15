@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v57';
+const CACHE = 'malawy-v58';
 
 const ASSETS = [
   '/',
@@ -14,7 +14,8 @@ const ASSETS = [
   '/battle-royale-scoring.js',
   '/push-notifications.js',
   '/manifest.webmanifest',
-  '/icon.svg'
+  '/icon.svg',
+  '/assets/freefire-ranks-hd.webp'
 ];
 
 self.addEventListener('install', event => {
