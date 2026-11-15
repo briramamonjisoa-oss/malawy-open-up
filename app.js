@@ -187,7 +187,7 @@ function freeFireRankCard(points, mode='br', rankCode=null, visible=true){
  const hasRank=rankCode!==null&&rankCode!==undefined&&rankCode!=='';
  const title=mode==='cs'?'Clash Squad':'Battle Royale';
  const label=hasRank?'Code de rang Free Fire : '+String(rankCode):'Code de rang non communiqué';
- const score=hasPoints?Number(points).toLocaleString('fr-FR')+(mode==='cs'?' étoiles / points API':' points BR'):'Score non communiqué';
+ const score=hasPoints?Number(points).toLocaleString('fr-FR')+(mode==='cs'?' valeur API CS':' points BR'):'Score non communiqué';
  const state=visible===false?'Rang masqué dans Free Fire':'';
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'"><span class="freefire-rank-code" aria-label="'+esc(title)+'">'+(mode==='cs'?'CS':'BR')+'</span><span class="freefire-rank-copy"><b>'+esc(hasRank?'Rang API #'+rankCode:'Rang indisponible')+'</b><small>'+esc(score)+'</small><small>'+esc(label)+'</small>'+(state?'<small>'+esc(state)+'</small>':'')+'</span></div>';
 }
