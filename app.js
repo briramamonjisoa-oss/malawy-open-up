@@ -165,7 +165,8 @@ const FREE_FIRE_RANK_CODES={
  311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
  315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
  319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque',division:'+',asset:'H2'},321:{name:'Maître',division:'',asset:'M1'},
- 322:{name:'Grand maître',division:'I',asset:'BRGM1'},323:{name:'Grand maître',division:'II',asset:'BRGM2'},324:{name:'Grand maître',division:'III',asset:'BRGM3'},325:{name:'Grand maître',division:'',asset:'BRGM4'}
+ 322:{name:'Grand maître',division:'I',asset:'BRGM1'},323:{name:'Grand maître',division:'II',asset:'BRGM2'},324:{name:'Grand maître',division:'III',asset:'BRGM3'},325:{name:'Grand maître',division:'',asset:'BRGM4'},
+ 326:{name:'Grand maître',division:'',asset:''},327:{name:'Grand maître',division:'',asset:''},328:{name:'Grand maître',division:'',asset:''},329:{name:'Grand maître',division:'',asset:''},330:{name:'Grand maître',division:'',asset:''}
 };
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode);
