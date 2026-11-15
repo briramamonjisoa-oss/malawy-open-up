@@ -100,6 +100,77 @@ function styles() {
     .tour-logo{width:48px;height:48px;object-fit:cover;border-radius:8px}
     .tour-poster{width:100%;max-height:190px;object-fit:cover;border-radius:10px;margin-bottom:8px}
     .tour-message{color:#c9ff38;font-size:13px;min-height:18px}
+
+    /* BLACK VELVET / GLASS TOURNAMENT UI */
+    #tournaments{color:#f0f0f0}
+    #tournaments .tour-muted,#tournaments .tour-card small,#tournaments .signup-card small{color:#a1a4a5}
+    #tournaments .tour-card,
+    #tournaments .tour-form,
+    #tournaments .signup-card,
+    #tournaments .my-tournaments,
+    #tournaments .my-tournament-card,
+    #tournaments .tour-admin{
+      background:rgba(0,0,0,.58);
+      border:1px solid rgba(146,129,247,.20);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+      -webkit-backdrop-filter:blur(18px) saturate(125%);
+      backdrop-filter:blur(18px) saturate(125%);
+    }
+    #tournaments .tour-card,
+    #tournaments .signup-card,
+    #tournaments .my-tournament-card{
+      position:relative;overflow:hidden;border-radius:16px;
+      transition:border-color .2s ease,transform .2s ease,background .2s ease;
+    }
+    #tournaments .tour-card:before,
+    #tournaments .signup-card:before,
+    #tournaments .my-tournament-card:before{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(118deg,rgba(146,129,247,.055),transparent 34%,rgba(216,189,122,.045));
+      opacity:.75;
+    }
+    #tournaments .tour-card:hover,
+    #tournaments .signup-card:hover,
+    #tournaments .my-tournament-card:hover{
+      border-color:rgba(216,189,122,.55);transform:translateY(-2px);
+      background:rgba(5,5,7,.78);
+    }
+    #tournaments .tour-form{
+      border-radius:16px;padding:18px;
+      background:rgba(0,0,0,.62);
+      border-color:rgba(216,189,122,.24);
+    }
+    #tournaments .tour-form input,
+    #tournaments .tour-form select,
+    #tournaments .tour-form textarea{
+      background:rgba(0,0,0,.58);color:#f0f0f0;
+      border:1px solid #292d30;border-radius:6px;
+      outline:none;transition:border-color .18s ease,background .18s ease;
+    }
+    #tournaments .tour-form input:focus,
+    #tournaments .tour-form select:focus,
+    #tournaments .tour-form textarea:focus{
+      border-color:#9281f7;background:rgba(10,8,16,.82);
+      box-shadow:0 0 0 2px rgba(146,129,247,.10);
+    }
+    #tournaments .tour-form input::placeholder,
+    #tournaments .tour-form textarea::placeholder{color:#777b84}
+    #tournaments .tour-admin{
+      margin-top:24px;padding:18px;border-radius:16px;
+      border-color:rgba(216,189,122,.22);
+      background:rgba(0,0,0,.62);
+    }
+    #tournaments .tour-admin>h3,
+    #tournaments .my-tournaments>h3{color:#f0f0f0;letter-spacing:-.035em}
+    #tournaments .tour-logo{border:1px solid rgba(216,189,122,.30);border-radius:10px}
+    #tournaments .tour-poster{border:1px solid rgba(146,129,247,.25);border-radius:12px}
+    #tournaments .tour-actions button{border-radius:6px}
+    #tournaments .tour-message{color:#baa7ff}
+    #tournaments .tour-status{border:1px solid rgba(216,189,122,.18)}
+    #tournaments .my-tournaments{border-radius:16px;padding:16px}
+    @media(prefers-reduced-motion:reduce){
+      #tournaments .tour-card,#tournaments .signup-card,#tournaments .my-tournament-card{transition:none}
+    }
   `;
   document.head.append(s);
 }
