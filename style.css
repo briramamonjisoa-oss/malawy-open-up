@@ -168,6 +168,7 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
  .freefire-rank-copy b{font-size:.9rem;line-height:1.15}
  .freefire-rank-copy small{font-size:.72rem}
 }
+.freefire-rank-emblem.is-unknown{background-image:none!important;background-color:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1.25rem;font-weight:900;filter:none}
 .freefire-rank-copy{display:flex;flex-direction:column;gap:4px}
 .freefire-rank-copy b{font-size:.88rem;line-height:1.2}
 .freefire-rank-copy small{color:var(--muted);font-size:.72rem}
