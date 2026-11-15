@@ -49,6 +49,7 @@ export default {
     };
     ctx.waitUntil(Promise.allSettled([
       handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
+      handlers.players({httpMethod:"GET",headers:{},body:"",queryStringParameters:{syncOnly:"1"}}),
       notifications.processScheduledNotifications(env)
     ]));
   },
