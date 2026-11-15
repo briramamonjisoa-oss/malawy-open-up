@@ -161,7 +161,26 @@ async function loadPlayerProfile(){
    const dateValue=Number(bi.lastLoginAt||0),lastLogin=dateValue?new Date(dateValue*1000).toLocaleString('fr-FR'):'Non communiqué';
    const inGuild=String(clan.clanId||'')==='3076348376';
    ffCard.hidden=!Object.keys(bi).length;
-   ffCard.innerHTML=Object.keys(bi).length?'<div class="freefire-head"><div><span class="eyebrow">FREE FIRE · PROFIL SYNCHRONISÉ</span><h3>'+esc(bi.nickname||p.pseudo)+'</h3><small>UID '+esc(bi.accountId||p.playerId)+' · Région '+esc(bi.region||'ME')+'</small></div><span class="freefire-guild-state '+(inGuild?'is-member':'not-member')+'">'+(inGuild?'Membre C•I•A FF':'Guilde différente / inconnue')+'</span></div><div class="freefire-grid"><div><b>'+esc(bi.level??'—')+'</b><small>Niveau</small></div><div><b>'+esc(bi.liked??'—')+'</b><small>Likes</small></div><div><b>'+esc(bi.rank??'—')+'</b><small>Rang BR</small></div><div><b>'+esc(bi.rankingPoints??'—')+'</b><small>Points BR</small></div><div><b>'+esc(bi.csRank??'—')+'</b><small>Rang CS</small></div><div><b>'+esc(bi.csRankingPoints??'—')+'</b><small>Points CS</small></div></div><div class="freefire-extra"><span>Guilde : <b>'+esc(clan.clanName||'Non renseignée')+'</b> · Niveau '+esc(clan.clanLevel??'—')+' · '+esc(clan.memberNum??'—')+'/'+esc(clan.capacity??'—')+'</span><span>Dernière connexion connue : '+esc(lastLogin)+'</span><span>Crédit : '+esc(ff.creditScoreInfo?.creditScore??'—')+' · Compagnon : '+esc(pet.name||'—')+' (niv. '+esc(pet.level??'—')+')</span><span>Synchronisé : '+esc(p.freeFireSyncedAt?new Date(p.freeFireSyncedAt).toLocaleString('fr-FR'):'Pas encore')}</span><small>Ces données ne constituent pas un statut en ligne en temps réel.</small></div>':'<p class="muted">Profil Free Fire indisponible pour le moment.</p>';
+   ffCard.innerHTML = Object.keys(bi).length ? [
+    '<div class="freefire-head"><div><span class="eyebrow">FREE FIRE · PROFIL SYNCHRONISÉ</span><h3>', esc(bi.nickname || p.pseudo),
+    '</h3><small>UID ', esc(bi.accountId || p.playerId), ' · Région ', esc(bi.region || 'ME'),
+    '</small></div><span class="freefire-guild-state ', inGuild ? 'is-member' : 'not-member', '">',
+    inGuild ? 'Membre C•I•A FF' : 'Guilde différente / inconnue',
+    '</span></div><div class="freefire-grid">',
+    '<div><b>', esc(bi.level ?? '—'), '</b><small>Niveau</small></div>',
+    '<div><b>', esc(bi.liked ?? '—'), '</b><small>Likes</small></div>',
+    '<div><b>', esc(bi.rank ?? '—'), '</b><small>Rang BR</small></div>',
+    '<div><b>', esc(bi.rankingPoints ?? '—'), '</b><small>Points BR</small></div>',
+    '<div><b>', esc(bi.csRank ?? '—'), '</b><small>Rang CS</small></div>',
+    '<div><b>', esc(bi.csRankingPoints ?? '—'), '</b><small>Points CS</small></div>',
+    '</div><div class="freefire-extra"><span>Guilde : <b>', esc(clan.clanName || 'Non renseignée'),
+    '</b> · Niveau ', esc(clan.clanLevel ?? '—'), ' · ', esc(clan.memberNum ?? '—'), '/', esc(clan.capacity ?? '—'),
+    '</span><span>Dernière connexion connue : ', esc(lastLogin),
+    '</span><span>Crédit : ', esc(ff.creditScoreInfo?.creditScore ?? '—'), ' · Compagnon : ',
+    esc(pet.name || '—'), ' (niv. ', esc(pet.level ?? '—'), ')</span><span>Synchronisé : ',
+    esc(p.freeFireSyncedAt ? new Date(p.freeFireSyncedAt).toLocaleString('fr-FR') : 'Pas encore'),
+    '</span><small>Ces données ne constituent pas un statut en ligne en temps réel.</small></div>'
+   ].join('') : '<p class="muted">Profil Free Fire indisponible pour le moment.</p>';
   }
   const profilePlayed=(Number(p.wins)||0)+(Number(p.losses)||0);
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
