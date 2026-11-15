@@ -6,9 +6,11 @@
     { key: 'requests', icon: '01', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
     { key: 'points', icon: '02', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
     { key: 'playerStats', icon: '03', title: 'Statistiques des joueurs', subtitle: 'Matchs joués, victoires et défaites' },
-    { key: 'matches', icon: '04', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
-    { key: 'notifications', icon: '05', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
-    { key: 'tournamentSignups', icon: '06', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' }
+    { key: 'matches', icon: '04', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores classiques' },
+    { key: 'battleRoyaleResults', icon: '05', title: 'Résultats Battle Royale', subtitle: 'Maps, Top, kills et classement du tournoi' },
+    { key: 'notifications', icon: '06', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
+    { key: 'tournamentSignups', icon: '07', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' },
+    { key: 'photoConfig', icon: '08', title: 'Configuration des photos', subtitle: 'Paramètres de stockage des photos' }
   ];
 
   function makePanel(element, key, root) {
@@ -32,6 +34,10 @@
     body.append(element);
 
     if (key === 'requests') {
+      const inboxLaunch = $('.admin-inbox-launch', root);
+      const inboxPanel = $('#requestsInbox', root);
+      if (inboxLaunch) body.append(inboxLaunch);
+      if (inboxPanel) body.append(inboxPanel);
       const updateCount = () => {
         const heading = $('#pendingRequestsTitle', root);
         const match = (heading?.textContent || '').match(/\((\d+)\)/);
@@ -92,7 +98,9 @@
       if (heading.startsWith('Demandes en attente')) key = 'requests';
       else if (heading === 'Attribuer des points') key = 'points';
       else if (heading.toLowerCase().includes('statistiques manuelles des joueurs')) key = 'playerStats';
-      else if (heading.toLowerCase().includes('résultat')) key = 'matches';
+      else if (heading.toLowerCase().startsWith('ajouter / modifier un résultat')) key = 'matches';
+      else if (heading.toLowerCase().includes('résultats battle royale')) key = 'battleRoyaleResults';
+      else if (heading.toLowerCase().startsWith('configuration des photos')) key = 'photoConfig';
       if (key) makePanel(block, key, root);
     });
 

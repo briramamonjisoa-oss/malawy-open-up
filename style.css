@@ -475,3 +475,43 @@ body>.admin-accordion[open]>summary{background:#050505!important;border-bottom:1
 }
 #adminContent>.admin-shortcuts{display:grid}
 #adminContent>.admin-toolbar{margin-bottom:16px}
+
+
+/* BLACK VELVET — subtle floating gold dust across every screen */
+body{position:relative;isolation:isolate}
+body:after{
+ content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;opacity:.42;
+ background-image:
+  radial-gradient(2px 2px at 8% 22%,rgba(240,223,180,.88) 0,rgba(240,223,180,.22) 1px,transparent 2px),
+  radial-gradient(1.5px 1.5px at 29% 73%,rgba(216,189,122,.9) 0,rgba(216,189,122,.2) 1px,transparent 2px),
+  radial-gradient(2px 2px at 66% 34%,rgba(186,167,255,.8) 0,rgba(186,167,255,.16) 1px,transparent 2px),
+  radial-gradient(1px 1px at 88% 82%,rgba(240,223,180,.8) 0,transparent 1.5px),
+  radial-gradient(1px 1px at 48% 12%,rgba(255,255,255,.65) 0,transparent 1.5px);
+ background-size:310px 370px,390px 430px,470px 510px,280px 330px,540px 590px;
+ animation:gold-dust-float 34s linear infinite;
+}
+@keyframes gold-dust-float{
+ 0%{transform:translate3d(0,0,0) rotate(0deg);background-position:0 0,0 0,0 0,0 0,0 0}
+ 50%{transform:translate3d(1.2%,-1.6%,0) rotate(.5deg);background-position:38px -54px,-46px 36px,52px 64px,-28px -42px,32px 48px}
+ 100%{transform:translate3d(-.8%,1%,0) rotate(0deg);background-position:76px -108px,-92px 72px,104px 128px,-56px -84px,64px 96px}
+}
+.page{position:relative}
+.page.active{animation:page-arrive .42s cubic-bezier(.2,.75,.25,1) both}
+.panel,.item,.stats article,.freefire-rank-section,.admin-shortcut,.admin-accordion{
+ position:relative;overflow:hidden;
+}
+.panel:before,.admin-shortcut:before,.admin-accordion:not([data-in-modal="1"]):before{
+ content:"";position:absolute;top:-140%;left:-35%;width:24%;height:380%;pointer-events:none;
+ background:linear-gradient(90deg,transparent,rgba(240,223,180,.055),transparent);
+ transform:rotate(22deg) translateX(-260%);
+ transition:transform .8s cubic-bezier(.2,.75,.25,1);
+}
+.panel:hover:before,.admin-shortcut:hover:before{transform:rotate(22deg) translateX(850%)}
+.admin-shortcut{background:linear-gradient(145deg,#050505,#020202)}
+.admin-shortcut:hover{border-color:#796743;background:linear-gradient(145deg,#0a0907,#030303)}
+.admin-shortcut .shortcut-icon{font-family:'Commit Mono',monospace}
+.admin-accordion-body>.admin-block{min-width:0}
+#adminContent>.admin-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
+#adminContent>.admin-accordion:not([open]){display:none!important}
+@media(max-width:600px){#adminContent>.admin-shortcuts{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){body:after{animation:none!important}.panel:before,.admin-shortcut:before{display:none!important}}
