@@ -155,7 +155,7 @@ const FREE_FIRE_RANK_POS={
  G1:[6,0],G2:[0,1],G3:[1,1],G4:[2,1],P1:[3,1],P2:[4,1],P3:[5,1],P4:[6,1],
  D1:[0,2],D2:[1,2],D3:[2,2],D4:[3,2],D45:[4,2],D5:[5,2],
  H1:[6,2],H2:[0,3],H3:[1,3],H4:[2,3],H5:[3,3],
- M1:[4,3],M3:[5,3],M4:[6,3],M5:[0,4],
+ M1:[4,3],M2:[5,3],M3:[6,3],M4:[0,4],
  BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
 };
 const FREE_FIRE_RANK_CODES={
@@ -165,7 +165,7 @@ const FREE_FIRE_RANK_CODES={
  311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
  315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
  319:{name:'Héroïque',division:'I',asset:'H1'},320:{name:'Héroïque',division:'II',asset:'H2'},321:{name:'Héroïque',division:'III',asset:'H3'},322:{name:'Héroïque',division:'IV',asset:'H4'},323:{name:'Héroïque',division:'V',asset:'H5'},
- 324:{name:'Maître',division:'I',asset:'M1'},325:{name:'Maître',division:'II',asset:'M3'},326:{name:'Maître',division:'III',asset:'M4'},327:{name:'Maître',division:'IV',asset:'M5'},
+ 324:{name:'Maître',division:'I',asset:'M1'},325:{name:'Maître',division:'II',asset:'M2'},326:{name:'Maître',division:'III',asset:'M3'},327:{name:'Maître',division:'IV',asset:'M4'},
  328:{name:'Grand maître',division:'I',asset:'BRGM1'},329:{name:'Grand maître',division:'II',asset:'BRGM2'},330:{name:'Grand maître',division:'III',asset:'BRGM3'},
  331:{name:'Grand maître',division:'IV',asset:'BRGM4'},332:{name:'Grand maître',division:'V',asset:'BRGM5'},333:{name:'Grand maître',division:'VI',asset:'BRGM6'}
 };
