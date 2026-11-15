@@ -74,8 +74,8 @@ async function loadAll(){
  else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
  if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];
  else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
- if(jobs[3].status==='fulfilled'&&jobs[3].value?.id)state.guildInfo=jobs[3].value;
- else console.warn('Présence globale de la guilde indisponible:',jobs[3].reason||'données non retournées');
+ if(jobs[3].status==='fulfilled'&&jobs[3].value?.id){state.guildInfo=jobs[3].value;state.guildError='';}
+ else{state.guildError=jobs[3].status==='rejected'?(jobs[3].reason?.message||'API guilde inaccessible'):(jobs[3].value?.error||'API guilde : réponse invalide');console.warn('Présence globale de la guilde indisponible:',state.guildError);}
  state.adminLoadErrors=errors;
  // Render the admin list independently: a public-page rendering error must not hide player requests.
  if(state.admin){
@@ -135,7 +135,7 @@ const search=String(document.getElementById('communityPlayerSearch')?.value||'')
 const visiblePlayers=community.filter(p=>!search||String(p.pseudo||'').toLocaleLowerCase('fr').includes(search)||String(p.playerId||'').includes(search));
 const onlineValue=guild?.online;
 const onlineDisplay=onlineValue!==null&&onlineValue!==undefined&&onlineValue!==''&&Number.isFinite(Number(onlineValue))?String(Number(onlineValue)):'—';
-const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres</small><small>Actualisation : '+(guild?.syncedAt?esc(new Date(guild.syncedAt).toLocaleString('fr-FR')):'en attente')+'</small></div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>membres connectés</small></div></article>';
+const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres</small><small>Actualisation : '+(guild?.syncedAt?esc(new Date(guild.syncedAt).toLocaleString('fr-FR')):'en attente')+'</small>'+(state.guildError?'<small class="guild-api-error">API guilde : '+esc(state.guildError)+'</small>':'')+'</div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>membres connectés</small></div></article>';
 $('#communityGuildSummary').innerHTML=guildSummary;
 $('#communityPlayersCount').textContent=community.length+' joueur(s) dans MALAWY OPEN UP';
 $('#communityPlayersList').innerHTML=visiblePlayers.length?visiblePlayers.map(p=>{
