@@ -396,3 +396,30 @@ body[data-theme="light"] .form input,body[data-theme="light"] .form select{backg
 body[data-theme="light"] .hero{background:#fff}
 body[data-theme="light"] .hero:before{opacity:.35}
 body[data-theme="light"] .hero:after{opacity:.25}
+
+
+/* MALAWY OPEN UP — premium motion pass */
+.page.active{animation:page-arrive .42s cubic-bezier(.2,.75,.25,1) both}
+@keyframes page-arrive{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.top-player{position:relative;isolation:isolate;overflow:hidden;will-change:transform;transition:transform .28s cubic-bezier(.2,.75,.25,1),border-color .28s ease,background .28s ease}
+.top-player:before{content:"";position:absolute;z-index:-1;inset:-80% -40%;pointer-events:none;opacity:0;transform:translateX(-75%) rotate(18deg);background:linear-gradient(90deg,transparent 38%,rgba(255,255,255,.025) 44%,rgba(240,223,180,.17) 50%,rgba(255,255,255,.035) 56%,transparent 62%);transition:opacity .25s ease}
+.top-player.rank-1:before{opacity:.8;animation:gold-foil-sweep 8s ease-in-out infinite}
+.top-player.rank-1:after{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(ellipse at 50% -12%,rgba(216,189,122,.09),transparent 58%);opacity:.9}
+.top-player.rank-1>b{color:#f0dfb4;text-shadow:0 0 14px rgba(216,189,122,.18)}
+.top-player.rank-1>big{background:linear-gradient(110deg,#9d8047 5%,#f4e4b7 34%,#c6a45e 53%,#fff0c7 68%,#9d8047 94%);background-size:220% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:gold-text-glint 7s ease-in-out infinite}
+.top-player .player-avatar{transition:transform .35s cubic-bezier(.2,.75,.25,1),border-color .3s ease}
+.top-player.rank-1 .player-avatar{border-color:#9b8050;box-shadow:0 0 0 3px rgba(216,189,122,.055)}
+.top-player:hover{transform:translateY(-4px);border-color:#665637}
+.top-player:hover .player-avatar{transform:scale(1.045)}
+.top-player:active{transform:translateY(-1px) scale(.99)}
+.ranking-player-row,.item,.panel,.stats article,.freefire-rank-section,.admin-shortcut{transition:transform .22s cubic-bezier(.2,.75,.25,1),border-color .22s ease,background-color .22s ease}
+.ranking-player-row:hover,.item:hover{border-color:#51452f}
+button:focus-visible{outline-color:var(--gold);outline-offset:3px}
+.tab{transition:color .2s ease,border-color .2s ease,background .2s ease,transform .2s ease}
+.tab.active{box-shadow:inset 0 -1px 0 rgba(216,189,122,.18)}
+.bottom button{transition:color .2s ease,transform .2s ease}
+.bottom button.active{transform:translateY(-2px)}
+@keyframes gold-foil-sweep{0%,58%{transform:translateX(-75%) rotate(18deg)}78%,100%{transform:translateX(75%) rotate(18deg)}}
+@keyframes gold-text-glint{0%,55%{background-position:100% 50%}82%,100%{background-position:0% 50%}}
+@media(hover:none){.top-player:hover,.ranking-player-row:hover,.item:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.page.active,.top-player.rank-1:before,.top-player.rank-1>big{animation:none!important}.top-player,.player-avatar,.ranking-player-row,.item,.panel,.stats article,.freefire-rank-section,.admin-shortcut,.tab,.bottom button{transition:none!important}}
