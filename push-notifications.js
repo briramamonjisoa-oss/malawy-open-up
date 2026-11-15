@@ -208,8 +208,16 @@
       status.textContent = 'Connecte-toi à ton profil avant d’activer les notifications.';
       return;
     }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      status.textContent = 'Ce navigateur ne prend pas en charge les notifications push. Sur iPhone, installe d’abord l’application sur l’écran d’accueil.';
+    if (!window.isSecureContext) {
+      status.textContent = 'Les notifications exigent une connexion sécurisée HTTPS. Ouvre l’adresse officielle de MALAWY OPEN UP.';
+      return;
+    }
+    if (!('serviceWorker' in navigator)) {
+      status.textContent = 'Ce navigateur ne prend pas en charge les applications installables. Ouvre MALAWY OPEN UP dans Google Chrome à jour.';
+      return;
+    }
+    if (!('PushManager' in window) || !('Notification' in window)) {
+      status.textContent = 'Ce navigateur intégré ne gère pas les notifications push. Ouvre le site directement dans Google Chrome, puis installe MALAWY OPEN UP depuis le menu ⋮ > Installer l’application.';
       return;
     }
     if (VAPID_PUBLIC_KEY === 'CONFIGURER_CLE_PUBLIQUE_VAPID') {
@@ -221,6 +229,7 @@
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') throw new Error('Autorisation de notification refusée dans le téléphone.');
       const registration = await navigator.serviceWorker.ready;
+      if (!registration || !registration.pushManager) throw new Error('Service de notifications indisponible. Ferme puis rouvre l’application depuis son icône, ou utilise Chrome.');
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
@@ -232,7 +241,7 @@
       localStorage.setItem('mou_push_saved_endpoint', subscription.endpoint);
       status.textContent = 'Parfait ! Cet appareil est inscrit aux notifications MALAWY OPEN UP.';
     } catch (error) {
-      status.textContent = error.message || 'Impossible d’activer les notifications.';
+      status.textContent = error.message || 'Impossible d’activer les notifications. Vérifie les autorisations du site dans Chrome.';
     } finally {
       button.disabled = false;
     }
