@@ -101,8 +101,15 @@
 </section>
 
 <section id="register" class="page">
+<div class="eyebrow">COMMUNAUTÉ · COMPÉTITIONS</div>
+<h2>JOUEURS INSCRITS AUX TOURNOIS</h2>
+<p class="muted">Retrouve les équipes et les joueurs inscrits à chaque tournoi, avec leur statut de validation.</p>
+<button id="refreshTournamentParticipants" class="secondary">Actualiser les participants</button>
+<div id="playersList" class="stack"></div>
+<div class="tournament-player-registration">
 <div class="eyebrow">REJOINS LA COMPÉTITION</div>
-<h2>INSCRIPTION JOUEUR</h2>
+<h3>INSCRIPTION JOUEUR</h3>
+<p class="muted">Tu n'es pas encore inscrit ? Enregistre ton profil Free Fire ici.</p>
 <form id="regForm" class="panel form">
 <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="nickname"></label>
 <label>ID Free Fire<input name="ffid" required maxlength="40"></label>
@@ -117,7 +124,7 @@
 <button class="primary">Envoyer mon inscription</button>
 <p id="regMsg" class="message" aria-live="polite"></p>
 </form>
-<div class="tournament-participants-section"><div class="eyebrow">COMPÉTITIONS</div><h3>PARTICIPANTS DES TOURNOIS</h3><p class="muted">Les listes des joueurs inscrits à chaque tournoi sont regroupées ici.</p><button id="refresh" class="secondary">Actualiser les participants</button><div id="playersList" class="stack"></div></div>
+</div>
 </section>
 
 <section id="profile" class="page">
