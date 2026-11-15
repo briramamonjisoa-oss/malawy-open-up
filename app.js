@@ -167,7 +167,8 @@ const FREE_FIRE_RANK_CODES={
  319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque élite',division:'',asset:'H2'},
  321:{name:'Maître',division:'',asset:'M1'},322:{name:'Maître élite',division:'',asset:'M2'},
  323:{name:'Grand maître',division:'I',asset:'BRGM1'},324:{name:'Grand maître',division:'II',asset:'BRGM2'},325:{name:'Grand maître',division:'III',asset:'BRGM3'},
- 326:{name:'Grand maître',division:'IV',asset:'BRGM4'},327:{name:'Grand maître',division:'V',asset:'BRGM5'},328:{name:'Grand maître',division:'VI',asset:'BRGM6'}
+ 326:{name:'Grand maître',division:'IV',asset:'BRGM4'},327:{name:'Grand maître',division:'V',asset:'BRGM5'},328:{name:'Grand maître',division:'VI',asset:'BRGM6'},
+ 329:{name:'Grand maître',division:'',asset:'BRGM6'},330:{name:'Grand maître',division:'',asset:'BRGM6'}
 };
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode);
