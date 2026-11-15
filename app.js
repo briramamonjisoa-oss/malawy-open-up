@@ -147,6 +147,33 @@ $('#gateAdminForm')?.addEventListener('submit',async e=>{
 $('#refresh').onclick=loadAll;
 $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg=$('#adminMsg');msg.textContent='Connexion…';try{const d=await api('/.netlify/functions/admin',{method:'POST',body:JSON.stringify({code:e.target.pin.value})});state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);window.dispatchEvent(new Event('mou:admin-auth'));e.target.hidden=true;$('#adminContent').hidden=false;msg.textContent='Connecté';await loadAll();}catch(x){msg.textContent=x.message}});
 
+
+function freeFireRankInfo(points, mode='br'){
+ const n=Number(points)||0;
+ if(mode==='cs'){
+  if(n>=157)return {name:'Grand maître',division:'IV–VI',tier:'grandmaster'};
+  if(n>=132)return {name:'Maître',division:'',tier:'master'};
+  if(n>=107)return {name:'Élite héroïque',division:'',tier:'elite-heroic'};
+  if(n>=82)return {name:'Héroïque',division:'',tier:'heroic'};
+  if(n>=37)return {name:'Diamant',division:'I–V',tier:'diamond'};
+  if(n>=17)return {name:'Platine',division:'I–IV',tier:'platinum'};
+  if(n>=1)return {name:'Or',division:'I–IV',tier:'gold'};
+  return {name:'Argent',division:'III',tier:'silver'};
+ }
+ if(n>=6001)return {name:'Maître',division:'',tier:'master'};
+ if(n>=3201)return {name:'Héroïque',division:'',tier:'heroic'};
+ if(n>=2301)return {name:'Diamant',division:'I–IV',tier:'diamond'};
+ if(n>=1801)return {name:'Platine',division:'I–IV',tier:'platinum'};
+ if(n>=1301)return {name:'Or',division:'I–IV',tier:'gold'};
+ if(n>=1001)return {name:'Argent',division:'I–III',tier:'silver'};
+ return {name:'Bronze',division:'I–III',tier:'bronze'};
+}
+function freeFireRankCard(points, mode='br'){
+ const rank=freeFireRankInfo(points,mode);
+ const icon='<span class="freefire-rank-emblem '+rank.tier+'" aria-hidden="true"><span>✦</span></span>';
+ return '<div class="freefire-rank-tile">'+icon+'<div class="freefire-rank-copy"><b>'+esc(rank.name+(rank.division?' '+rank.division:''))+'</b><small>'+Number(points||0).toLocaleString('fr-FR')+(mode==='cs'?' étoiles':' points')+'</small></div></div>';
+}
+
 async function loadPlayerProfile(){
  if(!state.playerToken)return;
  try{
@@ -169,10 +196,10 @@ async function loadPlayerProfile(){
     '</span></div><div class="freefire-grid">',
     '<div><b>', esc(bi.level ?? '—'), '</b><small>Niveau</small></div>',
     '<div><b>', esc(bi.liked ?? '—'), '</b><small>Likes</small></div>',
-    '<div><b>', esc(bi.rank ?? '—'), '</b><small>Rang BR</small></div>',
-    '<div><b>', esc(bi.rankingPoints ?? '—'), '</b><small>Points BR</small></div>',
-    '<div><b>', esc(bi.csRank ?? '—'), '</b><small>Rang CS</small></div>',
-    '<div><b>', esc(bi.csRankingPoints ?? '—'), '</b><small>Points CS</small></div>',
+    '<div class="freefire-rank-section"><small>BATTLE ROYALE</small>', freeFireRankCard(bi.rankingPoints,'br'), '</div>',
+    
+    '<div class="freefire-rank-section"><small>CLASH SQUAD</small>', freeFireRankCard(bi.csRankingPoints,'cs'), '</div>',
+    
     '</div><div class="freefire-extra"><span>Guilde : <b>', esc(clan.clanName || 'Non renseignée'),
     '</b> · Niveau ', esc(clan.clanLevel ?? '—'), ' · ', esc(clan.memberNum ?? '—'), '/', esc(clan.capacity ?? '—'),
     '</span><span>Dernière connexion connue : ', esc(lastLogin),
