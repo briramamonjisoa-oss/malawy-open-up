@@ -89,8 +89,8 @@ async function loadAll(){
 function isAcceptedPlayer(p){const s=String(p.status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');return !s||['accepte','acceptee','accepted','valide','validee','approved'].includes(s)}
 function ranking(){
  const map=new Map();
- state.players.filter(isAcceptedPlayer).forEach(player=>{const name=String(player.pseudo||'').trim();if(!name)return;const wins=Number(player.wins)||0,losses=Number(player.losses)||0;map.set(name,{name,photo:player.photo||'',points:Number(player.points)||0,wins,losses,played:wins+losses,score:0,_winsFromMatches:0,_lossesFromMatches:0,_playedFromMatches:0});});
- state.matches.filter(x=>{const s=String(x.status||'').trim().toLocaleLowerCase('fr');return !s||s==='termine'||s==='terminé'||s==='completed';}).forEach(x=>{const a=String(x.a||'').trim(),b=String(x.b||'').trim();if(!a||!b)return;const getPlayer=name=>{const existing=[...map.entries()].find(([key])=>key.toLowerCase()===name.toLowerCase());if(existing)return existing[1];const player=state.players.find(p=>String(p.pseudo||'').toLowerCase()===name.toLowerCase());const created={name,photo:player?.photo||'',points:Number(player?.points)||0,wins:0,losses:0,played:0,score:0,_winsFromMatches:0,_lossesFromMatches:0,_playedFromMatches:0};map.set(name,created);return created;};const A=getPlayer(a),B=getPlayer(b),sa=Number(x.sa)||0,sb=Number(x.sb)||0;A._playedFromMatches++;B._playedFromMatches++;A.score+=sa;B.score+=sb;if(sa>sb){A._winsFromMatches++;A.points+=3;}else if(sb>sa){B._winsFromMatches++;B.points+=3;}else{A.points++;B.points++;}});
+ state.players.filter(isAcceptedPlayer).forEach(player=>{const name=String(player.pseudo||'').trim();if(!name)return;const wins=Number(player.wins)||0,losses=Number(player.losses)||0;map.set(name,{name,photo:player.photo||'',playerId:player.playerId||'',freeFireProfile:player.freeFireProfile||null,points:Number(player.points)||0,wins,losses,played:wins+losses,score:0,_winsFromMatches:0,_lossesFromMatches:0,_playedFromMatches:0});});
+ state.matches.filter(x=>{const s=String(x.status||'').trim().toLocaleLowerCase('fr');return !s||s==='termine'||s==='terminé'||s==='completed';}).forEach(x=>{const a=String(x.a||'').trim(),b=String(x.b||'').trim();if(!a||!b)return;const getPlayer=name=>{const existing=[...map.entries()].find(([key])=>key.toLowerCase()===name.toLowerCase());if(existing)return existing[1];const player=state.players.find(p=>String(p.pseudo||'').toLowerCase()===name.toLowerCase());const created={name,photo:player?.photo||'',playerId:player?.playerId||'',freeFireProfile:player?.freeFireProfile||null,points:Number(player?.points)||0,wins:0,losses:0,played:0,score:0,_winsFromMatches:0,_lossesFromMatches:0,_playedFromMatches:0};map.set(name,created);return created;};const A=getPlayer(a),B=getPlayer(b),sa=Number(x.sa)||0,sb=Number(x.sb)||0;A._playedFromMatches++;B._playedFromMatches++;A.score+=sa;B.score+=sb;if(sa>sb){A._winsFromMatches++;A.points+=3;}else if(sb>sa){B._winsFromMatches++;B.points+=3;}else{A.points++;B.points++;}});
  return [...map.values()].map(p=>{const wins=Math.max(p.wins,p._winsFromMatches),losses=Math.max(p.losses,p._playedFromMatches-p._winsFromMatches);return {...p,wins,losses,played:Math.max(p.played,p._playedFromMatches)};}).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.score-a.score||a.name.localeCompare(b.name));
 }
 function avatar(p){const letter=esc((p.name||p.pseudo||'?').slice(0,1).toUpperCase());return p.photo?`<img src="${esc(p.photo)}" alt="Photo ${esc(p.name||p.pseudo)}" onerror="this.remove();this.parentElement.textContent='${letter}'">`:letter}
@@ -102,7 +102,7 @@ function showPublicPlayer(pseudo){
  let modal=$('#publicPlayerModal');
  if(!modal){
   modal=document.createElement('div');modal.id='publicPlayerModal';modal.className='public-player-overlay';modal.hidden=true;
-  modal.innerHTML='<div class="public-player-card" role="dialog" aria-modal="true" aria-labelledby="publicPlayerName"><button type="button" class="public-player-close" aria-label="Fermer">×</button><div id="publicPlayerPhoto" class="player-avatar"></div><h3 id="publicPlayerName"></h3><p id="publicPlayerMode"></p><p id="publicPlayerUid" class="muted"></p><span id="publicPlayerStatus" class="status"></span><div class="stats"><article><strong id="publicPlayerPoints">0</strong><span>Points</span></article><article><strong id="publicPlayerWins">0</strong><span>Victoires</span></article><article><strong id="publicPlayerLosses">0</strong><span>Défaites</span></article></div><p id="publicPlayerPlayed" class="muted"></p></div>';
+  modal.innerHTML='<div class="public-player-card" role="dialog" aria-modal="true" aria-labelledby="publicPlayerName"><button type="button" class="public-player-close" aria-label="Fermer">×</button><div id="publicPlayerPhoto" class="player-avatar"></div><h3 id="publicPlayerName"></h3><p id="publicPlayerMode"></p><p id="publicPlayerUid" class="muted"></p><span id="publicPlayerStatus" class="status"></span><div class="stats"><article><strong id="publicPlayerPoints">0</strong><span>Points</span></article><article><strong id="publicPlayerWins">0</strong><span>Victoires</span></article><article><strong id="publicPlayerLosses">0</strong><span>Défaites</span></article></div><p id="publicPlayerPlayed" class="muted"></p><div id="publicPlayerFreeFireRanks" class="public-player-ranks"></div></div>';
   document.body.append(modal);
   modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('.public-player-close'))modal.hidden=true;});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&!modal.hidden)modal.hidden=true;});
@@ -115,6 +115,7 @@ function showPublicPlayer(pseudo){
  $('#publicPlayerWins').textContent=Number(p.wins)||rank?.wins||0;
  $('#publicPlayerLosses').textContent=Number(p.losses)||0;
  $('#publicPlayerPlayed').textContent=played+' match(s) enregistré(s)';
+ const ff=p.freeFireProfile?.basicInfo||{};const rankBox=$('#publicPlayerFreeFireRanks');if(rankBox)rankBox.innerHTML=p.freeFireProfile?'<h4>RANGS FREE FIRE</h4><div class="public-rank-grid"><div class="freefire-rank-section"><small>BATTLE ROYALE</small>'+freeFireRankCard(ff.rankingPoints,'br')+'</div><div class="freefire-rank-section"><small>CLASH SQUAD</small>'+freeFireRankCard(ff.csRankingPoints,'cs')+'</div></div>':'<p class="muted">Rangs Free Fire : en attente de synchronisation.</p>';
  $('#publicPlayerPhoto').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo de '+esc(p.pseudo)+'">':esc(p.pseudo.slice(0,1).toUpperCase());
  modal.hidden=false;
 }
@@ -128,7 +129,7 @@ $('#playersList').innerHTML=state.tournamentGroups.length?state.tournamentGroups
 const manualStats=rank;
 $('#publicMatchList').innerHTML=(manualStats.length?'<h3>STATISTIQUES DES JOUEURS</h3>'+manualStats.map(p=>'<div class="item"><div><b>'+esc(p.name)+'</b><small>'+p.played+' match(s) · '+p.wins+' victoire(s) · '+p.losses+' défaite(s)</small></div><strong>'+p.wins+'/'+p.played+'</strong></div>').join(''):'')+(state.matches.filter(x=>x.status==='Terminé'||!x.status).length?'<h3>RÉSULTATS DES MATCHS</h3>'+state.matches.filter(x=>x.status==='Terminé'||!x.status).map(x=>'<div class="item"><div><b>'+esc(x.a)+' vs '+esc(x.b)+'</b><small>'+esc(x.date||'')+'</small></div><strong>'+(Number(x.sa)||0)+' — '+(Number(x.sb)||0)+'</strong></div>').join(''):'')||'<p class="muted">Aucune statistique ni résultat enregistré pour le moment.</p>';
 $('#topPlayers').innerHTML=rank.length?rank.slice(0,3).map((p,i)=>`<button type="button" class="top-player rank-${i+1} public-player-row" data-public-player="${esc(p.name)}"><b>${i===0?'👑 TOP 1':'TOP '+(i+1)}</b><div class="player-avatar">${avatar(p)}</div><strong>${esc(p.name)}</strong><big>${p.points} <small>PTS</small></big><span>${p.wins} victoire(s) · ${p.played} match(s)</span></button>`).join(''):'<p class="muted">Le podium apparaîtra après les premiers matchs.</p>';
-$('#rankingList').innerHTML=rank.map((p,i)=>`<button type="button" class="item public-player-row" data-public-player="${esc(p.name)}"><div><b>#${i+1} ${esc(p.name)}</b><small>${p.wins} victoire(s) · ${p.played} match(s) · score ${p.score}</small></div><strong>${p.points} pts</strong></button>`).join('')||'<p class="muted">Aucun joueur classé pour le moment.</p>';
+$('#rankingList').innerHTML=rank.map((p,i)=>{const bi=p.freeFireProfile?.basicInfo||{};return `<button type="button" class="item public-player-row ranking-player-row" data-public-player="${esc(p.name)}"><div class="ranking-player-main"><b>#${i+1} ${esc(p.name)}</b><small>${p.wins} victoire(s) · ${p.played} match(s) · score ${p.score}</small><span class="ranking-mini-ranks">${p.freeFireProfile?'BR '+esc(freeFireRankInfo(bi.rankingPoints,'br').name)+' · CS '+esc(freeFireRankInfo(bi.csRankingPoints,'cs').name):'Rangs Free Fire non synchronisés'}</span></div><strong>${p.points} pts</strong></button>`}).join('')||'<p class="muted">Aucun joueur classé pour le moment.</p>';
 const teams=[...state.teams].sort((a,b)=>b.points-a.points||b.wins-a.wins||a.name.localeCompare(b.name));
 $('#topTeams').innerHTML=teams.length?teams.slice(0,3).map((t,i)=>`<article class="top-player rank-${i+1}"><b>${i===0?'👑 TOP 1':'TOP '+(i+1)}</b><strong>${esc(t.name)}</strong><big>${t.points} <small>PTS</small></big><span>${esc(t.format||'Équipe')} · ${esc(t.tournament||'')}</span></article>`).join(''):'<p class="muted">Le podium des équipes apparaîtra après les premières validations.</p>';
 $('#teamsRankingList').innerHTML=teams.map((t,i)=>`<div class="item"><div><b>#${i+1} ${esc(t.name)}</b><small>${esc(t.format||'Équipe')} · ${esc(t.tournament||'')} · ${esc(t.players||'')}</small></div><strong>${t.points} pts</strong></div>`).join('')||'<p class="muted">Aucune équipe pour le moment.</p>';}
@@ -181,14 +182,12 @@ function freeFireRankInfo(points, mode='br'){
  if(n>=1001)return pick('Argent','I–III',['S1','S2','S3'],1001,1300);
  return pick('Bronze','I–III',['B1','B2','B3'],0,1000);
 }
-function freeFireRankCard(points, mode='br', accountId=''){
- const isOwn=String(accountId||'')==='3123585498';
- const asset=isOwn?(mode==='cs'?'G1':'P2'):freeFireRankInfo(points,mode).asset;
- const pos=FREE_FIRE_RANK_POS[asset]||[0,0];
+function freeFireRankCard(points, mode='br'){
+ const info=freeFireRankInfo(points,mode),pos=FREE_FIRE_RANK_POS[info.asset]||[0,0],value=Math.max(0,Number(points)||0);
  const x=pos[0]/6*100,y=pos[1]/4*100;
- const stars=mode==='cs'&&isOwn?'<span class="freefire-rank-stars" aria-label="4 étoiles">★★★★</span>':'';
- const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+'" style="background-position:'+x+'% '+y+'%"></span>';
- return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+stars+'</div>';
+ const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+x+'% '+y+'%"></span>';
+ const label='<span class="freefire-rank-copy"><b>'+esc(info.name)+(info.division?' '+esc(info.division):'')+'</b><small>'+value.toLocaleString('fr-FR')+' points</small></span>';
+ return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
 async function loadPlayerProfile(){
