@@ -249,7 +249,7 @@
 <button type="button" id="openRequestsInbox" class="primary">📥 Boîte des demandes <span id="inboxCount">0</span></button>
 </div>
 <div id="requestsInbox" class="requests-inbox" hidden>
-<div class="admin-toolbar"><h3>TOUTES LES INSCRIPTIONS</h3><button type="button" id="refreshRequestsInbox" class="secondary">Actualiser</button></div>
+<div class="admin-toolbar"><h3>TOUTES LES INSCRIPTIONS</h3><div class="button-row"><button type="button" id="refreshRequestsInbox" class="secondary">Actualiser</button><button type="button" id="closeRequestsInbox" class="secondary">Fermer ✕</button></div></div>
 <p id="inboxMessage" class="muted">Chargement des demandes…</p>
 <div id="inboxPlayers" class="stack"></div>
 </div>
@@ -285,7 +285,7 @@
 <script src="/admin-access.js"></script>
 <script src="/tournaments-ui.js"></script>
 
-<script src="/push-notifications.js?v=1"></script>
+<script src="/push-notifications.js?v=2"></script>
 <script src="/battle-royale-scoring.js?v=1"></script>
 
 <!-- Installation PWA -->
