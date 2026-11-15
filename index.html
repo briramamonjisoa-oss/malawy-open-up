@@ -212,6 +212,24 @@
 </form>
 </div>
 
+
+<div class="admin-block">
+<h3>Statistiques manuelles des joueurs</h3>
+<p class="muted">Attribue ou corrige le nombre de matchs joués et de victoires. Les défaites sont calculées automatiquement.</p>
+<form id="playerStatsForm" class="panel form">
+<label>Joueur
+<select name="playerId" required><option value="">Choisir un joueur</option></select>
+</label>
+<label>Matchs joués
+<input name="played" type="number" min="0" step="1" required value="0"></label>
+<label>Victoires
+<input name="wins" type="number" min="0" step="1" required value="0"></label>
+<p id="playerStatsLosses" class="muted">Défaites : 0</p>
+<button class="primary" type="submit">Enregistrer les statistiques</button>
+<p id="playerStatsMsg" class="message" aria-live="polite"></p>
+</form>
+</div>
+
 <div class="admin-block">
 <h3>Ajouter / modifier un résultat</h3>
 
