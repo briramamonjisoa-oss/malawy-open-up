@@ -148,29 +148,44 @@ $('#refresh').onclick=loadAll;
 $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg=$('#adminMsg');msg.textContent='Connexion…';try{const d=await api('/.netlify/functions/admin',{method:'POST',body:JSON.stringify({code:e.target.pin.value})});state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);window.dispatchEvent(new Event('mou:admin-auth'));e.target.hidden=true;$('#adminContent').hidden=false;msg.textContent='Connecté';await loadAll();}catch(x){msg.textContent=x.message}});
 
 
+const FREE_FIRE_RANK_SPRITE='assets/freefire-ranks.webp';
+const FREE_FIRE_RANK_POS={
+ B1:[0,0],B2:[1,0],B3:[2,0],S1:[3,0],S2:[4,0],S3:[5,0],
+ G1:[6,0],G2:[0,1],G3:[1,1],G4:[2,1],P1:[3,1],P2:[4,1],P3:[5,1],P4:[6,1],
+ D1:[0,2],D2:[1,2],D3:[2,2],D4:[3,2],D45:[4,2],D5:[5,2],
+ H1:[6,2],H2:[0,3],H3:[1,3],H4:[2,3],H5:[3,3],
+ M1:[4,3],M3:[5,3],M4:[6,3],M5:[0,4],
+ BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
+};
 function freeFireRankInfo(points, mode='br'){
- const n=Number(points)||0;
+ const n=Math.max(0,Number(points)||0);
+ const tier=(name,division,key)=>({name,division,tier:key,asset:key});
+ const pick=(name,division,keys,min,max)=>{const i=Math.min(keys.length-1,Math.floor(Math.max(0,n-min)/(max-min+1)*keys.length));return tier(name,division,keys[i]);};
  if(mode==='cs'){
-  if(n>=157)return {name:'Grand maître',division:'IV–VI',tier:'grandmaster'};
-  if(n>=132)return {name:'Maître',division:'',tier:'master'};
-  if(n>=107)return {name:'Élite héroïque',division:'',tier:'elite-heroic'};
-  if(n>=82)return {name:'Héroïque',division:'',tier:'heroic'};
-  if(n>=37)return {name:'Diamant',division:'I–V',tier:'diamond'};
-  if(n>=17)return {name:'Platine',division:'I–IV',tier:'platinum'};
-  if(n>=1)return {name:'Or',division:'I–IV',tier:'gold'};
-  return {name:'Argent',division:'III',tier:'silver'};
+  if(n>=157)return pick('Grand maître','IV–VI',['BRGM1','BRGM2','BRGM3','BRGM4','BRGM5','BRGM6'],157,999);
+  if(n>=132)return pick('Élite maître','',['M3','M4','M5'],132,156);
+  if(n>=107)return pick('Élite héroïque','',['H3','H4','H5'],107,131);
+  if(n>=82)return pick('Héroïque','',['H1','H2'],82,106);
+  if(n>=37)return pick('Diamant','I–V',['D1','D2','D3','D4','D5'],37,81);
+  if(n>=17)return pick('Platine','I–V',['P1','P2','P3','P4','D45'],17,36);
+  if(n>=1)return pick('Or','I–IV',['G1','G2','G3','G4'],1,16);
+  return tier('Argent','III','S1');
  }
- if(n>=6001)return {name:'Maître',division:'',tier:'master'};
- if(n>=3201)return {name:'Héroïque',division:'',tier:'heroic'};
- if(n>=2301)return {name:'Diamant',division:'I–IV',tier:'diamond'};
- if(n>=1801)return {name:'Platine',division:'I–IV',tier:'platinum'};
- if(n>=1301)return {name:'Or',division:'I–IV',tier:'gold'};
- if(n>=1001)return {name:'Argent',division:'I–III',tier:'silver'};
- return {name:'Bronze',division:'I–III',tier:'bronze'};
+ if(n>=6001)return pick('Grand maître','I–VI',['BRGM1','BRGM2','BRGM3','BRGM4','BRGM5','BRGM6'],6001,12000);
+ if(n>=5001)return tier('Élite maître','','M3');
+ if(n>=4001)return tier('Maître','','M1');
+ if(n>=3201)return tier('Héroïque','','H1');
+ if(n>=2301)return pick('Diamant','I–V',['D1','D2','D3','D4','D5'],2301,3200);
+ if(n>=1801)return pick('Platine','I–V',['P1','P2','P3','P4','P4'],1801,2300);
+ if(n>=1301)return pick('Or','I–IV',['G1','G2','G3','G4'],1301,1800);
+ if(n>=1001)return pick('Argent','I–III',['S1','S2','S3'],1001,1300);
+ return pick('Bronze','I–III',['B1','B2','B3'],0,1000);
 }
 function freeFireRankCard(points, mode='br'){
  const rank=freeFireRankInfo(points,mode);
- const icon='<span class="freefire-rank-emblem '+rank.tier+'" aria-hidden="true"><span>✦</span></span>';
+ const pos=FREE_FIRE_RANK_POS[rank.asset]||[0,0];
+ const x=pos[0]/6*100,y=pos[1]/4*100;
+ const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+esc(rank.name)+'" style="background-position:'+x+'% '+y+'%"></span>';
  return '<div class="freefire-rank-tile">'+icon+'<div class="freefire-rank-copy"><b>'+esc(rank.name+(rank.division?' '+rank.division:''))+'</b><small>'+Number(points||0).toLocaleString('fr-FR')+(mode==='cs'?' étoiles':' points')+'</small></div></div>';
 }
 
