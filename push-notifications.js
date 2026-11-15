@@ -27,7 +27,7 @@
     style.textContent = `
       .mou-bell{position:relative;border:1px solid #30394b;background:#18202e;color:#f5f7fc;border-radius:13px;min-width:44px;height:44px;font-size:20px}
       .mou-bell-count{position:absolute;right:-5px;top:-5px;background:#c7ff32;color:#111827;border-radius:20px;min-width:18px;height:18px;padding:0 4px;font-size:11px;font-weight:900;display:grid;place-items:center}
-      .mou-notice-panel{position:fixed;z-index:10000;right:12px;top:76px;width:min(390px,calc(100vw - 24px));max-height:75vh;overflow:auto;background:#171f2d;color:#f5f7fc;border:1px solid #354057;border-radius:18px;padding:16px;box-shadow:0 18px 55px #0009}
+      body.mou-notice-open{overflow:hidden}body.mou-notice-open::before{content:'';position:fixed;inset:0;z-index:9998;background:#05070de8}.mou-notice-panel{position:fixed;z-index:9999;inset:calc(var(--header, 76px) + 10px) 12px calc(76px + env(safe-area-inset-bottom));width:auto;max-height:none;overflow:auto;overscroll-behavior:contain;background:#171f2d;color:#f5f7fc;border:1px solid #354057;border-radius:18px;padding:16px;box-shadow:0 18px 55px #0009}
       .mou-notice-panel[hidden]{display:none}.mou-notice-head,.mou-notice-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
       .mou-notice-panel h3{margin:0 0 12px}.mou-notice-actions{flex-wrap:wrap;margin:12px 0}
       .mou-notice-panel button,.mou-notice-admin button{cursor:pointer}
@@ -115,11 +115,16 @@
       <div id="mouNotificationList"></div>
     `;
     document.body.append(panel);
-    button.addEventListener('click', () => {
-      panel.hidden = !panel.hidden;
-      if (!panel.hidden) loadHistory();
+    function setNotificationPanelOpen(open) {
+      panel.hidden = !open;
+      document.body.classList.toggle('mou-notice-open', open);
+      if (open) loadHistory();
+    }
+    button.addEventListener('click', () => setNotificationPanelOpen(panel.hidden));
+    $('#mouCloseNotifications').addEventListener('click', () => setNotificationPanelOpen(false));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !panel.hidden) setNotificationPanelOpen(false);
     });
-    $('#mouCloseNotifications').addEventListener('click', () => { panel.hidden = true; });
     $('#mouRefreshNotifications').addEventListener('click', loadHistory);
     $('#mouEnablePush').addEventListener('click', enablePush);
   }
