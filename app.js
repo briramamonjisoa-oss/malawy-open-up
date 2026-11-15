@@ -164,7 +164,8 @@ $('#gateAdminForm')?.addEventListener('submit',async e=>{
   $('#adminForm').hidden=true;$('#adminContent').hidden=false;await loadAll();tab('admin',false);
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
-$('#refresh').onclick=loadAll;
+$('#refresh')?.addEventListener('click',loadAll);
+$('#refreshTournamentParticipants')?.addEventListener('click',loadAll);
 $('#refreshCommunity')?.addEventListener('click',loadAll);
 $('#communityPlayerSearch')?.addEventListener('input',()=>render());
 $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg=$('#adminMsg');msg.textContent='Connexion…';try{const d=await api('/.netlify/functions/admin',{method:'POST',body:JSON.stringify({code:e.target.pin.value})});state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);window.dispatchEvent(new Event('mou:admin-auth'));e.target.hidden=true;$('#adminContent').hidden=false;msg.textContent='Connecté';await loadAll();}catch(x){msg.textContent=x.message}});
