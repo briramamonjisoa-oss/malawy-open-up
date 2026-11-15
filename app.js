@@ -133,9 +133,11 @@ const community=state.players.slice().sort((a,b)=>String(a.pseudo||'').localeCom
 const guild=state.guildInfo,onlineCount=Number(guild?.online);
 const search=String(document.getElementById('communityPlayerSearch')?.value||'').trim().toLocaleLowerCase('fr');
 const visiblePlayers=community.filter(p=>!search||String(p.pseudo||'').toLocaleLowerCase('fr').includes(search)||String(p.playerId||'').includes(search));
+const guildPending=!!state.guildError||!guild;
 const onlineValue=guild?.online;
-const onlineDisplay=onlineValue!==null&&onlineValue!==undefined&&onlineValue!==''&&Number.isFinite(Number(onlineValue))?String(Number(onlineValue)):'—';
-const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres</small>'+(guild?.syncedAt?'<small>Actualisation : '+esc(new Date(guild.syncedAt).toLocaleString('fr-FR'))+'</small>':'')+''+(state.guildError?'<small class="guild-api-error">API guilde : '+esc(state.guildError)+'</small>':'')+'</div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>membres connectés</small></div></article>';
+const onlineDisplay=!guildPending&&onlineValue!==null&&onlineValue!==undefined&&onlineValue!==''&&Number.isFinite(Number(onlineValue))?String(Number(onlineValue)):'En attente';
+const guildDetails=guildPending?'Fonction en attente':('Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres');
+const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>'+guildDetails+'</small>'+(guild?.syncedAt?'<small>Actualisation : '+esc(new Date(guild.syncedAt).toLocaleString('fr-FR'))+'</small>':'')+'</div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>'+(guildPending?'Fonction en attente':'membres connectés')+'</small></div></article>';
 $('#communityGuildSummary').innerHTML=guildSummary;
 $('#communityPlayersCount').textContent=community.length+' joueur(s) dans MALAWY OPEN UP';
 $('#communityPlayersList').innerHTML=visiblePlayers.length?visiblePlayers.map(p=>{
