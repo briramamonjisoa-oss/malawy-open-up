@@ -11,6 +11,7 @@ import tournamentSignups from "../netlify/functions/tournament-signups.js";
 import tournaments from "../netlify/functions/tournaments.js";
 import notifications from "../netlify/functions/notifications.js";
 import battleRoyaleResults from "../netlify/functions/battle-royale-results.js";
+import guildInfo from "../netlify/functions/guild-info.js";
 
 const handlers = {
   admin: admin.handler,
@@ -25,7 +26,8 @@ const handlers = {
   "tournament-signups": tournamentSignups.handler,
   tournaments: tournaments.handler,
   notifications: notifications.handler,
-  "battle-royale-results": battleRoyaleResults.handler
+  "battle-royale-results": battleRoyaleResults.handler,
+  "guild-info": guildInfo.handler
 };
 
 function json(data, status = 200) {
@@ -50,6 +52,7 @@ export default {
     ctx.waitUntil(Promise.allSettled([
       handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
       handlers.players({httpMethod:"GET",headers:{},body:"",queryStringParameters:{syncOnly:"1"}}),
+      handlers["guild-info"]({httpMethod:"GET",headers:{},body:"",queryStringParameters:{refresh:"1"}}),
       notifications.processScheduledNotifications(env)
     ]));
   },
