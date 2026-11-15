@@ -5,6 +5,7 @@
   const definitions = [
     { key: 'requests', icon: '👥', title: 'Demandes joueurs', subtitle: 'Valider ou refuser les inscriptions' },
     { key: 'points', icon: '🏆', title: 'Attribuer des points', subtitle: 'Joueurs et équipes' },
+    { key: 'playerStats', icon: '📊', title: 'Statistiques des joueurs', subtitle: 'Matchs joués, victoires et défaites' },
     { key: 'matches', icon: '⚔️', title: 'Résultats des matchs', subtitle: 'Ajouter ou modifier les scores' },
     { key: 'notifications', icon: '🔔', title: 'Notifications', subtitle: 'Envoyer ou programmer un message' },
     { key: 'tournamentSignups', icon: '📥', title: 'Demandes des tournois', subtitle: 'Valider les inscriptions aux compétitions' }
@@ -90,6 +91,7 @@
       let key = '';
       if (heading.startsWith('Demandes en attente')) key = 'requests';
       else if (heading === 'Attribuer des points') key = 'points';
+      else if (heading.toLowerCase().includes('statistiques manuelles des joueurs')) key = 'playerStats';
       else if (heading.toLowerCase().includes('résultat')) key = 'matches';
       if (key) makePanel(block, key, root);
     });
