@@ -149,7 +149,7 @@ $('#refresh').onclick=loadAll;
 $('#adminForm').addEventListener('submit',async e=>{e.preventDefault();const msg=$('#adminMsg');msg.textContent='Connexion…';try{const d=await api('/.netlify/functions/admin',{method:'POST',body:JSON.stringify({code:e.target.pin.value})});state.token=d.token;state.admin=true;sessionStorage.setItem('mou_admin_token',state.token);window.dispatchEvent(new Event('mou:admin-auth'));e.target.hidden=true;$('#adminContent').hidden=false;msg.textContent='Connecté';await loadAll();}catch(x){msg.textContent=x.message}});
 
 
-const FREE_FIRE_RANK_SPRITE='assets/freefire-ranks.webp';
+const FREE_FIRE_RANK_SPRITE='assets/freefire-ranks-hd.webp';
 const FREE_FIRE_RANK_POS={
  B1:[0,0],B2:[1,0],B3:[2,0],S1:[3,0],S2:[4,0],S3:[5,0],
  G1:[6,0],G2:[0,1],G3:[1,1],G4:[2,1],P1:[3,1],P2:[4,1],P3:[5,1],P4:[6,1],
