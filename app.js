@@ -158,7 +158,20 @@ const FREE_FIRE_RANK_POS={
  M1:[4,3],M2:[5,3],M3:[6,3],M4:[0,4],
  BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
 };
-const FREE_FIRE_RANK_CODES={
+const FREE_FIRE_BR_RANK_CODES={
+ 301:{name:'Bronze',division:'I',asset:'B1'},302:{name:'Bronze',division:'II',asset:'B2'},303:{name:'Bronze',division:'III',asset:'B3'},
+ 304:{name:'Argent',division:'I',asset:'S1'},305:{name:'Argent',division:'II',asset:'S2'},306:{name:'Argent',division:'III',asset:'S3'},
+ 307:{name:'Or',division:'I',asset:'G1'},308:{name:'Or',division:'II',asset:'G2'},309:{name:'Or',division:'III',asset:'G3'},310:{name:'Or',division:'IV',asset:'G4'},
+ 311:{name:'Platine',division:'I',asset:'P1'},312:{name:'Platine',division:'II',asset:'P2'},313:{name:'Platine',division:'III',asset:'P3'},314:{name:'Platine',division:'IV',asset:'P4'},
+ 315:{name:'Diamant',division:'I',asset:'D1'},316:{name:'Diamant',division:'II',asset:'D2'},317:{name:'Diamant',division:'III',asset:'D3'},318:{name:'Diamant',division:'IV',asset:'D4'},
+ 319:{name:'Héroïque',division:'',asset:'H1'},320:{name:'Héroïque élite',division:'',asset:'H2'},
+ 321:{name:'Maître',division:'',asset:'M1'},322:{name:'Maître élite',division:'',asset:'M2'},
+ 323:{name:'Grand maître',division:'I',asset:'BRGM1'},324:{name:'Grand maître',division:'II',asset:'BRGM2'},325:{name:'Grand maître',division:'III',asset:'BRGM3'},
+ 326:{name:'Grand maître',division:'IV',asset:'BRGM4'},327:{name:'Grand maître',division:'V',asset:'BRGM5'},328:{name:'Grand maître',division:'VI',asset:'BRGM6'},
+ 329:{name:'Grand maître',division:'',asset:'BRGM6'},330:{name:'Grand maître',division:'',asset:'BRGM6'}
+};
+// Clash Squad possède sa propre progression et sa propre table, indépendante du BR.
+const FREE_FIRE_CS_RANK_CODES={
  301:{name:'Bronze',division:'I',asset:'B1'},302:{name:'Bronze',division:'II',asset:'B2'},303:{name:'Bronze',division:'III',asset:'B3'},
  304:{name:'Argent',division:'I',asset:'S1'},305:{name:'Argent',division:'II',asset:'S2'},306:{name:'Argent',division:'III',asset:'S3'},
  307:{name:'Or',division:'I',asset:'G1'},308:{name:'Or',division:'II',asset:'G2'},309:{name:'Or',division:'III',asset:'G3'},310:{name:'Or',division:'IV',asset:'G4'},
@@ -172,7 +185,8 @@ const FREE_FIRE_RANK_CODES={
 };
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode);
- const known=FREE_FIRE_RANK_CODES[code];
+ const table=mode==='cs'?FREE_FIRE_CS_RANK_CODES:FREE_FIRE_BR_RANK_CODES;
+ const known=table[code];
  if(known)return {...known,tier:known.asset,code,points:Number(points)||0,mode,known:true};
  return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:Number(points)||0,mode,known:false};
 }
@@ -180,7 +194,8 @@ function freeFireRankCard(rankCode,points,mode='br'){
  const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=Math.max(0,Number(points)||0);
  const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':info.known?'<span class="freefire-rank-emblem is-symbol" role="img" aria-label="'+esc(info.name)+'">★</span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
  const grade=info.name+(info.division?' '+info.division:'');
- const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+' points · code '+(info.code??'—')+'</small></span>';
+ const unit=mode==='cs'?'étoiles':'points';
+ const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+' '+unit+' · code '+(info.code??'—')+'</small></span>';
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
