@@ -60,3 +60,56 @@ body.requests-inbox-open{overflow:hidden}
 #requestsInbox:not([hidden]) .admin-player{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}
 #requestsInbox:not([hidden]) .admin-player-controls{width:100%;grid-template-columns:minmax(0,1fr) auto;align-items:center}
 @media(min-width:700px){#requestsInbox:not([hidden]){bottom:20px}}
+
+/* ===== ADMIN MOBILE LAYOUT REWORK ===== */
+#admin.page{padding:24px 14px 34px;scroll-margin-top:calc(var(--header) + 62px)}
+#admin>h2{margin:7px 0 20px;font-size:clamp(34px,9vw,48px);line-height:1}
+#adminForm{max-width:560px;margin:18px auto}
+#adminContent{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;min-width:0}
+#adminContent>.admin-toolbar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:15px 16px;background:linear-gradient(135deg,#202a3c,#171e2c);border:1px solid var(--line);border-radius:16px}
+#adminContent>.admin-toolbar h3{margin:0;font-size:25px}
+#adminContent>.admin-block{min-width:0;margin:0;padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:17px}
+#adminContent>.admin-block>h3{margin:0 0 7px;font-size:25px;line-height:1.05}
+#adminContent>.admin-block>p{margin:5px 0 13px}
+#adminContent>.admin-block>.form{margin-top:13px}
+#adminContent .panel.form{min-width:0;padding:15px;border-radius:13px;background:#121825;border-color:#303b50}
+#adminContent .form label{min-width:0;gap:7px;font-size:12px;line-height:1.4}
+#adminContent .form input,#adminContent .form select{min-width:0;max-width:100%;min-height:46px;padding:11px 12px;font-size:14px}
+#adminContent .button-row{display:flex;gap:8px;flex-wrap:wrap}
+#adminContent .button-row button{flex:1 1 145px;min-width:0}
+#adminPlayers,#adminMatches{min-width:0}
+#adminPlayers .item,#adminMatches .item{min-width:0;align-items:flex-start;flex-wrap:wrap;gap:12px}
+#adminPlayers .item>div,#adminMatches .item>div{min-width:0;overflow-wrap:anywhere}
+#adminPlayers .item-actions,#adminMatches .item-actions{flex:1 1 100%;width:100%;justify-content:flex-start}
+#adminPlayers .admin-player{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;width:100%}
+#adminPlayers .admin-player-controls{width:100%;max-width:none;grid-template-columns:minmax(0,1fr);gap:9px}
+#adminPlayers .admin-player-main{min-width:0;overflow-wrap:anywhere}
+#adminContent .admin-inbox-launch{margin:0;padding:12px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}
+#adminContent .admin-inbox-launch button{min-height:48px}
+#requestsInbox:not([hidden]){position:fixed;z-index:150;top:calc(var(--header) + 66px + env(safe-area-inset-top));left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom));width:auto;max-width:760px;max-height:none;margin:0 auto;padding:14px;overflow:auto;overscroll-behavior:contain;border-radius:18px}
+#requestsInbox:not([hidden]) .admin-toolbar{position:sticky;top:-14px;display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;padding:8px 0 12px}
+#requestsInbox:not([hidden]) .admin-toolbar h3{margin:0;font-size:22px}
+#requestsInbox:not([hidden]) .admin-toolbar .button-row{display:flex;flex-wrap:wrap}
+#requestsInbox:not([hidden]) .admin-toolbar button{padding:10px 12px}
+#requestsInbox:not([hidden]) .admin-player-controls{grid-template-columns:minmax(0,1fr);gap:9px}
+body.requests-inbox-open .bottom{z-index:35}
+@media(min-width:760px){
+ #admin.page{padding:34px 24px 48px}
+ #adminContent{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:20px}
+ #adminContent>.admin-toolbar,#adminContent>.admin-block:first-of-type,#adminContent>.admin-inbox-launch,#adminContent>#requestsInbox,#adminContent>.admin-block:last-child{grid-column:1/-1}
+ #adminContent>.admin-block{padding:20px}
+ #adminPlayers .admin-player{grid-template-columns:minmax(0,1fr) minmax(210px,280px);align-items:center}
+ #adminPlayers .admin-player-controls{max-width:280px}
+ #requestsInbox:not([hidden]){top:24px;bottom:24px;left:24px;right:24px}
+}
+@media(max-width:420px){
+ #admin.page{padding-left:11px;padding-right:11px}
+ #adminContent>.admin-block{padding:13px}
+ #adminContent>.admin-toolbar{padding:13px}
+ #adminContent>.admin-toolbar h3{font-size:22px}
+ #adminContent .panel.form{padding:12px}
+ #adminContent .button-row button{flex:1 1 100%}
+ #requestsInbox:not([hidden]){left:7px;right:7px;padding:11px}
+ #requestsInbox:not([hidden]) .admin-toolbar{align-items:flex-start}
+}
+
