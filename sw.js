@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v60';
+const CACHE = 'malawy-v61';
 
 const ASSETS = [
   '/',
