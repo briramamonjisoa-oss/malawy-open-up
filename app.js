@@ -159,6 +159,7 @@ const FREE_FIRE_RANK_POS={
  BRGM1:[1,4],BRGM2:[2,4],BRGM3:[3,4],BRGM4:[4,4],BRGM5:[5,4],BRGM6:[6,4]
 };
 const FREE_FIRE_BR_RANK_CODES={
+ 312:{name:'Platine',division:'II',asset:'P2'},
  316:{name:'Diamant',division:'',asset:'D1'},317:{name:'Diamant',division:'',asset:'D1'},
  320:{name:'Héroïque',division:'',asset:'D4'},
  321:{name:'Héroïque',division:'',asset:'H1'},322:{name:'Héroïque',division:'',asset:'H2'},
@@ -167,7 +168,7 @@ const FREE_FIRE_BR_RANK_CODES={
  330:{name:'Grand maître',division:'',asset:'BRGM6'}
 };
 const FREE_FIRE_CS_RANK_CODES={
- 307:{name:'Or',division:'III',asset:'G3'},
+ 307:{name:'Or',division:'III',asset:'G1'},
  309:{name:'Or',division:'III',asset:'G3'},
  311:{name:'Platine',division:'I',asset:'P1'},
  312:{name:'Platine',division:'II',asset:'P2'},
