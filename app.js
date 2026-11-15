@@ -183,13 +183,14 @@ function freeFireRankInfo(points, mode='br'){
  return pick('Bronze','I–III',['B1','B2','B3'],0,1000);
 }
 function freeFireRankCard(points, mode='br', rankCode=null, visible=true){
- const hasPoints=points!==null&&points!==undefined&&points!==''&&Number.isFinite(Number(points));
- const hasRank=rankCode!==null&&rankCode!==undefined&&rankCode!=='';
- const title=mode==='cs'?'Clash Squad':'Battle Royale';
- const label=hasRank?'Code de rang Free Fire : '+String(rankCode):'Code de rang non communiqué';
- const score=hasPoints?Number(points).toLocaleString('fr-FR')+(mode==='cs'?' valeur API CS':' points BR'):'Score non communiqué';
+ const info=freeFireRankInfo(points,mode),pos=FREE_FIRE_RANK_POS[info.asset]||[0,0],value=Math.max(0,Number(points)||0);
+ const x=pos[0]/6*100,y=pos[1]/4*100;
+ const icon='<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+x+'% '+y+'%"></span>';
+ const score=value.toLocaleString('fr-FR')+(mode==='cs'?' valeur API CS':' points BR');
+ const code=rankCode!==null&&rankCode!==undefined&&rankCode!==''?'Code API : '+String(rankCode):'Code API non communiqué';
  const state=visible===false?'Rang masqué dans Free Fire':'';
- return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'"><span class="freefire-rank-code" aria-label="'+esc(title)+'">'+(mode==='cs'?'CS':'BR')+'</span><span class="freefire-rank-copy"><b>'+esc(hasRank?'Rang API #'+rankCode:'Rang indisponible')+'</b><small>'+esc(score)+'</small><small>'+esc(label)+'</small>'+(state?'<small>'+esc(state)+'</small>':'')+'</span></div>';
+ const label='<span class="freefire-rank-copy"><b>'+esc(info.name)+(info.division?' '+esc(info.division):'')+'</b><small>'+esc(score)+'</small><small>'+esc(code)+'</small>'+(state?'<small>'+esc(state)+'</small>':'')+'</span>';
+ return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
 }
 
 async function loadPlayerProfile(){
