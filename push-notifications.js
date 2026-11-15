@@ -152,6 +152,24 @@
     badge.hidden = unread === 0;
   }
 
+  async function registerAndroidPush() {
+    if (!window.MalawyAndroid || !playerToken()) return;
+    window.addEventListener('mou:fcm-token', async event => {
+      const token = String(event.detail || '').trim();
+      if (!token) return;
+      try {
+        await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe-fcm', fcmToken: token }) });
+        localStorage.setItem('mou_fcm_saved_token', token);
+        const status = $('#mouPushStatus');
+        if (status) status.textContent = 'Notifications Android activées sur cet appareil.';
+      } catch (error) {
+        const status = $('#mouPushStatus');
+        if (status) status.textContent = 'Inscription des notifications Android impossible : ' + error.message;
+      }
+    }, { once: true });
+    try { window.MalawyAndroid.requestFcmToken(); } catch (error) { console.warn('FCM bridge unavailable', error); }
+  }
+
   async function syncCurrentSubscription() {
     if (!playerToken() || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
     const registration = await navigator.serviceWorker.ready;
@@ -177,9 +195,11 @@
       await syncCurrentSubscription();
       const data = await request('');
       historyItems = data.notifications || [];
-      status.textContent = ('Notification' in window && Notification.permission === 'granted')
-        ? 'Notifications activées sur cet appareil.'
-        : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.';
+      status.textContent = window.MalawyAndroid
+        ? 'Notifications Android prises en charge par Firebase.'
+        : (('Notification' in window && Notification.permission === 'granted')
+          ? 'Notifications activées sur cet appareil.'
+          : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.');
       list.innerHTML = historyItems.map(item => `
         <article class="mou-notice-item ${item.readAt ? '' : 'unread'}">
           <b>${escapeHtml(item.title)}</b>
@@ -215,6 +235,11 @@
     }
     if (!window.isSecureContext) {
       status.textContent = 'Les notifications exigent une connexion sécurisée HTTPS. Ouvre l’adresse officielle de MALAWY OPEN UP.';
+      return;
+    }
+    if (window.MalawyAndroid) {
+      registerAndroidPush();
+      status.textContent = 'Activation des notifications Android…';
       return;
     }
     if (!('serviceWorker' in navigator)) {
@@ -348,9 +373,15 @@
     createPlayerUI();
     createPendingApprovalOptIn();
     createAdminUI();
-    if (playerToken()) loadHistory();
+    if (playerToken()) {
+      loadHistory();
+      registerAndroidPush();
+    }
     if (adminToken()) createAdminUI();
-    window.addEventListener('mou:player-auth', loadHistory);
+    window.addEventListener('mou:player-auth', () => {
+      loadHistory();
+      registerAndroidPush();
+    });
     window.addEventListener('mou:admin-auth', createAdminUI);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && playerToken()) loadHistory();
