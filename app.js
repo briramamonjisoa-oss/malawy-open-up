@@ -172,12 +172,12 @@ const FREE_FIRE_RANK_CODES={
 function freeFireRankInfo(rankCode,points,mode='br'){
  const code=Number(rankCode);
  const known=FREE_FIRE_RANK_CODES[code];
- if(known)return {...known,tier:known.asset,code,points:Number(points)||0,mode};
- return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:Number(points)||0,mode};
+ if(known)return {...known,tier:known.asset,code,points:Number(points)||0,mode,known:true};
+ return {name:'Grade non décodé',division:'',tier:'',asset:'',code:Number.isFinite(code)?code:null,points:Number(points)||0,mode,known:false};
 }
 function freeFireRankCard(rankCode,points,mode='br'){
  const info=freeFireRankInfo(rankCode,points,mode),pos=FREE_FIRE_RANK_POS[info.asset],value=Math.max(0,Number(points)||0);
- const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
+ const icon=pos?'<span class="freefire-rank-emblem" role="img" aria-label="Emblème '+(mode==='cs'?'Clash Squad':'Battle Royale')+' '+esc(info.name)+'" style="background-position:'+((pos[0]/6)*100)+'% '+((pos[1]/4)*100)+'%"></span>':info.known?'<span class="freefire-rank-emblem is-symbol" role="img" aria-label="'+esc(info.name)+'">★</span>':'<span class="freefire-rank-emblem is-unknown" role="img" aria-label="Grade Free Fire non reconnu">?</span>';
  const grade=info.name+(info.division?' '+info.division:'');
  const label='<span class="freefire-rank-copy"><b>'+esc(grade)+'</b><small>'+value.toLocaleString('fr-FR')+' points · code '+(info.code??'—')+'</small></span>';
  return '<div class="freefire-rank-tile '+(mode==='cs'?'is-cs':'is-br')+'">'+icon+label+'</div>';
