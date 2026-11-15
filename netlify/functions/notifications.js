@@ -127,9 +127,9 @@ async function dispatchQueueRecord(record, env, subscriptions, players) {
     let delivered = false;
     for (const sub of playerSubscriptions) {
       const endpoint = clean(sub.fields?.Endpoint);
-      const isFcm = endpoint.startsWith('fcm:');
+      const isFcm = endpoint.startsWith('https://fcm.googleapis.com/device/');
       const subscription = isFcm
-        ? { token: endpoint.slice(4) }
+        ? { token: endpoint.slice('https://fcm.googleapis.com/device/'.length) }
         : { endpoint, keys: { p256dh: sub.fields.P256dh, auth: sub.fields.Auth } };
       try {
         const payload = {
@@ -188,7 +188,8 @@ async function processScheduledNotifications(env) {
     AIRTABLE_BASE_ID: env.AIRTABLE_BASE_ID,
     VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY,
     VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
-    VAPID_SUBJECT: env.VAPID_SUBJECT
+    VAPID_SUBJECT: env.VAPID_SUBJECT,
+    FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON
   };
   const [tournaments, queue, subscriptions, players] = await Promise.all([
     all('Tournois'), all(QUEUE), all(SUBSCRIPTIONS), all('Inscriptions')
@@ -227,7 +228,7 @@ async function processScheduledNotifications(env) {
     }
   }
   if (newRows.length) await createBatch(QUEUE, newRows);
-  if (!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY) return;
+  if ((!env.VAPID_PRIVATE_KEY || !env.VAPID_PUBLIC_KEY) && !env.FIREBASE_SERVICE_ACCOUNT_JSON) return;
   const currentQueue = newRows.length ? await all(QUEUE) : queue;
 
   const pending = currentQueue.filter(r =>
@@ -290,7 +291,7 @@ exports.handler = async event => {
         const records = await all(SUBSCRIPTIONS);
         const isFcm = x.action.endsWith('-fcm');
         const endpoint = isFcm
-          ? 'fcm:' + clean(x.fcmToken)
+          ? 'https://fcm.googleapis.com/device/' + clean(x.fcmToken)
           : clean(x.subscription?.endpoint || x.endpoint);
         if (isFcm && (!clean(x.fcmToken) || clean(x.fcmToken).length < 40)) {
           return response(400, { error: 'Jeton Firebase invalide.' });
