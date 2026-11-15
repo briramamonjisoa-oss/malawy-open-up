@@ -1,4 +1,4 @@
-import { mkdir, readdir, copyFile, rm } from "node:fs/promises";
+import { mkdir, readdir, copyFile, rm, cp } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -11,6 +11,13 @@ await mkdir(output, { recursive: true });
 for (const entry of await readdir(root, { withFileTypes: true })) {
   if (!entry.isFile() || !allowed.test(entry.name)) continue;
   await copyFile(path.join(root, entry.name), path.join(output, entry.name));
+}
+
+const assetsSource = path.join(root, "assets");
+try {
+  await cp(assetsSource, path.join(output, "assets"), { recursive: true });
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
 }
 
 console.log("Static site assets copied to ./public");
