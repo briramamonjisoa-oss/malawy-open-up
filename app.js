@@ -133,7 +133,9 @@ const community=state.players.slice().sort((a,b)=>String(a.pseudo||'').localeCom
 const guild=state.guildInfo,onlineCount=Number(guild?.online);
 const search=String(document.getElementById('communityPlayerSearch')?.value||'').trim().toLocaleLowerCase('fr');
 const visiblePlayers=community.filter(p=>!search||String(p.pseudo||'').toLocaleLowerCase('fr').includes(search)||String(p.playerId||'').includes(search));
-const guildSummary=guild?'<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild.name||'CIA')+'</strong><small>Niveau '+esc(guild.level??'—')+' · '+esc(guild.members??'—')+'/'+esc(guild.capacity??'—')+' membres</small></div><div class="guild-online-total"><b>'+ (Number.isFinite(onlineCount)?onlineCount:'—') +'</b><small>connectés dans le jeu</small></div></article>':'<p class="muted">Informations de guilde indisponibles pour le moment.</p>';
+const onlineValue=guild?.online;
+const onlineDisplay=onlineValue!==null&&onlineValue!==undefined&&onlineValue!==''&&Number.isFinite(Number(onlineValue))?String(Number(onlineValue)):'—';
+const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres</small><small>Actualisation : '+(guild?.syncedAt?esc(new Date(guild.syncedAt).toLocaleString('fr-FR')):'en attente')+'</small></div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>membres connectés</small></div></article>';
 $('#communityGuildSummary').innerHTML=guildSummary;
 $('#communityPlayersCount').textContent=community.length+' joueur(s) dans MALAWY OPEN UP';
 $('#communityPlayersList').innerHTML=visiblePlayers.length?visiblePlayers.map(p=>{
