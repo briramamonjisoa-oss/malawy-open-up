@@ -154,14 +154,20 @@ body>.admin-accordion[open]>summary:before{content:' ';display:block}
 .freefire-rank-section{display:flex;flex-direction:column;gap:8px;padding:13px;border-radius:15px;background:rgba(127,127,127,.10);border:1px solid var(--line)}
 .freefire-rank-section>small{font-size:.68rem;letter-spacing:.12em;font-weight:900;color:var(--muted)}
 .freefire-rank-tile{display:flex;align-items:center;gap:12px;min-height:64px}
-.freefire-rank-emblem{width:52px;height:52px;display:grid;place-items:center;clip-path:polygon(50% 0,91% 20%,100% 70%,50% 100%,0 70%,9% 20%);background:linear-gradient(145deg,#a9a9a9,#555);box-shadow:0 5px 16px #0005;color:white;font-size:25px}
-.freefire-rank-emblem.bronze{background:linear-gradient(145deg,#d99a63,#70401f)}
-.freefire-rank-emblem.silver{background:linear-gradient(145deg,#f2f5f8,#778493);color:#26313e}
-.freefire-rank-emblem.gold{background:linear-gradient(145deg,#ffe88a,#a66a12);color:#513000}
-.freefire-rank-emblem.platinum{background:linear-gradient(145deg,#a7f2e8,#287c91)}
-.freefire-rank-emblem.diamond{background:linear-gradient(145deg,#b9eaff,#4669c7)}
-.freefire-rank-emblem.heroic,.freefire-rank-emblem.elite-heroic{background:linear-gradient(145deg,#ff725c,#8f123b)}
-.freefire-rank-emblem.master,.freefire-rank-emblem.grandmaster{background:linear-gradient(145deg,#fff0a6,#b47a22);color:#4a2600}
+.freefire-rank-emblem{display:block;flex:0 0 58px;width:58px;height:58px;background-image:url('assets/freefire-ranks.webp');background-repeat:no-repeat;background-size:700% 500%;filter:drop-shadow(0 4px 5px #0008)}
+.freefire-rank-section{min-width:0}
+.freefire-rank-tile{min-width:0}
+.freefire-rank-copy{min-width:0}
+.freefire-rank-copy b{overflow-wrap:anywhere}
+@media(max-width:420px){
+ .freefire-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .freefire-grid>div:nth-child(1),.freefire-grid>div:nth-child(2){min-height:112px}
+ .freefire-rank-section{padding:10px;min-height:126px}
+ .freefire-rank-emblem{flex-basis:48px;width:48px;height:48px}
+ .freefire-rank-tile{gap:8px}
+ .freefire-rank-copy b{font-size:.9rem;line-height:1.15}
+ .freefire-rank-copy small{font-size:.72rem}
+}
 .freefire-rank-copy{display:flex;flex-direction:column;gap:4px}
 .freefire-rank-copy b{font-size:1rem}
 .freefire-rank-copy small{color:var(--muted)}
