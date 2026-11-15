@@ -58,6 +58,7 @@ exports.handler = async (event) => {
         points: Number(fields.Points) || 0,
         wins: Number(fields.Victoires) || 0,
         losses: Number(fields.Défaites) || 0,
+        matchesPlayed: (Number(fields.Victoires) || 0) + (Number(fields.Défaites) || 0),
         photo: fields.Photo || '',
         participant: false
       };
