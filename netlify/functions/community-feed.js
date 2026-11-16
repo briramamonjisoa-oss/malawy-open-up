@@ -25,8 +25,8 @@ exports.handler=async event=>{
   if(body.action==='react'){
    const postId=String(body.postId||''),type=String(body.type||'');if(!['J\'aime','J\'adore','Haha'].includes(type))return out(400,{error:'Réaction invalide.'});
    const key=postId+'_'+player.id,old=(await all(REACTIONS)).filter(r=>r.fields?.[F.r.key]===key);
-   if(old.length)await airtable(encodeURIComponent(REACTIONS),{method:'DELETE',body:JSON.stringify({records:old.map(x=>x.id)})});
-   await airtable(encodeURIComponent(REACTIONS),{method:'POST',body:JSON.stringify({records:[{fields:{[F.r.key]:key,[F.r.post]:postId,[F.r.author]:player.id,[F.r.type]:type,[F.r.created]:now}}]})});
+   if(old.length)await airtable(encodeURIComponent(REACTIONS)+'/'+encodeURIComponent(old[0].id),{method:'PATCH',body:JSON.stringify({fields:{[F.r.type]:type,[F.r.created]:now}})});
+   else await airtable(encodeURIComponent(REACTIONS),{method:'POST',body:JSON.stringify({records:[{fields:{[F.r.key]:key,[F.r.post]:postId,[F.r.author]:player.id,[F.r.type]:type,[F.r.created]:now}}]})});
    return out(200,{success:true});
   }
   if(body.action==='comment'){
