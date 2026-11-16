@@ -18,6 +18,22 @@ let busy = false;
 const token = () => sessionStorage.getItem('mou_admin_token') || '';
 const playerToken = () => localStorage.getItem('mou_player_token') || '';
 
+function confirmStyled(message){
+ return new Promise(resolve=>{
+  const overlay=document.createElement('div');
+  overlay.className='mou-confirm-overlay';
+  overlay.innerHTML='<div class="mou-confirm-card" role="dialog" aria-modal="true"><span class="mou-confirm-kicker">MALAWY COMMUNITY</span><div class="mou-confirm-symbol">!</div><h3 class="mou-confirm-heading">Confirmer cette action ?</h3><p class="mou-confirm-message"></p><div class="mou-confirm-actions"><button type="button" class="mou-confirm-cancel">Annuler</button><button type="button" class="mou-confirm-delete">Confirmer</button></div></div>';
+  overlay.querySelector('.mou-confirm-message').textContent=message;
+  const finish=value=>{overlay.remove();document.removeEventListener('keydown',onKey);resolve(value);};
+  const onKey=e=>{if(e.key==='Escape')finish(false);};
+  overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false);});
+  overlay.querySelector('.mou-confirm-cancel').addEventListener('click',()=>finish(false));
+  overlay.querySelector('.mou-confirm-delete').addEventListener('click',()=>finish(true));
+  document.addEventListener('keydown',onKey);document.body.appendChild(overlay);
+  overlay.querySelector('.mou-confirm-delete').focus();
+ });
+}
+
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;',
   '"':'&quot;', "'":'&#39;'
@@ -569,7 +585,7 @@ document.addEventListener('click', async event => {
     }
 
     if (button.dataset.delete) {
-      if (!confirm('Supprimer définitivement ce tournoi ?')) return;
+      if (!(await confirmStyled('Supprimer définitivement ce tournoi ?'))) return;
       button.disabled = true;
       await call('tournaments', {action:'delete',id:button.dataset.delete});
       await refresh();
@@ -602,14 +618,14 @@ document.addEventListener('click', async event => {
     }
 
     if (button.dataset.cancelSignup) {
-      if (!confirm('Annuler cette inscription au tournoi ? Elle ne figurera plus parmi les inscrits.')) return;
+      if (!(await confirmStyled('Annuler cette inscription au tournoi ? Elle ne figurera plus parmi les inscrits.'))) return;
       button.disabled = true;
       await call('tournament-signups', {id:button.dataset.cancelSignup,status:'Annulée'});
       await refresh();
     }
 
     if (button.dataset.deleteSignup) {
-      if (!confirm('Supprimer définitivement cette inscription au tournoi ? Cette action est irréversible.')) return;
+      if (!(await confirmStyled('Supprimer définitivement cette inscription au tournoi ? Cette action est irréversible.'))) return;
       button.disabled = true;
       await call('tournament-signups', {id:button.dataset.deleteSignup,action:'delete'});
       await refresh();
