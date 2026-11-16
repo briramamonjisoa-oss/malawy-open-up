@@ -12,6 +12,7 @@ import tournaments from "../netlify/functions/tournaments.js";
 import notifications from "../netlify/functions/notifications.js";
 import battleRoyaleResults from "../netlify/functions/battle-royale-results.js";
 import guildInfo from "../netlify/functions/guild-info.js";
+import communityFeed from "../netlify/functions/community-feed.js";
 
 const handlers = {
   admin: admin.handler,
@@ -27,7 +28,8 @@ const handlers = {
   tournaments: tournaments.handler,
   notifications: notifications.handler,
   "battle-royale-results": battleRoyaleResults.handler,
-  "guild-info": guildInfo.handler
+  "guild-info": guildInfo.handler,
+  "community-feed": communityFeed.handler
 };
 
 function json(data, status = 200) {
