@@ -6,6 +6,19 @@ let posts=[],reply='';
 const token=()=>sessionStorage.getItem('mou_admin_token')||localStorage.getItem('mou_player_token')||'';
 async function api(method='GET',data){if(!navigator.onLine)throw Error('Vous n’êtes pas connecté à Internet.');const r=await fetch(API,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token()},...(data?{body:JSON.stringify(data)}:{})});const d=await r.json();if(!r.ok)throw Error(d.error||'Action impossible');return d;}
 const dt=s=>s?new Date(s).toLocaleString('fr-FR'):'À l’instant';
+function confirmDelete(){
+ return new Promise(resolve=>{
+  const overlay=document.createElement('div');overlay.className='mou-confirm-overlay';overlay.innerHTML='<div class="mou-confirm-card" role="dialog" aria-modal="true" aria-labelledby="mouConfirmTitle" aria-describedby="mouConfirmText"><span class="mou-confirm-kicker">MALAWY COMMUNITY</span><div class="mou-confirm-symbol">!</div><h3 id="mouConfirmTitle">Supprimer la publication ?</h3><p id="mouConfirmText">Cette action est définitive. La publication sera retirée du fil de la communauté.</p><div class="mou-confirm-actions"><button type="button" class="mou-confirm-cancel">Annuler</button><button type="button" class="mou-confirm-delete">Supprimer</button></div></div>';
+  const finish=value=>{overlay.remove();document.removeEventListener('keydown',onKey);resolve(value);};
+  const onKey=e=>{if(e.key==='Escape')finish(false);};
+  overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false);});
+  overlay.querySelector('.mou-confirm-cancel').addEventListener('click',()=>finish(false));
+  overlay.querySelector('.mou-confirm-delete').addEventListener('click',()=>finish(true));
+  document.addEventListener('keydown',onKey);document.body.appendChild(overlay);
+  overlay.querySelector('.mou-confirm-delete').focus();
+ });
+}
+
 function render(){ $('#feedCount').textContent=posts.length+' publication(s)';root.innerHTML=posts.map(p=>{
 const count=t=>p.reactions.filter(r=>r.type===t).length;
 const comments=p.comments.filter(c=>!c.parent);
@@ -17,7 +30,7 @@ function close(){modal.hidden=true;document.body.style.overflow='';}
 $('#feedOpenComposer').onclick=open;$('#feedFloatingButton').onclick=open;modal.querySelectorAll('[data-close]').forEach(x=>x.onclick=close);
 form.elements.image.addEventListener('change',()=>{const f=form.elements.image.files[0],img=$('#feedPreview');if(!f){img.hidden=true;return;}if(f.size>8*1024*1024){form.elements.image.value='';alert('Photo limitée à 8 Mo.');return;}img.src=URL.createObjectURL(f);img.hidden=false;});
 form.addEventListener('submit',async e=>{e.preventDefault();const msg=$('#feedMessage'),btn=form.querySelector('button[type=submit]');btn.disabled=true;try{let image='';const file=form.elements.image.files[0];if(file){msg.textContent='Envoi de la photo…';const fd=new FormData();fd.append('file',file);fd.append('upload_preset','malawy_photos');const up=await fetch('https://api.cloudinary.com/v1_1/owc0mtlg/image/upload',{method:'POST',body:fd}),d=await up.json();if(!up.ok)throw Error(d.error?.message||'Échec photo');image=d.secure_url;}await api('POST',{action:'publish',content:form.elements.content.value,image});form.reset();$('#feedPreview').hidden=true;close();await refresh();}catch(err){msg.textContent=err.message;}finally{btn.disabled=false;}});
-root.addEventListener('click',async e=>{const post=e.target.closest('[data-id]');if(!post)return;try{if(e.target.dataset.delete){if(!confirm('Supprimer définitivement cette publication ?'))return;await api('POST',{action:'delete',postId:post.dataset.id});await refresh();return;}if(e.target.dataset.react){await api('POST',{action:'react',postId:post.dataset.id,type:e.target.dataset.react});await refresh();}if(e.target.dataset.reply){reply=e.target.dataset.reply;post.querySelector('input[name=text]').placeholder='Répondre au commentaire…';post.querySelector('input[name=text]').focus();}}catch(err){alert(err.message);}});
+root.addEventListener('click',async e=>{const post=e.target.closest('[data-id]');if(!post)return;try{if(e.target.dataset.delete){if(!await confirmDelete())return;await api('POST',{action:'delete',postId:post.dataset.id});await refresh();return;}if(e.target.dataset.react){await api('POST',{action:'react',postId:post.dataset.id,type:e.target.dataset.react});await refresh();}if(e.target.dataset.reply){reply=e.target.dataset.reply;post.querySelector('input[name=text]').placeholder='Répondre au commentaire…';post.querySelector('input[name=text]').focus();}}catch(err){alert(err.message);}});
 root.addEventListener('submit',async e=>{if(!e.target.matches('.feed-comment-form'))return;e.preventDefault();const post=e.target.closest('[data-id]');try{await api('POST',{action:'comment',postId:post.dataset.id,parentId:reply,text:e.target.elements.text.value});reply='';await refresh();}catch(err){alert(err.message);}});
 const toast=document.createElement('div');toast.id='feedConnectivity';toast.hidden=true;document.body.appendChild(toast);
 addEventListener('offline',()=>{toast.textContent='Vous n’êtes pas connecté à Internet.';toast.hidden=false;});
