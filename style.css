@@ -631,3 +631,6 @@ html.mou-session-checking body{overflow:hidden}
 #feedComposerForm textarea{display:block;width:100%;min-height:130px;padding:13px;border-radius:12px;background:#0c0b10;color:inherit;border:1px solid #51465f}.feed-photo-label{display:inline-block;margin:12px 0;padding:9px;border:1px solid #625078;border-radius:10px}#feedPreview{max-width:100%;max-height:220px;object-fit:contain;border-radius:12px}
 .feed-floating{position:fixed;right:20px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;width:56px;height:56px;border:0;border-radius:50%;background:linear-gradient(135deg,#a77bff,#6338b5);color:white;font-size:32px;box-shadow:0 8px 28px #6d43b966}
 #feedConnectivity{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:11000;padding:11px 16px;border-radius:12px;background:#48271f;color:#ffe0d4;font-size:13px;max-width:calc(100% - 24px)}#feedConnectivity.online{background:#173b2a;color:#d5ffe5}
+
+/* Community post moderation */
+.feed-author{display:flex;align-items:center;gap:10px}.feed-delete{margin-left:auto;border:1px solid #8b4545;background:transparent;color:#e6a0a0;border-radius:10px;padding:7px 10px;font:inherit;font-size:.82rem}.feed-delete:active{opacity:.7}
