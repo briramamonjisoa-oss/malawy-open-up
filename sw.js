@@ -13,6 +13,7 @@ const ASSETS = [
   '/tournaments-ui.js',
   '/battle-royale-scoring.js',
   '/push-notifications.js',
+  '/community-feed.js',
   '/manifest.webmanifest',
   '/icon.svg',
   '/assets/freefire-ranks-hd.webp'
