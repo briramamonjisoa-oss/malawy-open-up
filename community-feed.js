@@ -1,5 +1,5 @@
 (()=>{
-const API='/.netlify/functions/community-feed', $=s=>document.querySelector(s);
+const API='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/community-feed', $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const root=$('#feedPosts'),modal=$('#feedComposer'),form=$('#feedComposerForm');if(!root||!modal||!form)return;
 let posts=[],reply='';
