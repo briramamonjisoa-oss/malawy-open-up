@@ -3,7 +3,7 @@ const POSTS='tbltBxmUUVIfPYLCs',REACTIONS='tblQ9pxLdxCtRikyR',COMMENTS='tblMi1WW
 const F={p:{title:'fldohdagvSTcjPbMD',author:'flde1j39JdPXunYKk',pseudo:'fld7S8WadtrhtitNs',photo:'fld6DAinzN0BXHfxO',content:'fldfNdaDjLNPExWu4',image:'fldGcsqV9Hgh6JMqA',created:'fld66Uh2GK2kdZpOL',status:'fldt5TLMRPoj9kox5'},r:{key:'fldOjwBK4D9VW2eVs',post:'fldnD3s3S8yXDBwBO',author:'fldlkKxt0144dAALY',type:'fldPmKe5VyFbTTKJp',created:'flddbbu8Etwccrdfz'},c:{text:'fldDIQiZn8NBE1b8h',post:'fldfe4dqKQTp2DIGl',parent:'fldlAGClV0n0Ut7GW',author:'fld13nH3PfYI4n5bF',pseudo:'fldC7kjuSfbQJId8P',photo:'flddzRuP7lCM4g2fT',created:'fldcm8YXYQXoP9tVO'}};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const parse=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
-async function all(table){let records=[],offset;do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);records.push(...(d.records||[]));offset=d.offset;}while(offset&&records.length<500);return records;}
+async function all(table){let records=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);records.push(...(d.records||[]));offset=d.offset;}while(offset&&records.length<500);return records;}
 exports.handler=async event=>{
  const player=verifyPlayer(event);if(!player)return out(401,{error:'Connecte-toi pour accéder à la communauté.'});
  const method=event.httpMethod||'GET',body=parse(event),now=new Date().toISOString();
