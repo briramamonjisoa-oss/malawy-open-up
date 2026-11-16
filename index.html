@@ -2,6 +2,7 @@
 <!doctype html>
 <html lang="fr">
 <head>
+<script>document.documentElement.classList.add("mou-session-checking");</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
@@ -98,6 +99,16 @@
 <p>Retrouve les participants, les résultats et le classement officiel du tournoi.</p>
 <button class="primary" data-go="ranking">Consulter le classement</button>
 </div>
+<div id="communityFeed" class="panel community-feed">
+ <div class="feed-heading"><div><span class="eyebrow">MALAWY COMMUNITY</span><h3>LE FIL DE LA COMMUNAUTÉ</h3></div><span id="feedCount" class="muted">Chargement…</span></div>
+ <button type="button" id="feedOpenComposer" class="feed-compose-trigger"><span>＋</span> Partager avec la communauté…</button>
+ <div id="feedPosts"><p class="muted">Chargement des publications…</p></div>
+</div>
+<div id="feedComposer" class="feed-modal" hidden role="dialog" aria-modal="true">
+ <div class="feed-backdrop" data-close></div><div class="feed-modal-card"><button type="button" class="feed-close" data-close>×</button><span class="eyebrow">COMMUNAUTÉ</span><h3>Créer une publication</h3>
+ <form id="feedComposerForm"><textarea name="content" maxlength="2000" placeholder="Quoi de neuf dans l’arène ?"></textarea><label class="feed-photo-label">＋ Ajouter une photo <input type="file" name="image" accept="image/*"></label><img id="feedPreview" hidden alt="Aperçu"><p id="feedMessage" class="message" aria-live="polite"></p><button class="primary" type="submit">Publier</button></form></div>
+</div>
+<button type="button" id="feedFloatingButton" class="feed-floating" aria-label="Créer une publication">＋</button>
 </section>
 
 <section id="register" class="page">
@@ -315,6 +326,7 @@
 <script src="/admin-dashboard.js?v=20261115-2"></script>
 <script src="/tournaments-ui.js?v=black-velvet-glass-20261115"></script>
 
+<script src="/community-feed.js?v=1"></script>
 <script src="/push-notifications.js?v=4"></script>
 <script src="/battle-royale-scoring.js?v=1"></script>
 
