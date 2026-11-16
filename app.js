@@ -263,7 +263,7 @@ async function loadPlayerProfile(options={}){
   const profilePlayed=(Number(p.wins)||0)+(Number(p.losses)||0);
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
   $('#profileMatches').innerHTML='<div class="item"><div><b>Statistiques cumulées</b><small>'+profilePlayed+' match(s) · '+(Number(p.wins)||0)+' victoire(s) · '+(Number(p.losses)||0)+' défaite(s)</small></div><strong>'+(Number(p.wins)||0)+'/'+profilePlayed+'</strong></div>'+p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('');
- }catch(e){if(options.silent&&state.player){console.warn('Actualisation du rang Free Fire impossible :',e.message);return;}state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message+' Ton accès reste mémorisé : réessaie sans recréer de compte.';}
+ }catch(e){if(options.silent&&state.player){console.warn('Actualisation du rang Free Fire impossible :',e.message);return;}if(state.playerToken&&navigator.onLine===false){console.warn('Session conservée hors ligne :',e.message);return;}if(state.playerToken&& !state.player){console.warn('Vérification de session impossible, accès conservé :',e.message);$('#gateMsg').textContent='Connexion au serveur impossible. Vérifie Internet puis réessaie.';return;}state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
 window.addEventListener('mou:player-auth',async()=>{
  const msg=$('#gateMsg');
@@ -402,20 +402,12 @@ async function refreshConnectedFreeFireProfile(){
 setInterval(refreshConnectedFreeFireProfile,300000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshConnectedFreeFireProfile()});
 
-// Restore an authenticated player session after the WebView/app is reopened.
+// Restore session before revealing the access gate.
 (async function restorePlayerSession(){
- if(!state.playerToken)return;
  try{
+  if(!state.playerToken){document.body.classList.add('access-locked');$('#accessGate').hidden=false;return;}
   await loadPlayerProfile();
-  if(!state.player)return;
-  document.body.classList.remove('access-locked');
-  $('#accessGate').hidden=true;
-  $('#playerLoginForm').hidden=true;
-  $('#playerProfile').hidden=false;
-  const destination=getSavedPage();
-  tab(destination==='admin'&&!state.admin?'home':destination,false);
- }catch(error){
-  console.error('Session restoration failed:',error);
- }
+  if(state.player){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;const destination=getSavedPage();tab(destination==='admin'&&!state.admin?'home':destination,false);}
+ }catch(error){console.error('Session restoration failed:',error);}
+ finally{document.documentElement.classList.remove('mou-session-checking');}
 })();
-
