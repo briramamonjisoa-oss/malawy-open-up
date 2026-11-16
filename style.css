@@ -649,3 +649,23 @@ html.mou-session-checking body{overflow:hidden}
 .mou-confirm-actions button:focus-visible{outline:2px solid #f0dfb4;outline-offset:3px}
 @keyframes mou-confirm-in{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
 @media(max-width:380px){.mou-confirm-card{padding:24px 18px 18px}.mou-confirm-card h3{font-size:21px}}
+
+/* Community photo picker — black velvet / translucent gold */
+.feed-photo-picker{display:flex;align-items:center;gap:13px;margin:14px 0}
+.feed-photo-label{display:flex;align-items:center;gap:11px;min-width:0;margin:0;padding:10px 14px 10px 10px;border:1px solid rgba(216,189,122,.28);border-radius:999px;background:rgba(8,8,10,.58);color:#eadbb8;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.feed-photo-icon{width:48px;height:48px;display:grid;place-items:center;flex:none;border:1px solid rgba(216,189,122,.48);border-radius:50%;background:rgba(0,0,0,.52);color:#d8bd7a;box-shadow:inset 0 0 18px rgba(216,189,122,.045),0 0 18px rgba(0,0,0,.28)}
+.feed-photo-icon svg{width:23px;height:23px}
+.feed-photo-label>span:nth-child(2){font-size:13px;font-weight:600}
+.feed-photo-label small{display:block;margin-left:-5px;color:#a99a7a;font-size:10px}
+.feed-photo-label input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.feed-photo-count{color:#b9aa8a;font:10px 'Commit Mono',monospace;white-space:nowrap}
+.feed-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.feed-preview-tile{aspect-ratio:1;overflow:hidden;border:1px solid rgba(216,189,122,.28);border-radius:12px;background:#09090b}
+.feed-preview-tile img{width:100%;height:100%;object-fit:cover}
+.feed-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
+.feed-gallery .feed-image{width:100%;height:100%;max-height:340px;min-height:120px;object-fit:cover;margin:0;border:1px solid rgba(216,189,122,.12)}
+.feed-gallery-1{grid-template-columns:1fr}
+.feed-gallery-1 .feed-image{max-height:480px}
+.feed-gallery-3 .feed-image:first-child{grid-column:span 2}
+.feed-gallery-5 .feed-image:first-child{grid-column:span 2}
+@media(max-width:380px){.feed-photo-label{gap:8px;padding-right:10px}.feed-photo-icon{width:42px;height:42px}.feed-photo-count{font-size:9px}}
