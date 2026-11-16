@@ -612,3 +612,22 @@ body:after{
 #communityGuildSummary .guild-online-total small{font-size:11px;letter-spacing:.04em}
 
 .guild-api-error{display:block!important;color:#ff9b83!important;font-size:11px!important;line-height:1.4;max-width:260px;overflow-wrap:anywhere}
+
+html.mou-session-checking #accessGate{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+html.mou-session-checking body{overflow:hidden}
+.community-feed{margin-top:22px;padding:18px!important}
+.feed-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}
+.feed-heading h3{margin:5px 0;font-size:18px}
+.feed-compose-trigger{width:100%;padding:14px;text-align:left;border:1px solid #393442;border-radius:14px;background:#ffffff08;color:inherit}
+.feed-post{padding:17px 0;border-bottom:1px solid #ffffff18}
+.feed-author{display:flex;align-items:center;gap:10px}.feed-author b{display:block}.feed-author small{display:block;color:#aaa;font-size:11px;margin-top:3px}
+.feed-avatar{width:38px;height:38px;border-radius:50%;display:inline-grid;place-items:center;background:#382957;color:#e5d8ff;overflow:hidden;flex:none}.feed-avatar img{width:100%;height:100%;object-fit:cover}
+.feed-content{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;margin:13px 0}
+.feed-image{width:100%;max-height:430px;object-fit:cover;border-radius:13px;margin:10px 0}
+.feed-reactions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.feed-reactions button,.feed-comment button{border:1px solid #ffffff22;background:#ffffff0a;color:inherit;border-radius:999px;padding:7px 10px;font-size:12px}.feed-reactions button[aria-pressed=true]{border-color:#a98aff;background:#a98aff25}
+.feed-comments{border-left:2px solid #8d69c9;padding-left:10px;font-size:12px}.feed-comments p{line-height:1.5}.feed-comment-form{display:flex;gap:7px;margin-top:12px}.feed-comment-form input{min-width:0;flex:1}
+.feed-modal[hidden]{display:none}.feed-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:16px}.feed-backdrop{position:absolute;inset:0;background:#000c;backdrop-filter:blur(8px)}
+.feed-modal-card{position:relative;z-index:1;width:min(540px,100%);max-height:90dvh;overflow:auto;padding:24px;border-radius:22px;background:#17151e;border:1px solid #ffffff25}.feed-close{position:absolute;right:13px;top:8px;border:0;background:none;color:inherit;font-size:30px}
+#feedComposerForm textarea{display:block;width:100%;min-height:130px;padding:13px;border-radius:12px;background:#0c0b10;color:inherit;border:1px solid #51465f}.feed-photo-label{display:inline-block;margin:12px 0;padding:9px;border:1px solid #625078;border-radius:10px}#feedPreview{max-width:100%;max-height:220px;object-fit:contain;border-radius:12px}
+.feed-floating{position:fixed;right:20px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9000;width:56px;height:56px;border:0;border-radius:50%;background:linear-gradient(135deg,#a77bff,#6338b5);color:white;font-size:32px;box-shadow:0 8px 28px #6d43b966}
+#feedConnectivity{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:11000;padding:11px 16px;border-radius:12px;background:#48271f;color:#ffe0d4;font-size:13px;max-width:calc(100% - 24px)}#feedConnectivity.online{background:#173b2a;color:#d5ffe5}

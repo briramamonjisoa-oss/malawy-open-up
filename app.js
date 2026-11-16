@@ -230,7 +230,7 @@ async function loadPlayerProfile(options={}){
   const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store'});
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
   try{const gr=await fetch(API_ORIGIN+'/.netlify/functions/guild-info',{cache:'no-store'});const gd=await gr.json();if(gr.ok&&gd.id)state.guildInfo=gd;}catch(e){console.warn('Guilde Free Fire non actualisée:',e.message);}
-  state.player=p;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
+  state.player=p;window.dispatchEvent(new Event('mou:player-auth'));$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=state.guildInfo&&String(state.guildInfo.id)==='3076348376'?{...ff.clanBasicInfo,clanName:state.guildInfo.name,clanLevel:state.guildInfo.level,memberNum:state.guildInfo.members,capacity:state.guildInfo.capacity}:ff.clanBasicInfo||{},pet=ff.petInfo||{};
@@ -263,7 +263,7 @@ async function loadPlayerProfile(options={}){
   const profilePlayed=(Number(p.wins)||0)+(Number(p.losses)||0);
   $('#profileAvatar').innerHTML=p.photo?'<img src="'+esc(p.photo)+'" alt="Photo joueur">':esc(p.pseudo.slice(0,1).toUpperCase());
   $('#profileMatches').innerHTML='<div class="item"><div><b>Statistiques cumulées</b><small>'+profilePlayed+' match(s) · '+(Number(p.wins)||0)+' victoire(s) · '+(Number(p.losses)||0)+' défaite(s)</small></div><strong>'+(Number(p.wins)||0)+'/'+profilePlayed+'</strong></div>'+p.matches.map(m=>'<div class="item"><div><b>'+esc(m.a)+' vs '+esc(m.b)+'</b><small>'+ (m.date?new Date(m.date).toLocaleDateString('fr-FR'):'')+'</small></div><strong>'+m.sa+' — '+m.sb+'</strong></div>').join('');
- }catch(e){if(options.silent&&state.player){console.warn('Actualisation du rang Free Fire impossible :',e.message);return;}state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message+' Ton accès reste mémorisé : réessaie sans recréer de compte.';}
+ }catch(e){if(options.silent&&state.player){console.warn('Actualisation du rang Free Fire impossible :',e.message);return;}if(state.playerToken&&navigator.onLine===false){console.warn('Session conservée hors ligne :',e.message);return;}if(state.playerToken&& !state.player){console.warn('Vérification de session impossible, accès conservé :',e.message);$('#gateMsg').textContent='Connexion au serveur impossible. Vérifie Internet puis réessaie.';return;}state.player=null;$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;document.body.classList.add('access-locked');$('#accessGate').hidden=false;$('#gateMsg').textContent=e.message;}
 }
 window.addEventListener('mou:player-auth',async()=>{
  const msg=$('#gateMsg');
@@ -303,7 +303,7 @@ $('#playerSignupForm').addEventListener('submit',async e=>{
 $('#playerLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification…';
  try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
- state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
+ state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();window.dispatchEvent(new Event('mou:player-auth'));if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
@@ -402,20 +402,12 @@ async function refreshConnectedFreeFireProfile(){
 setInterval(refreshConnectedFreeFireProfile,300000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshConnectedFreeFireProfile()});
 
-// Restore an authenticated player session after the WebView/app is reopened.
+// Restore session before revealing the access gate.
 (async function restorePlayerSession(){
- if(!state.playerToken)return;
  try{
+  if(!state.playerToken){document.body.classList.add('access-locked');$('#accessGate').hidden=false;return;}
   await loadPlayerProfile();
-  if(!state.player)return;
-  document.body.classList.remove('access-locked');
-  $('#accessGate').hidden=true;
-  $('#playerLoginForm').hidden=true;
-  $('#playerProfile').hidden=false;
-  const destination=getSavedPage();
-  tab(destination==='admin'&&!state.admin?'home':destination,false);
- }catch(error){
-  console.error('Session restoration failed:',error);
- }
+  if(state.player){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;const destination=getSavedPage();tab(destination==='admin'&&!state.admin?'home':destination,false);}
+ }catch(error){console.error('Session restoration failed:',error);}
+ finally{document.documentElement.classList.remove('mou-session-checking');}
 })();
-
