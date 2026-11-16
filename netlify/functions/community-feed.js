@@ -7,17 +7,19 @@ async function all(table){let records=[],offset;do{const q=new URLSearchParams({
 exports.handler=async event=>{
  const player=verifyPlayer(event);if(!player)return out(401,{error:'Connecte-toi pour accéder à la communauté.'});
  const method=event.httpMethod||'GET',body=parse(event),now=new Date().toISOString();
+ const playerRecord=await airtable('Inscriptions/'+encodeURIComponent(player.id));
+ const playerFields=playerRecord.fields||{},playerPseudo=String(playerFields['Pseudo Free Fire']||'Joueur').slice(0,32),playerPhoto=String(playerFields.Photo||'');
  try{
   if(method==='GET'){
    const [posts,reactions,comments]=await Promise.all([all(POSTS),all(REACTIONS),all(COMMENTS)]);
    const visible=posts.filter(x=>x.fields?.[F.p.status]==='Publié');
-   return out(200,{posts:visible.sort((a,b)=>(b.fields[F.p.created]||'').localeCompare(a.fields[F.p.created]||'')).map(x=>{const f=x.fields||{};return{id:x.id,pseudo:f[F.p.pseudo]||'Joueur',photo:f[F.p.photo]||'',content:f[F.p.content]||'',image:f[F.p.image]||'',created:f[F.p.created]||'',reactions:reactions.filter(r=>r.fields?.[F.r.post]===x.id).map(r=>({type:r.fields[F.r.type],mine:r.fields[F.r.author]===player.playerRecordId})),comments:comments.filter(c=>c.fields?.[F.c.post]===x.id).map(c=>({id:c.id,text:c.fields[F.c.text]||'',parent:c.fields[F.c.parent]||'',pseudo:c.fields[F.c.pseudo]||'Joueur',photo:c.fields[F.c.photo]||'',created:c.fields[F.c.created]||''}))};})});
+   return out(200,{posts:visible.sort((a,b)=>(b.fields[F.p.created]||'').localeCompare(a.fields[F.p.created]||'')).map(x=>{const f=x.fields||{};return{id:x.id,pseudo:f[F.p.pseudo]||'Joueur',photo:f[F.p.photo]||'',content:f[F.p.content]||'',image:f[F.p.image]||'',created:f[F.p.created]||'',reactions:reactions.filter(r=>r.fields?.[F.r.post]===x.id).map(r=>({type:r.fields[F.r.type],mine:r.fields[F.r.author]===player.id})),comments:comments.filter(c=>c.fields?.[F.c.post]===x.id).map(c=>({id:c.id,text:c.fields[F.c.text]||'',parent:c.fields[F.c.parent]||'',pseudo:c.fields[F.c.pseudo]||'Joueur',photo:c.fields[F.c.photo]||'',created:c.fields[F.c.created]||''}))};})});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(body.action==='publish'){
    const text=String(body.content||'').trim(),image=String(body.image||'');if(!text&&!image)return out(400,{error:'Ajoute un texte ou une photo.'});if(text.length>2000)return out(400,{error:'Publication trop longue.'});
-   const pseudo=String(player.pseudo||'Joueur').slice(0,32);
-   const r=await airtable(encodeURIComponent(POSTS),{method:'POST',body:JSON.stringify({records:[{fields:{[F.p.title]:text.slice(0,70)||'Photo de '+pseudo,[F.p.author]:player.playerRecordId,[F.p.pseudo]:pseudo,[F.p.photo]:player.photo||'',[F.p.content]:text,[F.p.image]:image,[F.p.created]:now,[F.p.status]:'Publié'}}]})});
+   const pseudo=String(playerPseudo||'Joueur').slice(0,32);
+   const r=await airtable(encodeURIComponent(POSTS),{method:'POST',body:JSON.stringify({records:[{fields:{[F.p.title]:text.slice(0,70)||'Photo de '+pseudo,[F.p.author]:player.playerRecordId,[F.p.pseudo]:pseudo,[F.p.photo]:playerPhoto||'',[F.p.content]:text,[F.p.image]:image,[F.p.created]:now,[F.p.status]:'Publié'}}]})});
    return out(201,{success:true,id:r.records?.[0]?.id});
   }
   if(body.action==='react'){
