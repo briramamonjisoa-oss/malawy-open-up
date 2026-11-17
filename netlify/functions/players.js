@@ -46,12 +46,12 @@ exports.handler = async (event) => {
 
     // Tous les inscrits avec UID sont éligibles, pas seulement les inscriptions déjà acceptées.
     const registered=records.filter(r=>String(r.fields?.['ID Free Fire']||'').trim());
-    const stale=registered.filter(r=>{const f=r.fields||{};const age=f['Profil Free Fire synchronisé le']?Date.now()-new Date(f['Profil Free Fire synchronisé le']).getTime():Infinity;return !f['Profil Free Fire JSON']||!Number.isFinite(age)||age>=5*60*1000;});
-    // Décalage temporel : un joueur dont l'API échoue ne bloque pas toujours les mêmes suivants.
-    const rotation=stale.length?Math.floor(Date.now()/900000)%stale.length:0;
-    const ordered=stale.slice(rotation).concat(stale.slice(0,rotation));
-    // Maximum 6 tentatives par appel, deux en parallèle pour respecter les limites de l'API.
-    for(let i=0;i<Math.min(ordered.length,6);i+=2){await Promise.allSettled(ordered.slice(i,i+2).map(syncRank));}
+    if(event.queryStringParameters?.fast!=='1'){
+      const stale=registered.filter(r=>{const f=r.fields||{};const age=f['Profil Free Fire synchronisé le']?Date.now()-new Date(f['Profil Free Fire synchronisé le']).getTime():Infinity;return !f['Profil Free Fire JSON']||!Number.isFinite(age)||age>=5*60*1000;});
+      const rotation=stale.length?Math.floor(Date.now()/900000)%stale.length:0;
+      const ordered=stale.slice(rotation).concat(stale.slice(0,rotation));
+      for(let i=0;i<Math.min(ordered.length,6);i+=2){await Promise.allSettled(ordered.slice(i,i+2).map(syncRank));}
+    }
 
     const players = records.map(record => {
       const fields = record.fields || {};
