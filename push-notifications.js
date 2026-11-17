@@ -154,7 +154,8 @@
 
   async function registerAndroidPush() {
     if (!window.MalawyAndroid || !playerToken()) return;
-    window.addEventListener('mou:fcm-token', async event => {
+    if (window.__mouFcmTokenHandler) window.removeEventListener('mou:fcm-token', window.__mouFcmTokenHandler);
+    window.__mouFcmTokenHandler = async event => {
       const token = String(event.detail || '').trim();
       if (!token) return;
       try {
@@ -166,8 +167,10 @@
         const status = $('#mouPushStatus');
         if (status) status.textContent = 'Inscription des notifications Android impossible : ' + error.message;
       }
-    }, { once: true });
-    try { window.MalawyAndroid.requestFcmToken(); } catch (error) { console.warn('FCM bridge unavailable', error); }
+    };
+    window.addEventListener('mou:fcm-token', window.__mouFcmTokenHandler, { once: true });
+    try { window.MalawyAndroid.requestFcmToken(); }
+    catch (error) { console.warn('FCM bridge unavailable', error); }
   }
 
   async function syncCurrentSubscription() {
