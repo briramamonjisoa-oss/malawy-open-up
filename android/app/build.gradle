@@ -10,8 +10,8 @@ android {
         applicationId 'mg.malawy.openup'
         minSdk 23
         targetSdk 35
-        versionCode 3
-        versionName '1.0.7'
+        versionCode 4
+        versionName '1.0.21'
     }
 }
 
