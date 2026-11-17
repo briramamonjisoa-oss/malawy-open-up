@@ -1,8 +1,9 @@
-const CACHE = 'malawy-v82';
+const CACHE = 'malawy-v83';
 
 const ASSETS = [
   '/',
   '/index.html',
+  '/offline.html',
   '/style.css',
   '/app.js',
   '/ui-controls.js',
@@ -49,6 +50,18 @@ self.addEventListener('fetch', event => {
   }
 
   const path = new URL(event.request.url).pathname;
+  if(event.request.mode==='navigate'){
+    event.respondWith(
+      fetch(event.request).then(response=>{
+        if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
+        return response;
+      }).catch(async()=>{
+        const splash=await caches.match('/offline.html');
+        return splash||await caches.match('/index.html')||Response.error();
+      })
+    );
+    return;
+  }
   if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css'].includes(path)) {
     event.respondWith(
       fetch(event.request).then(response => {
