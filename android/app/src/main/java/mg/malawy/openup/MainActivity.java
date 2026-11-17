@@ -63,6 +63,24 @@ public class MainActivity extends Activity {
 
     public class MalawyBridge {
         @JavascriptInterface
+        public int getVersionCode() {
+            return getInstalledVersionCode();
+        }
+
+        @JavascriptInterface
+        public void openUpdatePage() {
+            runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(APK_URL));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception error) {
+                    android.util.Log.e("MALAWY_UPDATE", "Cannot open APK download", error);
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void requestFcmToken() {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
                 if (!task.isSuccessful() || webView == null) return;
