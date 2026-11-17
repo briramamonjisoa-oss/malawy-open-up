@@ -37,7 +37,7 @@ exports.handler=async(event)=>{
  try{
   if(event.httpMethod==='OPTIONS')return{statusCode:204,headers,body:''};
   let rec=await cached(env),age=rec?Date.now()-new Date(rec.fields?.['Synchronisé le']||0).getTime():Infinity;
-  if(event.queryStringParameters?.refresh==='1'||!rec||age>15*60*1000){try{const fresh=await sync(env);return{statusCode:200,headers,body:JSON.stringify(fresh)}}catch(e){console.warn('Guild sync failed:',e.message);if(!rec)return{statusCode:503,headers,body:JSON.stringify({error:e.message})};}}
+  if(event.queryStringParameters?.fast!=='1'&&(event.queryStringParameters?.refresh==='1'||!rec||age>15*60*1000)){try{const fresh=await sync(env);return{statusCode:200,headers,body:JSON.stringify(fresh)}}catch(e){console.warn('Guild sync failed:',e.message);if(!rec)return{statusCode:503,headers,body:JSON.stringify({error:e.message})};}}
   const f=rec.fields||{};
   return{statusCode:200,headers,body:JSON.stringify({id:f['ID guilde'],name:f['Nom guilde'],level:f.Niveau,region:f.Région,members:f.Membres,capacity:f.Capacité,online:(f['Membres connectés']===undefined||f['Membres connectés']===''?null:Number(f['Membres connectés'])),leader:f['Chef de guilde'],leaderUid:f['UID chef'],leaderProfile:(()=>{try{return JSON.parse(f['Profil chef JSON']||'null')}catch{return null}})(),syncedAt:f['Synchronisé le'],cached:true})};
  }catch(e){return{statusCode:500,headers,body:JSON.stringify({error:e.message||'Erreur synchronisation guilde'})};}
