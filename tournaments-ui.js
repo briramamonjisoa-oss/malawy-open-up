@@ -40,21 +40,13 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
 }[c]));
 
 async function call(path, body) {
-  const headers = {};
-  if (token()) headers.Authorization = 'Bearer ' + token();
-  if (body) headers['Content-Type'] = 'application/json';
-
-  const r = await fetch('/.netlify/functions/' + path, {
-    method: body ? 'POST' : 'GET',
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
-
-  let data = {};
-  try { data = await r.json(); } catch(e) {}
-
-  if (!r.ok) throw Error(data.error || 'Erreur serveur');
-  return data;
+  if(!navigator.onLine){window.dispatchEvent(new Event('mou:network-error'));throw Error('Vérifiez votre connexion Internet.');}
+  const headers={};if(token())headers.Authorization='Bearer '+token();if(body)headers['Content-Type']='application/json';
+  try{
+    const r=await fetch('/.netlify/functions/'+path,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined,cache:'no-store'});
+    let data={};try{data=await r.json();}catch(e){}
+    if(!r.ok)throw Error(data.error||'Erreur serveur');return data;
+  }catch(error){if(error instanceof TypeError){window.dispatchEvent(new Event('mou:network-error'));throw Error('Vérifiez votre connexion Internet.');}throw error;}
 }
 
 async function uploadPhoto(file) {
@@ -371,6 +363,7 @@ async function refresh() {
     renderAdmin();
     updateAdmin();
   } catch (e) {
+    if(!navigator.onLine||e instanceof TypeError)window.dispatchEvent(new Event('mou:network-error'));
     box.textContent = 'Erreur de chargement : ' + e.message;
   }
 }
