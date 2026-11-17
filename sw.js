@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v81';
+const CACHE = 'malawy-v82';
 
 const ASSETS = [
   '/',
@@ -57,13 +57,13 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE).then(cache => cache.put(event.request, copy));
         }
         return response;
-      }).catch(() => caches.match(event.request))
+      }).catch(() => caches.match(event.request,{ignoreSearch:true}))
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then(response =>
+    caches.match(event.request,{ignoreSearch:true}).then(response =>
       response ||
       fetch(event.request).catch(() => caches.match('/'))
     )
