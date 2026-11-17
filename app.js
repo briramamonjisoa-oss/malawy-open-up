@@ -73,7 +73,17 @@ async function loadAll(){
  state.adminLoadErrors=errors;
  if(state.admin){try{renderAdmin();}catch(error){console.error('Erreur affichage panneau admin:',error);const list=document.getElementById('adminPlayers');if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';}}
  try{render();}catch(error){console.error('Erreur affichage public:',error);}
+ refreshPlayerRanksInBackground();
 }
+let playerRankSyncBusy=false,lastPlayerRankSync=0;
+async function refreshPlayerRanksInBackground(){
+ if(playerRankSyncBusy||!navigator.onLine||Date.now()-lastPlayerRankSync<300000)return;
+ playerRankSyncBusy=true;lastPlayerRankSync=Date.now();
+ try{const r=await fetch(API_ORIGIN+'/.netlify/functions/players?sync=1',{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});if(r.ok)await loadAll();}
+ catch(error){console.warn('Synchronisation Free Fire en arrière-plan:',error.message);}
+ finally{playerRankSyncBusy=false;}
+}
+
 function isAcceptedPlayer(p){const s=String(p.status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');return !s||['accepte','acceptee','accepted','valide','validee','approved'].includes(s)}
 function ranking(){
  const map=new Map();
