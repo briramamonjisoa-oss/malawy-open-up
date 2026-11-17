@@ -61,9 +61,10 @@ window.addEventListener('mou:admin-auth',()=>{
 async function loadAll(){
  const errors=[];
  const jobs=await Promise.allSettled([
-  api('/.netlify/functions/matches'),api('/.netlify/functions/teams'),api('/.netlify/functions/tournament-rosters'),api('/.netlify/functions/guild-info'),
+  api('/.netlify/functions/matches'),api('/.netlify/functions/teams'),api('/.netlify/functions/tournament-rosters'),api('/.netlify/functions/guild-info?fast=1'),
   fetch(API_ORIGIN+'/.netlify/functions/players?fast=1',{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'}).then(async response=>{const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Erreur '+response.status);if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');return payload;})
  ]);
+ if(jobs.some(job=>job.status==='rejected'&&job.reason instanceof TypeError))window.dispatchEvent(new Event('mou:network-error'));
  if(jobs[4].status==='fulfilled'){state.players=jobs[4].value;const inboxCount=document.getElementById('inboxCount');if(inboxCount)inboxCount.textContent=String(state.players.length);}else{errors.push('Inscriptions : '+(jobs[4].reason?.message||'chargement impossible'));console.error(errors[errors.length-1]);}
  if(jobs[0].status==='fulfilled'&&Array.isArray(jobs[0].value))state.matches=jobs[0].value;else{errors.push('Matchs : '+(jobs[0].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
  if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.teams=jobs[1].value;else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
@@ -367,7 +368,7 @@ if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').
 else{loadAll();}
 let publicRefreshBusy=false;
 let manualRefreshBusy=false;
-window.addEventListener('mou:refresh-request',async()=>{if(manualRefreshBusy)return;manualRefreshBusy=true;try{await loadAll();window.dispatchEvent(new Event('mou:refresh-tournaments'));}finally{manualRefreshBusy=false;}});
+window.addEventListener('mou:refresh-request',async event=>{if(manualRefreshBusy){event.detail?.done?.();return;}manualRefreshBusy=true;try{await loadAll();window.dispatchEvent(new Event('mou:refresh-tournaments'));}finally{manualRefreshBusy=false;event.detail?.done?.();}});
 async function refreshPublicData(){
  if(publicRefreshBusy||document.hidden)return;
  const active=document.activeElement;
