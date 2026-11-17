@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const output = path.join(root, "public");
-const allowed = /\.(html|css|js|webmanifest|png|svg|jpe?g|webp|ico)$/i;
+const allowed = /\.(html|css|js|json|webmanifest|png|svg|jpe?g|webp|ico)$/i;
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
