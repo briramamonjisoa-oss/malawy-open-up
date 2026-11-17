@@ -46,7 +46,13 @@ window.addEventListener('popstate',()=>{
  tab(previous,false);
  if(previous==='home')history.replaceState({mouPage:'home'},'','#home');
 });
-async function api(path,opts={}){if(path.startsWith('/.netlify/functions/'))path=API_ORIGIN+path;const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(path,{...opts,headers,cache:opts.cache||'no-store'});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d}
+async function api(path,opts={}){
+ if(!navigator.onLine){window.dispatchEvent(new Event('mou:network-error'));throw Error('Vérifiez votre connexion Internet.');}
+ if(path.startsWith('/.netlify/functions/'))path=API_ORIGIN+path;
+ const headers={...(opts.headers||{})};if(state.token)headers.Authorization=`Bearer ${state.token}`;else if(state.playerToken)headers.Authorization=`Bearer ${state.playerToken}`;if(opts.body&&!headers['Content-Type'])headers['Content-Type']='application/json';
+ try{const r=await fetch(path,{...opts,headers,cache:opts.cache||'no-store'});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||`Erreur ${r.status}`);return d;}
+ catch(error){if(error instanceof TypeError){window.dispatchEvent(new Event('mou:network-error'));throw Error('Vérifiez votre connexion Internet.');}throw error;}
+}
 window.addEventListener('mou:admin-auth',()=>{
  state.token=sessionStorage.getItem('mou_admin_token')||'';
  state.admin=Boolean(state.token);
