@@ -23,6 +23,14 @@ const syncFreeFireProfile=async(record)=>{
 };
 const hashPin=(pin,salt)=>crypto.scryptSync(pin,salt,64).toString('hex');
 const validPin=(pin,stored)=>{try{const [salt,hash]=String(stored||'').split('$');if(!salt||!hash)return false;const actual=Buffer.from(hashPin(pin,salt),'hex'),expected=Buffer.from(hash,'hex');return actual.length===expected.length&&crypto.timingSafeEqual(actual,expected);}catch{return false;}};
+const getPlayerTournamentSignups=async uid=>{
+ const safe=String(uid||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+ const names=['ID joueur 1','ID joueur 2','ID joueur 3','ID joueur 4','ID remplaçant 1','ID remplaçant 2'];
+ const formula='OR('+names.map(name=>'{'+name+"}='"+safe+"'").join(',')+')';
+ const q=new URLSearchParams({filterByFormula:formula,pageSize:'100'});
+ const data=await airtable(encodeURIComponent('Inscriptions tournois')+'?'+q.toString());
+ return(data.records||[]).map(record=>{const f=record.fields||{};return{id:record.id,tournamentId:f['ID tournoi']||'',tournamentName:f['Nom tournoi']||'Tournoi',game:f.Jeu||'',format:f.Format||'',status:f.Statut||'En attente',date:f['Date inscription']||''};});
+};
 const isApproved=(status)=>['accepte','acceptee','accepted','valide','validee','approved'].includes(String(status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 exports.handler=async(event)=>{
  if(event.httpMethod==='OPTIONS')return{statusCode:200,headers,body:''};
@@ -53,11 +61,11 @@ exports.handler=async(event)=>{
    const r=await airtable('Inscriptions/'+encodeURIComponent(session.id));
    const f=r.fields||{},pseudo=f['Pseudo Free Fire']||'Joueur';
    if(!isApproved(f['Statut inscription']))return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription n’est plus acceptée.'})};
-   // Le profil de base doit répondre immédiatement. Les historiques seront chargés séparément.
+   const tournamentSignups=await getPlayerTournamentSignups(String(f['ID Free Fire']||'').trim());
    const history=[];
-   const tournamentSignups=[];
-   const freeFire=await syncFreeFireProfile(r);
-   const ff=freeFire.data||{};
+   let ff=null,freeFire={syncedAt:f['Profil Free Fire synchronisé le']||null,cached:true,error:null};
+   try{ff=f['Profil Free Fire JSON']?JSON.parse(f['Profil Free Fire JSON']):null;}catch{}
+   if(event.queryStringParameters?.fast!=='1'){freeFire=await syncFreeFireProfile(r);ff=freeFire.data||ff;}
    return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,matchesPlayed:(Number(f.Victoires)||0)+(Number(f.Défaites)||0),status:f['Statut inscription']||'',matches:history,tournamentSignups,freeFireProfile:ff,freeFireSyncedAt:freeFire.syncedAt,freeFireSyncCached:freeFire.cached,freeFireSyncError:freeFire.error||null})};
   }
   if(event.httpMethod==='PATCH'){
