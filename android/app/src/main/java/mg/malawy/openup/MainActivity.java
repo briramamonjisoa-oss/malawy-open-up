@@ -236,6 +236,12 @@ public class MainActivity extends Activity {
         webView.getSettings().setMediaPlaybackRequiresUserGesture(true);
         webView.addJavascriptInterface(new MalawyBridge(), "MalawyAndroid");
         webView.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if (!offlineScreenVisible && hasValidatedInternet()) {
+                    view.evaluateJavascript("window.dispatchEvent(new Event('mou:refresh-fcm-token'));", null);
+                }
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (offlineScreenVisible) return true;
                 return false;
