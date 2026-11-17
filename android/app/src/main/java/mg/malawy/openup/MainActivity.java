@@ -3,6 +3,13 @@ package mg.malawy.openup;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -147,19 +154,99 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private GradientDrawable roundedBackground(int color, int strokeColor, int radiusDp) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(color);
+        shape.setCornerRadius(dp(radiusDp));
+        if (strokeColor != Color.TRANSPARENT) shape.setStroke(dp(1), strokeColor);
+        return shape;
+    }
+
+    private TextView updateText(String value, int sizeSp, int color, boolean bold) {
+        TextView text = new TextView(this);
+        text.setText(value);
+        text.setTextSize(sizeSp);
+        text.setTextColor(color);
+        text.setGravity(Gravity.CENTER);
+        if (bold) text.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        return text;
+    }
+
     private void showUpdateDialog(String versionName, boolean force) {
         if (isFinishing() || updateDialogVisible) return;
         updateDialogVisible = true;
+
+        final int gold = Color.rgb(216, 193, 138);
+        final int bone = Color.rgb(243, 238, 227);
+        final int muted = Color.rgb(177, 169, 153);
+        final int panel = Color.rgb(13, 13, 15);
+        final int dark = Color.rgb(5, 5, 6);
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setGravity(Gravity.CENTER_HORIZONTAL);
+        content.setPadding(dp(24), dp(25), dp(24), dp(22));
+        content.setBackground(roundedBackground(panel, 0x887F6A43, 20));
+
+        TextView mark = updateText("M", 38, gold, true);
+        mark.setBackground(roundedBackground(dark, gold, 14));
+        LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(dp(66), dp(66));
+        markParams.gravity = Gravity.CENTER_HORIZONTAL;
+        markParams.bottomMargin = dp(18);
+        content.addView(mark, markParams);
+
+        TextView title = updateText("NOUVELLE VERSION DISPONIBLE", 17, bone, true);
+        title.setLetterSpacing(0.045f);
+        content.addView(title, new LinearLayout.LayoutParams(-1, -2));
+
+        TextView message = updateText(
+            "MALAWY OPEN UP " + versionName + " est disponible. " +
+            (force ? "Cette mise à jour est obligatoire pour continuer." : "Installe la mise à jour pour profiter des nouveautés."),
+            15, muted, false);
+        message.setLineSpacing(dp(4), 1.0f);
+        LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
+        messageParams.topMargin = dp(14);
+        messageParams.bottomMargin = dp(22);
+        content.addView(message, messageParams);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        actions.setGravity(Gravity.CENTER);
+        TextView download = updateText("TÉLÉCHARGER LA MISE À JOUR", 13, dark, true);
+        download.setPadding(dp(12), 0, dp(12), 0);
+        download.setBackground(roundedBackground(gold, gold, 12));
+        actions.addView(download, new LinearLayout.LayoutParams(-1, dp(50)));
+
+        TextView later = updateText(force ? "QUITTER" : "PLUS TARD", 12, gold, true);
+        later.setPadding(dp(12), 0, dp(12), 0);
+        later.setBackground(roundedBackground(Color.TRANSPARENT, 0x887F6A43, 12));
+        LinearLayout.LayoutParams laterParams = new LinearLayout.LayoutParams(-1, dp(44));
+        laterParams.topMargin = dp(10);
+        actions.addView(later, laterParams);
+        content.addView(actions, new LinearLayout.LayoutParams(-1, -2));
+
         AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle("Nouvelle version disponible")
-            .setMessage("MALAWY OPEN UP " + versionName + " est disponible. " +
-                (force ? "Cette mise à jour est obligatoire pour continuer." : "Installe la mise à jour pour profiter des nouveautés."))
+            .setView(content)
             .setCancelable(!force)
-            .setPositiveButton("Télécharger la mise à jour", (d, which) -> downloadUpdate())
-            .setNegativeButton(force ? "Quitter" : "Plus tard", (d, which) -> { updateDialogVisible = false; if (force) finish(); })
             .create();
+        download.setOnClickListener(v -> {
+            dialog.dismiss();
+            downloadUpdate();
+        });
+        later.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (force) finish();
+        });
         dialog.setOnDismissListener(d -> updateDialogVisible = false);
         dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.getWindow().setLayout(Math.min(getResources().getDisplayMetrics().widthPixels - dp(36), dp(440)), -2);
+        }
     }
 
     private void downloadUpdate() {
