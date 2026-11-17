@@ -332,6 +332,37 @@
 <script src="/connection-refresh.js?v=3"></script>
 <script src="/update-gate.js?v=12"></script>
 
+<!-- Legacy APK update gate: inline fallback for v1.0.5 WebView -->
+<script>
+(function(){
+  'use strict';
+  function showLegacyUpdate(version, apk){
+    if(document.getElementById('mouLegacyUpdate')) return;
+    var style=document.createElement('style');
+    style.textContent='#mouLegacyUpdate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.94);font-family:Arial,sans-serif;color:#f3eee3}#mouLegacyUpdate .mou-card{box-sizing:border-box;width:100%;max-width:410px;padding:28px 22px;border:1px solid #9e8551;border-radius:20px;background:linear-gradient(145deg,#171510,#080809);text-align:center;box-shadow:0 20px 70px #000}#mouLegacyUpdate .mou-mark{width:62px;height:62px;margin:0 auto 18px;border:1px solid #d8c18a;border-radius:15px;background:#050506;color:#d8c18a;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900}#mouLegacyUpdate h2{font-size:19px;letter-spacing:1px;margin:0 0 12px;color:#f3eee3}#mouLegacyUpdate p{font-size:15px;line-height:1.6;color:#bdb5a6;margin:0 0 20px}#mouLegacyUpdate a{display:block;box-sizing:border-box;padding:15px 12px;border-radius:12px;background:linear-gradient(110deg,#bda66f,#e5d3a6);color:#15120b;text-decoration:none;font-weight:800;font-size:14px}#mouLegacyUpdate small{display:block;margin-top:14px;color:#958a73;font-size:12px}';
+    document.head.appendChild(style);
+    var root=document.createElement('div');root.id='mouLegacyUpdate';
+    root.innerHTML='<div class="mou-card"><div class="mou-mark">M</div><h2>NOUVELLE VERSION DISPONIBLE</h2><p>MALAWY OPEN UP '+String(version).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];})+' est disponible. Cette mise à jour est obligatoire pour continuer.</p><a href="'+apk.replace(/"/g,'&quot;')+'">TÉLÉCHARGER LA MISE À JOUR</a><small>Design officiel MALAWY OPEN UP</small></div>';
+    document.body.appendChild(root);
+    document.documentElement.style.overflow='hidden';
+  }
+  function check(){
+    var ua=navigator.userAgent||'';
+    if(!/Android/i.test(ua)) return;
+    var bridge=window.MalawyAndroid;
+    var installed=bridge&&typeof bridge.getVersionCode==='function'?Number(bridge.getVersionCode()):0;
+    fetch('/app-version.json?legacy='+Date.now(),{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('version '+r.status);return r.json();})
+      .then(function(v){
+        if(installed<Number(v.latestVersionCode||0))
+          showLegacyUpdate(v.latestVersionName||'disponible',v.apkUrl||'https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-debug.apk');
+      })
+      .catch(function(e){console.warn('MALAWY update check failed',e);});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check);else check();
+})();
+</script>
+
 <!-- Installation PWA -->
 <script>
 if ('serviceWorker' in navigator) {
