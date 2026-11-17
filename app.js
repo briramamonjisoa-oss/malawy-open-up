@@ -55,39 +55,17 @@ window.addEventListener('mou:admin-auth',()=>{
 async function loadAll(){
  const errors=[];
  const jobs=await Promise.allSettled([
-  api('/.netlify/functions/matches'),
-  api('/.netlify/functions/teams'),
-  api('/.netlify/functions/tournament-rosters'),
-  api('/.netlify/functions/guild-info')
+  api('/.netlify/functions/matches'),api('/.netlify/functions/teams'),api('/.netlify/functions/tournament-rosters'),api('/.netlify/functions/guild-info'),
+  fetch(API_ORIGIN+'/.netlify/functions/players?fast=1',{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'}).then(async response=>{const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Erreur '+response.status);if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');return payload;})
  ]);
- try{
-  const response=await fetch(API_ORIGIN+'/.netlify/functions/players?refresh='+Date.now(),{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
-  const payload=await response.json();
-  if(!response.ok)throw new Error(payload.error||'Erreur '+response.status);
-  if(!Array.isArray(payload))throw new Error('Réponse Airtable invalide : liste de joueurs attendue.');
-  state.players=payload;
-  const inboxCount=document.getElementById('inboxCount');if(inboxCount)inboxCount.textContent=String(payload.length);
- }catch(error){errors.push('Inscriptions : '+(error.message||'chargement impossible'));console.error(errors[errors.length-1]);}
- if(jobs[0].status==='fulfilled'&&Array.isArray(jobs[0].value))state.matches=jobs[0].value;
- else{errors.push('Matchs : '+(jobs[0].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
- if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.teams=jobs[1].value;
- else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
- if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];
- else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
- if(jobs[3].status==='fulfilled'&&jobs[3].value?.id){state.guildInfo=jobs[3].value;state.guildError='';}
- else{state.guildError=jobs[3].status==='rejected'?(jobs[3].reason?.message||'API guilde inaccessible'):(jobs[3].value?.error||'API guilde : réponse invalide');console.warn('Présence globale de la guilde indisponible:',state.guildError);}
+ if(jobs[4].status==='fulfilled'){state.players=jobs[4].value;const inboxCount=document.getElementById('inboxCount');if(inboxCount)inboxCount.textContent=String(state.players.length);}else{errors.push('Inscriptions : '+(jobs[4].reason?.message||'chargement impossible'));console.error(errors[errors.length-1]);}
+ if(jobs[0].status==='fulfilled'&&Array.isArray(jobs[0].value))state.matches=jobs[0].value;else{errors.push('Matchs : '+(jobs[0].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
+ if(jobs[1].status==='fulfilled'&&Array.isArray(jobs[1].value))state.teams=jobs[1].value;else{errors.push('Équipes : '+(jobs[1].reason?.message||'indisponible'));console.error(errors[errors.length-1]);}
+ if(jobs[2].status==='fulfilled')state.tournamentGroups=jobs[2].value?.tournaments||[];else{state.tournamentGroups=[];console.error('Tournois/participants:',jobs[2].reason);}
+ if(jobs[3].status==='fulfilled'&&jobs[3].value?.id){state.guildInfo=jobs[3].value;state.guildError='';}else{state.guildError=jobs[3].status==='rejected'?(jobs[3].reason?.message||'API guilde inaccessible'):(jobs[3].value?.error||'API guilde : réponse invalide');console.warn('Présence globale de la guilde indisponible:',state.guildError);}
  state.adminLoadErrors=errors;
- // Render the admin list independently: a public-page rendering error must not hide player requests.
- if(state.admin){
-  try{renderAdmin();}
-  catch(error){
-   console.error('Erreur affichage panneau admin:',error);
-   const list=document.getElementById('adminPlayers');
-   if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';
-  }
- }
- try{render();}
- catch(error){console.error('Erreur affichage public:',error);}
+ if(state.admin){try{renderAdmin();}catch(error){console.error('Erreur affichage panneau admin:',error);const list=document.getElementById('adminPlayers');if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';}}
+ try{render();}catch(error){console.error('Erreur affichage public:',error);}
 }
 function isAcceptedPlayer(p){const s=String(p.status||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');return !s||['accepte','acceptee','accepted','valide','validee','approved'].includes(s)}
 function ranking(){
@@ -382,12 +360,14 @@ $('#resetMatch').onclick=()=>$('#matchForm').reset();
 if(state.token){state.admin=true;$('#adminForm').hidden=true;$('#adminContent').hidden=false;loadAll();}
 else{loadAll();}
 let publicRefreshBusy=false;
+let manualRefreshBusy=false;
+window.addEventListener('mou:refresh-request',async()=>{if(manualRefreshBusy)return;manualRefreshBusy=true;try{await loadAll();window.dispatchEvent(new Event('mou:refresh-tournaments'));}finally{manualRefreshBusy=false;}});
 async function refreshPublicData(){
  if(publicRefreshBusy||document.hidden)return;
  const active=document.activeElement;
  if(active&&active.matches('input,textarea,select,[contenteditable="true"]'))return;
  publicRefreshBusy=true;
- try{await loadAll()}finally{publicRefreshBusy=false}
+ try{await loadAll();window.dispatchEvent(new Event('mou:refresh-tournaments'))}finally{publicRefreshBusy=false}
 }
 window.addEventListener('focus',refreshPublicData);
 window.addEventListener('pageshow',refreshPublicData);
