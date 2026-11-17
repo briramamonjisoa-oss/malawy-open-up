@@ -12,5 +12,6 @@ document.addEventListener('touchend',()=>{if(!touching)return;touching=false;if(
 document.addEventListener('touchcancel',()=>{touching=false;delta=0;pull.classList.remove('visible');},{passive:true});
 async function refresh(){if(refreshing)return;if(!navigator.onLine){offline=true;updateNotice('Vérifiez votre connexion Internet.');pull.classList.remove('visible');return;}refreshing=true;pull.classList.add('visible','loading');pull.querySelector('span:last-child').textContent='Actualisation…';try{window.dispatchEvent(new Event('mou:refresh-request'));await new Promise(r=>setTimeout(r,700));}finally{refreshing=false;pull.classList.remove('loading');pull.querySelector('span:last-child').textContent='Actualisé';setTimeout(()=>pull.classList.remove('visible'),850);}}
 window.addEventListener('mou:refresh-failed',()=>{offline=!navigator.onLine;updateNotice('Vérifiez votre connexion Internet.');});
+window.addEventListener('mou:network-error',()=>{offline=!navigator.onLine;updateNotice('Vérifiez votre connexion Internet.');});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
