@@ -355,23 +355,16 @@ async function refresh() {
   if (!box) return;
 
   try {
-    const d = await call('tournaments');
-    tournaments = d.tournaments || [];
-
-    const playerResponse = await fetch('/.netlify/functions/players', {cache:'no-store'});
-    registeredPlayers = playerResponse.ok ? (await playerResponse.json()).filter(p => p.status === 'Accepté') : [];
-    currentPlayer = null;
-    if (playerToken()) {
-      try {
-        const me = await fetch('/.netlify/functions/player-account', {headers:{Authorization:'Bearer '+playerToken()},cache:'no-store'});
-        if (me.ok) currentPlayer = await me.json();
-      } catch(e) { currentPlayer = null; }
-    }
-
-    if (token()) {
-      const s = await call('tournament-signups');
-      signups = s.signups || [];
-    } else signups = [];
+    const [tr,pr,ar,sr]=await Promise.all([
+      call('tournaments'),
+      fetch('/.netlify/functions/players?fast=1',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error('Chargement des joueurs impossible');return r.json();}),
+      playerToken()?fetch('/.netlify/functions/player-account?fast=1',{headers:{Authorization:'Bearer '+playerToken()},cache:'no-store'}).then(async r=>{if(!r.ok)throw Error('Profil joueur indisponible');return r.json();}):Promise.resolve(null),
+      token()?call('tournament-signups'):Promise.resolve({signups:[]})
+    ]);
+    tournaments=tr.tournaments||[];
+    registeredPlayers=Array.isArray(pr)?pr.filter(p=>p.status==='Accepté'):[];
+    currentPlayer=ar;
+    signups=sr.signups||[];
 
     renderMyTournaments();
     renderPublic();
@@ -717,6 +710,8 @@ function init() {
     refresh();
   });
 }
+
+window.addEventListener('mou:refresh-tournaments',refresh);
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init, {once:true});
