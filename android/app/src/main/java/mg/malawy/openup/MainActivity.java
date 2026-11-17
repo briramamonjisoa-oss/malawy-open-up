@@ -11,7 +11,6 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.Uri;
-import android.os.BuildConfig;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.BufferedReader;
@@ -92,6 +91,16 @@ public class MainActivity extends Activity {
     }
 
 
+    private int getInstalledVersionCode() {
+        try {
+            android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (Build.VERSION.SDK_INT >= 28) return (int) info.getLongVersionCode();
+            return info.versionCode;
+        } catch (Exception error) {
+            return 0;
+        }
+    }
+
     private void checkForUpdate() {
         new Thread(() -> {
             HttpURLConnection connection = null;
@@ -107,10 +116,11 @@ public class MainActivity extends Activity {
                     while ((line = reader.readLine()) != null) json.append(line);
                 }
                 JSONObject version = new JSONObject(json.toString());
-                int latestCode = version.optInt("latestVersionCode", BuildConfig.VERSION_CODE);
+                int installedCode = getInstalledVersionCode();
+                int latestCode = version.optInt("latestVersionCode", installedCode);
                 String latestName = version.optString("latestVersionName", "");
                 boolean force = version.optBoolean("forceUpdate", false);
-                if (latestCode > BuildConfig.VERSION_CODE) runOnUiThread(() -> showUpdateDialog(latestName, force));
+                if (latestCode > installedCode) runOnUiThread(() -> showUpdateDialog(latestName, force));
             } catch (Exception error) {
                 android.util.Log.w("MALAWY_UPDATE", "Version check unavailable", error);
             } finally {
