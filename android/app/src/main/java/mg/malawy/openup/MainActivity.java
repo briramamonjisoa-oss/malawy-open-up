@@ -2,6 +2,7 @@ package mg.malawy.openup;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,6 +11,11 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.Uri;
+import android.os.BuildConfig;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
@@ -26,6 +32,9 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String HOME = "https://malawy-open-up.briramamonjisoa.workers.dev";
+    private static final String VERSION_URL = HOME + "/app-version.json";
+    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-debug.apk";
+    private boolean updateDialogVisible = false;
     private static final int FILE_CHOOSER_REQUEST = 501;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 502;
 
@@ -79,6 +88,61 @@ public class MainActivity extends Activity {
                     updateOfflineRetryState();
                 }
             });
+        }
+    }
+
+
+    private void checkForUpdate() {
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) new URL(VERSION_URL + "?t=" + System.currentTimeMillis()).openConnection();
+                connection.setConnectTimeout(7000);
+                connection.setReadTimeout(7000);
+                connection.setRequestMethod("GET");
+                connection.setUseCaches(false);
+                StringBuilder json = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) json.append(line);
+                }
+                JSONObject version = new JSONObject(json.toString());
+                int latestCode = version.optInt("latestVersionCode", BuildConfig.VERSION_CODE);
+                String latestName = version.optString("latestVersionName", "");
+                boolean force = version.optBoolean("forceUpdate", false);
+                if (latestCode > BuildConfig.VERSION_CODE) runOnUiThread(() -> showUpdateDialog(latestName, force));
+            } catch (Exception error) {
+                android.util.Log.w("MALAWY_UPDATE", "Version check unavailable", error);
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+        }).start();
+    }
+
+    private void showUpdateDialog(String versionName, boolean force) {
+        if (isFinishing() || updateDialogVisible) return;
+        updateDialogVisible = true;
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Nouvelle version disponible")
+            .setMessage("MALAWY OPEN UP " + versionName + " est disponible. " +
+                (force ? "Cette mise à jour est obligatoire pour continuer." : "Installe la mise à jour pour profiter des nouveautés."))
+            .setCancelable(!force)
+            .setPositiveButton("Télécharger la mise à jour", (d, which) -> downloadUpdate())
+            .setNegativeButton(force ? "Quitter" : "Plus tard", (d, which) -> { updateDialogVisible = false; if (force) finish(); })
+            .create();
+        dialog.setOnDismissListener(d -> updateDialogVisible = false);
+        dialog.show();
+    }
+
+    private void downloadUpdate() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(APK_URL));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception error) {
+            new AlertDialog.Builder(this).setTitle("Téléchargement impossible")
+                .setMessage("Ouvre le lien de mise à jour depuis ton navigateur : " + APK_URL)
+                .setPositiveButton("OK", null).show();
         }
     }
 
@@ -204,6 +268,7 @@ public class MainActivity extends Activity {
 
         requestNotificationPermission();
         handleNotificationIntent(getIntent());
+        if (hasValidatedInternet()) checkForUpdate();
     }
 
     private void requestNotificationPermission() {
@@ -233,7 +298,7 @@ public class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         if (!hasValidatedInternet()) showOfflineScreen();
-        else updateOfflineRetryState();
+        else { updateOfflineRetryState(); checkForUpdate(); }
     }
 
     @Override protected void onStop() {
