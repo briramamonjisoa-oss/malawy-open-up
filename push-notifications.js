@@ -377,6 +377,9 @@
       loadHistory();
       registerAndroidPush();
     }
+    window.addEventListener('mou:refresh-fcm-token', () => {
+      if (playerToken()) registerAndroidPush();
+    });
     if (adminToken()) createAdminUI();
     window.addEventListener('mou:player-auth', () => {
       loadHistory();
