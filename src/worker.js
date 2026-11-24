@@ -14,6 +14,8 @@ import battleRoyaleResults from "../netlify/functions/battle-royale-results.js";
 import guildInfo from "../netlify/functions/guild-info.js";
 import communityFeed from "../netlify/functions/community-feed.js";
 import friends from "../netlify/functions/friends.js";
+import stories from "../netlify/functions/stories.js";
+import presence from "../netlify/functions/presence.js";
 
 const handlers = {
   admin: admin.handler,
@@ -31,7 +33,9 @@ const handlers = {
   "battle-royale-results": battleRoyaleResults.handler,
   "guild-info": guildInfo.handler,
   "community-feed": communityFeed.handler,
-  friends: friends.handler
+  friends: friends.handler,
+  stories: stories.handler,
+  presence: presence.handler
 };
 
 function json(data, status = 200) {
