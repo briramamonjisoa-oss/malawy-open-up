@@ -1046,3 +1046,35 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
 .mou-comments-modal-form input{flex:1;min-width:0;height:44px;padding:0 13px;border:1px solid rgba(216,189,122,.24);border-radius:999px;background:rgba(255,255,255,.045);color:#f5efe4;outline:none}
 .mou-comments-modal-form button{padding:0 17px;border:1px solid rgba(216,189,122,.5);border-radius:999px;background:rgba(216,189,122,.1);color:#e9d39d;font-weight:600}
 @media(max-width:390px){.feed-icon-action svg{width:20px!important;height:20px!important;flex-basis:20px!important}.feed-icon-action small{font-size:9px!important}.mou-comments-modal{max-height:78dvh}}
+
+
+/* STORIES RAIL — hard reset against legacy button/card styles */
+.mou-stories-rail{align-items:flex-start!important;gap:14px!important;padding:8px 4px 12px!important;min-height:94px!important;overflow-x:auto!important;overflow-y:hidden!important}
+.mou-stories-rail>.mou-story-tile,
+.mou-stories-rail>button.mou-story-tile{
+  appearance:none!important;-webkit-appearance:none!important;
+  display:flex!important;flex:0 0 74px!important;width:74px!important;min-width:74px!important;max-width:74px!important;
+  min-height:0!important;height:auto!important;box-sizing:border-box!important;
+  flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;background-color:transparent!important;box-shadow:none!important;
+  color:#d8cfbd!important;text-align:center!important;font:inherit!important;line-height:1.2!important;
+}
+.mou-stories-rail .mou-story-ring{
+  display:grid!important;flex:0 0 66px!important;width:66px!important;height:66px!important;
+  min-width:66px!important;min-height:66px!important;max-width:66px!important;max-height:66px!important;
+  box-sizing:border-box!important;margin:0 auto!important;padding:3px!important;
+  border-radius:50%!important;overflow:hidden!important;
+  border:1px solid rgba(216,193,138,.78)!important;
+  background:linear-gradient(145deg,#d9c48b,#29231a 60%,#806a3f)!important;
+}
+.mou-stories-rail .mou-story-ring .mou-story-plus{
+  display:grid!important;width:100%!important;height:100%!important;box-sizing:border-box!important;
+  place-items:center!important;border-radius:50%!important;background:#090909!important;
+  color:#d8c18a!important;font-size:30px!important;font-weight:400!important;
+}
+.mou-stories-rail .mou-story-avatar{display:block!important;width:100%!important;height:100%!important;border-radius:50%!important;overflow:hidden!important}
+.mou-stories-rail .mou-story-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border:0!important}
+.mou-stories-rail .mou-story-tile>b{display:block!important;width:100%!important;max-width:74px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#d8cfbd!important;font-size:11px!important;font-weight:600!important}
+.mou-stories-heading{padding-right:52px!important;box-sizing:border-box!important}
+.mou-stories-heading small{max-width:calc(100% - 70px)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
