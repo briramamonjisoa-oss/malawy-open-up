@@ -675,6 +675,9 @@ html.mou-session-checking body{overflow:hidden}
 #mouPullIndicator{position:fixed;z-index:14999;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translate(-50%,-150%);display:flex;align-items:center;gap:9px;padding:9px 15px;border:1px solid rgba(216,189,122,.42);border-radius:999px;background:rgba(8,8,10,.92);color:#e7d5ad;font:11px Inter,sans-serif;box-shadow:0 8px 25px #0008;transition:transform .18s;pointer-events:none}
 #mouPullIndicator.visible{transform:translate(-50%,0)}#mouPullIndicator .mou-pull-spinner{width:15px;height:15px;border:2px solid rgba(216,189,122,.25);border-top-color:#d8bd7a;border-radius:50%}#mouPullIndicator.loading .mou-pull-spinner{animation:mou-spin .7s linear infinite}@keyframes mou-spin{to{transform:rotate(360deg)}}
 
+/* Hide the legacy five-button community dock; navbar-v2.js owns navigation. */
+.mou-social-dock{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
 /* MALAWY OPEN UP — compact floating black glass / gold navigation */
 .tabs, body > nav.bottom { display:none !important; }
 body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
