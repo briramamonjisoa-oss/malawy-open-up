@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v103';
+const CACHE = 'malawy-v104';
 
 const ASSETS = [
   '/',
@@ -17,6 +17,7 @@ const ASSETS = [
   '/update-gate.js',
   '/push-notifications.js',
   '/community-feed.js',
+  '/stories-presence-ui.js?v=2',
   '/manifest.webmanifest',
   '/icon.svg',
   '/assets/freefire-ranks-hd.webp'
@@ -63,7 +64,7 @@ self.addEventListener('fetch', event => {
     );
     return;
   }
-  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/navbar-v2.js'].includes(path)) {
+  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/stories-presence-ui.js','/navbar-v2.js'].includes(path)) {
     event.respondWith(
       fetch(event.request).then(response => {
         if (response.ok) {
