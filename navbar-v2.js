@@ -21,7 +21,7 @@
           <button type="button" data-tab="ranking">Classement</button>
         </div>
       </div>
-      <button type="button" class="mou-nav-item" data-tab="players">
+      <button type="button" class="mou-nav-item" data-tab="community">
         <span class="mou-nav-icon" aria-hidden="true">◎</span><span>Communauté</span>
       </button>
       <div class="mou-nav-group">
