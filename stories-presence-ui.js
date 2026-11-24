@@ -1,10 +1,3 @@
-
-.mou-story-viewer{padding:0;background:rgba(0,0,0,.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.mou-story-viewer-inner{width:min(100%,500px);height:min(94dvh,900px);border:1px solid rgba(216,193,138,.28);border-radius:24px;background:radial-gradient(ellipse at 50% 0%,rgba(216,193,138,.12),transparent 38%),#050505;box-shadow:0 25px 90px #000}
-.mou-story-progress-list{display:flex;gap:4px;padding:12px 12px 4px;z-index:3}.mou-story-progress{height:3px;flex:1;border-radius:9px;background:#ffffff50;overflow:hidden;margin:0}.mou-story-progress i{display:block;height:100%;background:#e5d09a;border-radius:9px}
-.mou-story-head{padding:10px 14px 12px;justify-content:space-between}.mou-story-owner{display:flex;align-items:center;gap:10px;padding:0;background:transparent;color:#fff;text-align:left}.mou-story-owner-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#17130c;border:1px solid #d8c18a;color:#e2ca8e;font-weight:800}.mou-story-owner-avatar img{width:100%;height:100%;object-fit:cover}.mou-story-owner-meta b{display:block;font-size:14px}.mou-story-owner-meta small{display:block;font-size:10px;color:#c5b995;margin-top:3px}.mou-story-close{position:static;flex:0 0 38px;background:#ffffff12;border:1px solid #ffffff2b}
-.mou-story-media{position:relative}.mou-story-media img,.mou-story-media video{object-fit:contain}.mou-story-caption{z-index:2;padding:18px 18px 24px;font-size:14px}.mou-story-hit{position:absolute;z-index:2;top:100px;bottom:65px;width:28%;padding:0;border:0;border-radius:0;background:transparent}.mou-story-prev{left:0}.mou-story-next{right:0}.mou-story-hit:disabled{display:none}
-@media(max-width:560px){.mou-story-viewer-inner{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}.mou-story-media img,.mou-story-media video{object-fit:contain}.mou-story-caption{padding-bottom:max(22px,env(safe-area-inset-bottom))}}
 (()=>{'use strict';
 const ROOT='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/';
 const token=()=>localStorage.getItem('mou_player_token')||'';
