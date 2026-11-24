@@ -917,3 +917,25 @@ body.mou-community-active .mou-social-dock{
 #feedFloatingButton{display:none!important}
 @media(min-width:700px){.mou-community-page{padding:28px 22px 125px!important}.mou-story-ring{width:66px;height:66px}.mou-story-own,.mou-story-empty{flex-basis:68px}.feed-gallery-1 .feed-image{max-height:680px}}
 @media(max-width:420px){.mou-community-page{padding:12px 11px 112px!important}.mou-community-top h2{font-size:23px}.mou-stories{padding:12px 10px}.feed-post{border-radius:20px}.feed-gallery-1 .feed-image{min-height:220px}.feed-reaction{gap:5px;padding:7px 7px;font-size:9px}}
+
+
+/* Publication cards — structure adapted from the supplied Community CSS, MALAWY black & gold */
+.feed-post{padding:0;overflow:hidden;border-radius:25px;background:#09090a;border:1px solid rgba(216,189,122,.3)}
+.feed-media{position:relative;isolation:isolate;min-height:235px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,rgba(216,189,122,.11),transparent 60%),#080809}
+.feed-media:after{content:"";position:absolute;z-index:1;inset:28% 0 0;pointer-events:none;background:linear-gradient(180deg,transparent 0%,rgba(4,4,5,.22) 38%,rgba(4,4,5,.91) 100%)}
+.feed-gallery{position:relative;z-index:0;display:block;margin:0;border-radius:0;overflow:hidden}
+.feed-gallery .feed-image{display:block;width:100%;height:auto;min-height:235px;max-height:580px;object-fit:cover;margin:0;border:0;border-radius:0}
+.feed-gallery-1 .feed-image{max-height:650px}
+.feed-gallery:not(.feed-gallery-1){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
+.feed-gallery:not(.feed-gallery-1) .feed-image{height:100%;min-height:180px;max-height:390px}
+.feed-gallery-3 .feed-image:first-child,.feed-gallery-5 .feed-image:first-child{grid-column:span 2}
+.feed-author{z-index:3;top:13px;left:13px;right:58px;margin:0;padding:6px 14px 6px 6px;border:1px solid rgba(216,189,122,.3);border-radius:999px;background:rgba(7,7,8,.62);backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}
+.feed-delete{z-index:4;top:13px;right:13px;margin:0;background:rgba(7,7,8,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.feed-glass{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:35px 13px 12px;background:linear-gradient(180deg,transparent,rgba(5,5,6,.25) 20%,rgba(5,5,6,.82) 100%);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.feed-caption{margin:0 3px 12px;color:#f1e8d7;font-size:13px;line-height:1.55;overflow-wrap:anywhere;text-shadow:0 1px 8px rgba(0,0,0,.65)}
+.feed-reactions{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0;padding:10px 0 0;border-top:1px solid rgba(216,189,122,.23);border-bottom:0;background:transparent}
+.feed-reaction{min-width:0;flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 5px;border:1px solid rgba(216,189,122,.25);border-radius:999px;background:rgba(10,9,8,.48);color:#eee4d0;font-size:10px}
+.feed-reaction svg{width:17px;height:17px;stroke:#d8bd7a}
+.feed-reaction small{color:#e0c88e;font-size:9px}
+.feed-comments{margin:0;padding:13px;border:0;border-top:1px solid rgba(216,189,122,.16);border-radius:0;background:#09090a}
+@media(max-width:420px){.feed-media{min-height:210px}.feed-gallery .feed-image{min-height:210px}.feed-reaction{font-size:9px;padding:7px 3px}.feed-caption{font-size:12px}}
