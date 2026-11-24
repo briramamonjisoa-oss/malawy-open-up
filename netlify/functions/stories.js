@@ -1,5 +1,5 @@
 const {airtable,verifyPlayer}=require('./auth');
-const TABLE='tblxP7R5Pa9hbOJ1Z',REL='tblQoAGcQhii58Hwe';
+const TABLE='tblxP7R5Pa9hbOJ1Z',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2';
 const F={id:'fldH1TLes527ZVr36',author:'fldTXpmWUSxyw0ED6',pseudo:'fldgxaf9qpBZcEDLT',photo:'fldaxw9mvGKh2U1yL',media:'fldo3TPTUqnJ9AWno',caption:'fldkEy60HPPnCXxzA',created:'fldVZLJAKABNvO3l3',expires:'fldi1GHX4OujTzEDc',audience:'fld7RVLnuwGeDmiJZ',status:'fldET3vMcOO4SokUr'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
