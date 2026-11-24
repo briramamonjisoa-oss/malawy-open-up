@@ -15,7 +15,7 @@ exports.handler=async event=>{
   if(event.httpMethod==='GET'){
    const rows=await all(TABLE);
    const visible=rows.filter(x=>{const f=x.fields||{};return f[F.status]==='Publié'&&Date.parse(f[F.expires]||'')>now&&(f[F.author]===me.id||f[F.audience]==='Tous'||(f[F.audience]==='Amis'&&friends.has(f[F.author])));});
-   return out(200,{stories:visible.sort((a,b)=>String(a.fields[F.created]).localeCompare(String(b.fields[F.created]))).map(x=>{const f=x.fields||{};return{id:x.id,authorId:f[F.author],pseudo:f[F.pseudo]||'Joueur',photo:f[F.photo]||'',media:f[F.media]||'',caption:f[F.caption]||'',created:f[F.created]||'',mine:f[F.author]===me.id};})});
+   return out(200,{stories:visible.sort((a,b)=>String(a.fields[F.created]).localeCompare(String(b.fields[F.created]))).map(x=>{const f=x.fields||{};return{id:x.id,authorId:f[F.author],pseudo:f[F.pseudo]||'Joueur',photo:f[F.photo]||'',media:f[F.media]||'',caption:f[F.caption]||'',created:f[F.created]||'',expires:f[F.expires]||'',mine:f[F.author]===me.id};})});
   }
   if(event.httpMethod!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(b.action==='publish'){
