@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
     );
     return;
   }
-  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json'].includes(path)) {
+  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/navbar-v2.js'].includes(path)) {
     event.respondWith(
       fetch(event.request).then(response => {
         if (response.ok) {
