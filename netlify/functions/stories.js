@@ -1,6 +1,6 @@
 const {airtable,verifyPlayer}=require('./auth');
 const TABLE='tblxP7R5Pa9hbOJ1Z',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2';
-const F={id:'fldH1TLes527ZVr36',author:'fldTXpmWUSxyw0ED6',pseudo:'fldgxaf9qpBZcEDLT',photo:'fldaxw9mvGKh2U1yL',media:'fldo3TPTUqnJ9AWno',caption:'fldkEy60HPPnCXxzA',created:'fldVZLJAKABNvO3l3',expires:'fldi1GHX4OujTzEDc',audience:'fld7RVLnuwGeDmiJZ',status:'fldET3vMcOO4SokUr'};
+const F={author:'fldTXpmWUSxyw0ED6',pseudo:'fldgxaf9qpBZcEDLT',photo:'fldaxw9mvGKh2U1yL',media:'fldo3TPTUqnJ9AWno',caption:'fldkEy60HPPnCXxzA',created:'fldVZLJAKABNvO3l3',expires:'fldi1GHX4OujTzEDc',audience:'fld7RVLnuwGeDmiJZ',status:'fldET3vMcOO4SokUr'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
@@ -28,8 +28,8 @@ exports.handler=async event=>{
    const media=String(b.media||''),caption=String(b.caption||'').trim(),audience=b.audience==='Tous'?'Tous':'Amis';
    if(!media||!/^https:\/\//i.test(media))return out(400,{error:'Ajoute une photo ou une vidéo valide.'});
    if(caption.length>180)return out(400,{error:'La légende est trop longue.'});
-   const created=new Date().toISOString(),expires=new Date(now+86400000).toISOString(),id=me.id+'_'+Date.now();
-   const d=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields:{[F.id]:id,[F.author]:me.id,[F.pseudo]:pseudo,[F.photo]:photo,[F.media]:media,[F.caption]:caption,[F.created]:created,[F.expires]:expires,[F.audience]:audience,[F.status]:'Publié'}}]})});
+   const created=new Date().toISOString(),expires=new Date(now+86400000).toISOString();
+   const d=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields:{[F.author]:me.id,[F.pseudo]:pseudo,[F.photo]:photo,[F.media]:media,[F.caption]:caption,[F.created]:created,[F.expires]:expires,[F.audience]:audience,[F.status]:'Publié'}}]})});
    return out(201,{success:true,id:d.records?.[0]?.id});
   }
   if(b.action==='delete'){
