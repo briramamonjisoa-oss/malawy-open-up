@@ -53,9 +53,16 @@
       }
       if (event.target.closest('[data-tab]')) closeMenus();
     });
-    document.addEventListener('click', event => {
-      if (!nav.contains(event.target)) closeMenus();
-    });
+    // Fermer le menu avant que le gestionnaire de navigation change de page.
+    // Le listener window en capture passe avant les handlers de navigation existants.
+    window.addEventListener('click', event => {
+      const target = event.target;
+      if (target && typeof target.closest === 'function' && target.closest('[data-tab]')) {
+        closeMenus();
+      } else if (!nav.contains(target)) {
+        closeMenus();
+      }
+    }, true);
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') closeMenus();
     });
