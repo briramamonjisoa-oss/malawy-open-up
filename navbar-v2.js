@@ -69,7 +69,8 @@
 
     const sync = () => {
       const active = document.querySelector('main .page.active');
-      const id = active && active.id;\n      document.body.classList.toggle('mou-community-active', id === 'community');
+      const id = active && active.id;
+      document.body.classList.toggle('mou-community-active', id === 'community');
       nav.querySelectorAll('.mou-nav-item[data-tab]').forEach(button => {
         button.classList.toggle('active', button.dataset.tab === id);
       });
