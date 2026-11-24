@@ -754,3 +754,103 @@ body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
   outline:none;
 }
 .mou-nav-popover button:active{transform:scale(.985)}
+
+
+/* MALAWY SOCIAL V1 — black glass / translucent gold */
+#communityFeed.community-feed{
+  margin:22px 0 30px;padding:16px!important;overflow:visible;
+  border:1px solid rgba(216,189,122,.30);border-radius:24px;
+  background:linear-gradient(155deg,rgba(18,17,19,.88),rgba(5,5,7,.94));
+  box-shadow:0 18px 55px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.055);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+}
+#communityFeed .feed-heading{align-items:center;margin-bottom:18px}
+#communityFeed .feed-heading .eyebrow{color:#d8bd7a;letter-spacing:.2em}
+#communityFeed .feed-heading h3{margin:5px 0;color:#f3ead7;font:600 19px Inter,sans-serif;letter-spacing:-.035em;text-transform:none}
+#communityFeed #feedCount{font-size:10px;color:#b9aa8a}
+#communityFeed .feed-compose-trigger{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:58px;
+  padding:10px 15px;text-align:left;border:1px solid rgba(216,189,122,.30);
+  border-radius:17px;background:rgba(255,255,255,.035);color:#d8cfbd;
+  box-shadow:inset 0 1px rgba(255,255,255,.035);font:500 13px Inter,sans-serif;
+}
+#communityFeed .feed-compose-trigger>span{
+  width:34px;height:34px;display:grid;place-items:center;border:1px solid rgba(216,189,122,.58);
+  border-radius:50%;background:rgba(216,189,122,.08);color:#e4ca8e;font-size:23px;
+}
+#feedPosts{display:grid;gap:18px;margin-top:18px}
+#feedPosts>.muted{padding:24px 8px;text-align:center}
+.feed-post{
+  position:relative;overflow:hidden;padding:15px;border:1px solid rgba(216,189,122,.26);
+  border-radius:22px;background:linear-gradient(145deg,rgba(25,23,25,.86),rgba(7,7,9,.94));
+  box-shadow:0 12px 34px rgba(0,0,0,.30),inset 0 1px rgba(255,255,255,.045);
+}
+.feed-post:before{
+  content:"";position:absolute;inset:0 0 auto;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(240,223,180,.36),transparent);
+}
+.feed-author{position:relative;z-index:1;display:flex;align-items:center;gap:11px;min-width:0;margin-bottom:13px}
+.feed-avatar{
+  width:43px;height:43px;flex:0 0 43px;display:grid;place-items:center;overflow:hidden;
+  border:1px solid rgba(216,189,122,.62);border-radius:50%;
+  background:rgba(216,189,122,.08);color:#ead7a8;font:700 16px Inter,sans-serif;
+  box-shadow:0 0 18px rgba(216,189,122,.08);
+}
+.feed-author-meta{min-width:0;display:grid;gap:4px}
+.feed-author-meta b{color:#f1e8d7;font-size:13px}
+.feed-author-meta small{color:#a99e89;font-size:10px}
+.feed-delete{
+  width:36px;height:36px;margin-left:auto;padding:0;border:1px solid rgba(216,189,122,.28);
+  border-radius:50%;background:rgba(0,0,0,.25);color:#d8bd7a;font-size:22px;
+}
+.feed-content{margin:8px 1px 14px;color:#e4dfd5;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.feed-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px -2px;border-radius:17px;overflow:hidden}
+.feed-gallery-1{grid-template-columns:1fr}
+.feed-gallery .feed-image{display:block;width:100%;height:100%;min-height:145px;max-height:430px;object-fit:cover;margin:0;border:0;border-radius:0;background:#09090b}
+.feed-gallery-1 .feed-image{max-height:520px}
+.feed-gallery-3 .feed-image:first-child,.feed-gallery-5 .feed-image:first-child{grid-column:span 2}
+.feed-reactions{display:flex;align-items:center;justify-content:space-around;gap:5px;margin:13px 0 10px;padding:9px 3px;border-top:1px solid rgba(216,189,122,.15);border-bottom:1px solid rgba(216,189,122,.15)}
+.feed-reaction{
+  min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 5px;
+  border:1px solid transparent;border-radius:999px;background:transparent;color:#c9c0af;
+  font:500 10px Inter,sans-serif;
+}
+.feed-reaction svg{width:18px;height:18px;flex:none;fill:none;stroke:#d8bd7a;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.feed-reaction small{color:#a99a7a;font-size:9px}
+.feed-reaction[aria-pressed=true]{border-color:rgba(216,189,122,.38);background:rgba(216,189,122,.09);color:#f1dfb5}
+.feed-reaction[aria-pressed=true] svg{stroke:#f0d79e;filter:drop-shadow(0 0 5px rgba(216,189,122,.35))}
+.feed-comments{margin-top:12px;padding:12px;border:1px solid rgba(216,189,122,.15);border-radius:15px;background:rgba(0,0,0,.22)}
+.feed-comments>p{margin:0 0 10px;color:#d6cebf;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.feed-comments>p b{color:#e8d5a7}
+.feed-comments>p button{padding:2px 5px;background:transparent;color:#d8bd7a;font-size:10px}
+.feed-comment-form{display:flex;gap:7px;margin-top:10px}
+.feed-comment-form input{min-width:0;flex:1;padding:11px 12px;border:1px solid rgba(216,189,122,.23);border-radius:999px;background:rgba(255,255,255,.045);color:#f0eadf;font:12px Inter,sans-serif}
+.feed-comment-form input::placeholder{color:#8e8678}
+.feed-comment-form button{padding:10px 13px;border:1px solid rgba(216,189,122,.48);border-radius:999px;background:rgba(216,189,122,.10);color:#ead7a8;font-size:10px}
+#feedComposer .feed-modal-card{
+  border:1px solid rgba(216,189,122,.42);border-radius:25px;
+  background:linear-gradient(150deg,rgba(25,23,26,.98),rgba(5,5,7,.98));
+  box-shadow:0 24px 80px rgba(0,0,0,.72),inset 0 1px rgba(255,255,255,.06);
+}
+#feedComposer .feed-modal-card h3{color:#f0e5ce;font:600 24px Inter,sans-serif;text-transform:none;letter-spacing:-.035em}
+#feedComposer .feed-modal-card textarea{
+  width:100%;min-height:130px;padding:15px;border:1px solid rgba(216,189,122,.24);
+  border-radius:16px;background:rgba(0,0,0,.35);color:#f1e9da;font:14px/1.6 Inter,sans-serif;resize:vertical;
+}
+#feedComposer .feed-modal-card textarea::placeholder{color:#8e8678}
+#feedComposer .feed-photo-label{border-color:rgba(216,189,122,.38);background:rgba(216,189,122,.045);color:#eadbb8}
+#feedComposer .feed-photo-icon{border-color:rgba(216,189,122,.58);background:rgba(0,0,0,.4);color:#d8bd7a}
+#feedComposer .feed-photo-icon svg{stroke:#d8bd7a}
+#feedComposer .feed-photo-count{color:#c2b28d}
+#feedComposer .feed-modal-card button[type=submit]{
+  width:100%;min-height:48px;border:1px solid rgba(216,189,122,.72);border-radius:999px;
+  background:linear-gradient(120deg,rgba(216,189,122,.18),rgba(216,189,122,.07));
+  color:#f0dfb4;box-shadow:inset 0 1px rgba(255,255,255,.08);font-weight:700;
+}
+#feedComposer .feed-close{border:1px solid rgba(216,189,122,.35);border-radius:50%;background:rgba(0,0,0,.28);color:#d8bd7a}
+@media(max-width:420px){
+ #communityFeed.community-feed{padding:12px!important;border-radius:21px}
+ .feed-post{padding:12px;border-radius:19px}
+ .feed-reaction{gap:4px;font-size:9px}
+ .feed-gallery .feed-image{min-height:120px}
+}
