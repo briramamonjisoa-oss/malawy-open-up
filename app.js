@@ -93,6 +93,7 @@ function ranking(){
  return [...map.values()].map(p=>{const wins=Math.max(p.wins,p._winsFromMatches),losses=Math.max(p.losses,p._playedFromMatches-p._winsFromMatches);return {...p,wins,losses,played:Math.max(p.played,p._playedFromMatches)};}).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.score-a.score||a.name.localeCompare(b.name));
 }
 function avatar(p){const letter=esc((p.name||p.pseudo||'?').slice(0,1).toUpperCase());return p.photo?`<img src="${esc(p.photo)}" alt="Photo ${esc(p.name||p.pseudo)}" onerror="this.remove();this.parentElement.textContent='${letter}'">`:letter}
+window.MOU_OPEN_PUBLIC_PLAYER=pseudo=>showPublicPlayer(pseudo);
 function showPublicPlayer(pseudo){
  const p=state.players.find(x=>String(x.pseudo||'').toLowerCase()===String(pseudo||'').toLowerCase());
  if(!p)return;
