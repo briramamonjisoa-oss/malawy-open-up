@@ -16,7 +16,7 @@ const ASSETS = [
   '/connection-refresh.js',
   '/update-gate.js',
   '/push-notifications.js',
-  '/community-feed.js?v=interactions-overlay-v5',
+  '/community-feed.js?v=interactions-overlay-v6',
   '/stories-presence-ui.js?v=10',
   '/navbar-v2.js?v=meniscus-1',
   '/manifest.webmanifest',
