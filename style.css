@@ -976,3 +976,41 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
  body.mou-community-active .mou-social-dock .mou-social-create{width:44px!important;height:44px!important;min-width:44px!important;max-width:44px!important}
  body.mou-community-active .mou-social-dock button span{font-size:7px!important}
 }
+
+
+/* POST CARD — final glass treatment based on post-card.html */
+.feed-post{border:1px solid rgba(216,189,122,.22);border-radius:26px;background:#080809;overflow:hidden}
+.feed-media{position:relative;min-height:270px;overflow:hidden;background:#09090b}
+.feed-media.has-photo{min-height:300px}
+.feed-media .feed-gallery{position:relative;z-index:0;margin:0;display:block;border-radius:0;overflow:hidden}
+.feed-media .feed-gallery-1 .feed-image{display:block;width:100%;height:auto;min-height:300px;max-height:720px;object-fit:cover}
+.feed-media .feed-gallery:not(.feed-gallery-1){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
+.feed-media .feed-gallery:not(.feed-gallery-1) .feed-image{width:100%;height:100%;min-height:180px;max-height:400px;object-fit:cover}
+.feed-media:after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.56) 100%)}
+.feed-author{position:absolute;z-index:3;top:14px;left:14px;right:auto;max-width:calc(100% - 78px);padding:6px 16px 6px 6px;border:1px solid rgba(216,189,122,.23);border-radius:999px;background:rgba(5,5,6,.70);box-shadow:0 5px 22px rgba(0,0,0,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.feed-avatar{width:39px;height:39px;flex:0 0 39px;border-color:rgba(216,189,122,.55)}
+.feed-author-meta b{color:#f3ead8;font-size:12px}
+.feed-author-meta small{color:rgba(239,231,215,.68);font-size:9px}
+.feed-delete{position:absolute;z-index:4;top:14px;right:14px;width:39px;height:39px;border:1px solid rgba(216,189,122,.25);border-radius:50%;background:rgba(5,5,6,.66);color:#ead5a3;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.feed-glass{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:15px 15px 13px;background:rgba(7,7,9,.55);border-top:1px solid rgba(216,189,122,.16);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.feed-caption{margin:0 2px 12px;color:#f4eee3;font-size:13px;line-height:1.55;overflow-wrap:anywhere;text-shadow:none}
+.feed-reactions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:0;border:0;background:transparent}
+.feed-icon-action{width:auto;min-width:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:4px 6px;border:0;border-radius:10px;background:transparent;color:#f3e8d0}
+.feed-icon-action svg{width:25px;height:25px;flex:0 0 25px;fill:none;stroke:#e0c98f;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.feed-icon-action small{color:#f0e8d9;font-size:11px;font-weight:600}
+.feed-icon-action[aria-pressed=true] svg{fill:rgba(216,189,122,.22);stroke:#f0d99f;filter:drop-shadow(0 0 5px rgba(216,189,122,.28))}
+.feed-icon-action[data-save][aria-pressed=true] svg{fill:rgba(216,189,122,.22)}
+.feed-media.text-only{min-height:240px;background:radial-gradient(ellipse at 80% 10%,rgba(216,189,122,.13),transparent 50%),linear-gradient(145deg,#181512,#080809 72%)}
+.feed-media.text-only:before{content:"";position:absolute;inset:0;border:1px solid rgba(216,189,122,.08);pointer-events:none}
+.feed-media.text-only .feed-glass{position:relative;z-index:2;min-height:240px;padding:76px 18px 15px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;display:flex;flex-direction:column;justify-content:flex-end}
+.feed-media.text-only .feed-caption{margin-bottom:17px;font-size:15px;line-height:1.65}
+.feed-comments[hidden]{display:none!important}
+.feed-comments{background:#09090a;border-top:1px solid rgba(216,189,122,.15)}
+@media(max-width:420px){
+ .feed-media.has-photo .feed-gallery-1 .feed-image{min-height:260px;max-height:620px}
+ .feed-glass{padding:13px 12px 11px}
+ .feed-icon-action{gap:5px;padding:4px}
+ .feed-icon-action svg{width:23px;height:23px;flex-basis:23px}
+ .feed-icon-action small{font-size:10px}
+ .feed-caption{font-size:12px}
+}
