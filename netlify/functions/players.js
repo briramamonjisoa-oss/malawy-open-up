@@ -1,6 +1,6 @@
 const TABLE_ID = 'tblz0rJpaQBpafBN2';
 const APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];
-const normalizeStatus=v=>String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+const normalizeStatus=v=>String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const syncRank=async record=>{const f=record.fields||{},uid=String(f['ID Free Fire']||'').trim(),at=f['Profil Free Fire synchronisé le'];if(!uid)return false;if(at&&Date.now()-new Date(at).getTime()<5*60*1000&&f['Profil Free Fire JSON'])return true;const env=globalThis.__MOU_ENV||process.env,key=env.FREE_FIRE_API_KEY;if(!key)return false;const u=new URL('https://siambhau69.eu.cc/freefireinfo/bhau');u.searchParams.set('uid',uid);u.searchParams.set('region','ME');u.searchParams.set('key',key);try{const r=await fetch(u.toString(),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(6000)}),d=await r.json().catch(()=>({}));if(!r.ok||d.error||String(d.basicInfo?.accountId||'')!==uid)return false;const syncedAt=new Date().toISOString();const saved=await fetch('https://api.airtable.com/v0/'+env.AIRTABLE_BASE_ID+'/'+TABLE_ID+'/'+encodeURIComponent(record.id),{method:'PATCH',headers:{Authorization:'Bearer '+env.AIRTABLE_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({fields:{'Profil Free Fire JSON':JSON.stringify(d),'Profil Free Fire synchronisé le':syncedAt}})});if(!saved.ok){console.warn('Airtable profile save failed:',uid,saved.status);return false;}f['Profil Free Fire JSON']=JSON.stringify(d);f['Profil Free Fire synchronisé le']=syncedAt;return true;}catch(e){console.warn('Free Fire rank sync:',uid,e.message);return false;}};
 
 exports.handler = async (event) => {
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     const players = records.map(record => {
       const fields = record.fields || {};
       const rawStatus = String(fields['Statut inscription'] || 'En attente').trim();
-      const normalized = rawStatus.toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+      const normalized = rawStatus.toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const status = ['accepte', 'acceptee', 'accepted', 'valide', 'validee', 'approved'].includes(normalized)
         ? 'Accepté'
         : rawStatus;
