@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const allowed = ['home','community','register','profile','players','matches','ranking','admin'];
-  const saved = localStorage.getItem('mou_last_page') || 'home';
+  const saved = localStorage.getItem('mou_last_page') || 'community';
   let current = allowed.includes(saved) && (saved !== 'admin' || sessionStorage.getItem('mou_admin_token')) ? saved : 'home';
   const stack = [];
   const pages = () => Array.from(document.querySelectorAll('main .page'));
