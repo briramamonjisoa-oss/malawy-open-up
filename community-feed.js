@@ -62,5 +62,5 @@ const toast=document.createElement('div');toast.id='feedConnectivity';toast.hidd
 addEventListener('offline',()=>{toast.textContent='Vous n’êtes pas connecté à Internet.';toast.hidden=false;});
 addEventListener('online',()=>{toast.textContent='Connexion Internet rétablie.';toast.className='online';toast.hidden=false;setTimeout(()=>toast.hidden=true,3500);refresh();});
 if(!navigator.onLine){toast.textContent='Vous n’êtes pas connecté à Internet.';toast.hidden=false;}
-addEventListener('mou:player-auth',refresh);if(token())refresh();
+addEventListener('mou:player-auth',()=>{refresh();});\nlet lastCommunityState=false;\nnew MutationObserver(()=>{const active=document.querySelector('#community.active');if(active&&!lastCommunityState){refresh();}lastCommunityState=!!active;}).observe(document.querySelector('main'),{subtree:true,attributes:true,attributeFilter:['class']});\nif(token())refresh();
 })();
