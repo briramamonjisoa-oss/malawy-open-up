@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v105';
+const CACHE = 'malawy-v106';
 
 const ASSETS = [
   '/',
@@ -17,7 +17,7 @@ const ASSETS = [
   '/update-gate.js',
   '/push-notifications.js',
   '/community-feed.js',
-  '/stories-presence-ui.js?v=3',
+  '/stories-presence-ui.js?v=4',
   '/manifest.webmanifest',
   '/icon.svg',
   '/assets/freefire-ranks-hd.webp'
