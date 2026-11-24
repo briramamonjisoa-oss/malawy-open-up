@@ -9,7 +9,7 @@ exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi pour accéder aux stories.'});
  const b=body(event),now=Date.now();
  try{
-  const [player,relations]=await Promise.all([airtable('Inscriptions/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),all(REL)]);
+  const [player,relations]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),all(REL)]);
   const pf=player.fields||{},pseudo=String(pf['Pseudo Free Fire']||me.pseudo||'Joueur'),photo=String(pf.Photo||'');
   const friends=new Set(relations.filter(x=>x.fields?.[R.status]==='Acceptée'&&(x.fields[R.from]===me.id||x.fields[R.to]===me.id)).map(x=>x.fields[R.from]===me.id?x.fields[R.to]:x.fields[R.from]));
   if(event.httpMethod==='GET'){
