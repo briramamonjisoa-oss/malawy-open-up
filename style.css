@@ -711,3 +711,46 @@ body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
 @media(min-width:700px){body{padding-bottom:110px}.mou-nav-v2{bottom:22px}}
 @media(max-width:360px){.mou-nav-v2{width:calc(100% - 14px);padding:7px 5px}.mou-nav-item{font-size:9px}.mou-nav-icon{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.mou-nav-glow{animation:none}}
+
+
+/* NAV V2 — rubriques en pastilles transparentes cerclées d'or */
+.mou-nav-popover{
+  min-width: min(230px, calc(100vw - 36px));
+  padding: 10px;
+  display: grid;
+  gap: 7px;
+  border-color: rgba(216,189,122,.48);
+  background: rgba(8,8,10,.94);
+}
+.mou-nav-popover button{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-height:48px;
+  padding:9px 13px;
+  border:1px solid rgba(216,189,122,.36);
+  border-radius:999px;
+  background:rgba(216,189,122,.045);
+  color:#f0e5cf;
+  box-shadow:inset 0 0 14px rgba(216,189,122,.025);
+  transition:background .18s,border-color .18s,transform .18s;
+}
+.mou-nav-popover button::before{
+  content:"";
+  width:19px;
+  height:19px;
+  flex:0 0 19px;
+  display:block;
+  border:1px solid rgba(216,189,122,.78);
+  border-radius:50%;
+  background:rgba(216,189,122,.075);
+  box-shadow:inset 0 0 8px rgba(216,189,122,.10),0 0 10px rgba(216,189,122,.08);
+}
+.mou-nav-popover button:hover,
+.mou-nav-popover button:focus-visible,
+.mou-nav-popover button:active{
+  background:rgba(216,189,122,.13);
+  border-color:rgba(240,215,158,.82);
+  outline:none;
+}
+.mou-nav-popover button:active{transform:scale(.985)}
