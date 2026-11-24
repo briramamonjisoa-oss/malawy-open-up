@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v111';
+const CACHE = 'malawy-v112';
 
 const ASSETS = [
   '/',
@@ -16,8 +16,8 @@ const ASSETS = [
   '/connection-refresh.js',
   '/update-gate.js',
   '/push-notifications.js',
-  '/community-feed.js',
-  '/stories-presence-ui.js?v=8',
+  '/community-feed.js?v=interactions-overlay-v4',
+  '/stories-presence-ui.js?v=9',
   '/navbar-v2.js?v=meniscus-1',
   '/manifest.webmanifest',
   '/icon.svg',
