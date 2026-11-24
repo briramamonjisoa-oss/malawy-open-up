@@ -22,11 +22,19 @@ function confirmDelete(){
  });
 }
 
-function render(){ $('#feedCount').textContent=posts.length+' publication(s)';root.innerHTML=posts.map(p=>{
-const count=t=>p.reactions.filter(r=>r.type===t).length;
-const comments=p.comments.filter(c=>!c.parent);
-return '<article class="feed-post" data-id="'+esc(p.id)+'"><header class="feed-author"><span class="feed-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="">':esc((p.pseudo||'?')[0]))+'</span><span><b>'+esc(p.pseudo)+'</b><small>'+esc(dt(p.created))+'</small></span>'+(p.canDelete?'<button type="button" class="feed-delete" data-delete="1" aria-label="Supprimer cette publication">Supprimer</button>':'')+'</header>'+(p.content?'<p class="feed-content">'+esc(p.content)+'</p>':'')+photosMarkup(p.image)+'<div class="feed-reactions">'+[['J\'aime','👍'],['J\'adore','❤️'],['Haha','😂']].map(([t,e])=>'<button type="button" data-react="'+t+'" aria-pressed="'+p.reactions.some(r=>r.mine&&r.type===t)+'">'+e+' '+t+' '+count(t)+'</button>').join('')+'</div><div class="feed-comments">'+comments.map(c=>'<p><b>'+esc(c.pseudo)+'</b> '+esc(c.text)+' <button type="button" data-reply="'+esc(c.id)+'">Répondre</button>'+p.comments.filter(x=>x.parent===c.id).map(x=>'<br>↳ <b>'+esc(x.pseudo)+'</b> '+esc(x.text)).join('')+'</p>').join('')+'<form class="feed-comment-form"><input name="text" required maxlength="800" placeholder="Écrire un commentaire…"><button>Envoyer</button></form></div></article>';
-}).join('')||'<p class="muted">Aucune publication pour le moment.</p>';}
+const actionIcon=(name)=>({
+like:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg>',
+love:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-8.5-5-8.5-11a4.7 4.7 0 0 1 8.5-2.7A4.7 4.7 0 0 1 20.5 9c0 6-8.5 11-8.5 11Z"/><path d="M8.5 11.5h7"/></svg>',
+laugh:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.2 3 4 3 4-3 4-3M8.5 9.5h.01M15.5 9.5h.01"/></svg>'
+}[name]||'');
+function render(){
+ $('#feedCount').textContent=posts.length+' publication(s)';
+ root.innerHTML=posts.map(p=>{
+  const count=t=>p.reactions.filter(r=>r.type===t).length;
+  const comments=p.comments.filter(c=>!c.parent);
+  return '<article class="feed-post" data-id="'+esc(p.id)+'"><header class="feed-author"><span class="feed-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="">':esc((p.pseudo||'?')[0]))+'</span><span class="feed-author-meta"><b>'+esc(p.pseudo)+'</b><small>'+esc(dt(p.created))+'</small></span>'+(p.canDelete?'<button type="button" class="feed-delete" data-delete="1" aria-label="Supprimer cette publication" title="Supprimer">⋯</button>':'')+'</header>'+(p.content?'<p class="feed-content">'+esc(p.content)+'</p>':'')+photosMarkup(p.image)+'<div class="feed-reactions">'+[['J\\'aime','like'],['J\\'adore','love'],['Haha','laugh']].map(([t,icon])=>'<button type="button" class="feed-reaction" data-react="'+t+'" aria-pressed="'+p.reactions.some(r=>r.mine&&r.type===t)+'">'+actionIcon(icon)+'<span>'+t+'</span><small>'+count(t)+'</small></button>').join('')+'</div><div class="feed-comments">'+comments.map(c=>'<p><b>'+esc(c.pseudo)+'</b> '+esc(c.text)+' <button type="button" data-reply="'+esc(c.id)+'">Répondre</button>'+p.comments.filter(x=>x.parent===c.id).map(x=>'<br>↳ <b>'+esc(x.pseudo)+'</b> '+esc(x.text)).join('')+'</p>').join('')+'<form class="feed-comment-form"><input name="text" required maxlength="800" placeholder="Écrire un commentaire…"><button aria-label="Envoyer le commentaire">Envoyer</button></form></div></article>';
+ }).join('')||'<p class="muted">Aucune publication pour le moment.</p>';
+}
 async function refresh(){try{posts=(await api()).posts||[];render();}catch(e){root.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
 function open(){if(!token()){alert('Connecte-toi pour publier.');return;}modal.hidden=false;document.body.style.overflow='hidden';}
 function close(){modal.hidden=true;document.body.style.overflow='';}
