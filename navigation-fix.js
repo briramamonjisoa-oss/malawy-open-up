@@ -1,13 +1,12 @@
 (() => {
   'use strict';
   const allowed = ['home','community','register','profile','players','matches','ranking','admin'];
-  const savedRaw = localStorage.getItem('mou_last_page') || 'community';
-  const saved = savedRaw === 'home' ? 'community' : savedRaw;
+  const savedRaw = localStorage.getItem('mou_last_page') || 'home';
+  const saved = savedRaw;
   let current = allowed.includes(saved) && (saved !== 'admin' || sessionStorage.getItem('mou_admin_token')) ? saved : 'home';
   const stack = [];
   const pages = () => Array.from(document.querySelectorAll('main .page'));
   function show(id, remember = true) {
-    if (id === 'home') id = 'community';
     const target = document.getElementById(id);
     if (!target || !target.classList.contains('page')) return;
     if (remember && current !== id) stack.push(current);
