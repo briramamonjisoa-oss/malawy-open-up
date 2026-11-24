@@ -1,3 +1,10 @@
+
+.mou-story-viewer{padding:0;background:rgba(0,0,0,.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.mou-story-viewer-inner{width:min(100%,500px);height:min(94dvh,900px);border:1px solid rgba(216,193,138,.28);border-radius:24px;background:radial-gradient(ellipse at 50% 0%,rgba(216,193,138,.12),transparent 38%),#050505;box-shadow:0 25px 90px #000}
+.mou-story-progress-list{display:flex;gap:4px;padding:12px 12px 4px;z-index:3}.mou-story-progress{height:3px;flex:1;border-radius:9px;background:#ffffff50;overflow:hidden;margin:0}.mou-story-progress i{display:block;height:100%;background:#e5d09a;border-radius:9px}
+.mou-story-head{padding:10px 14px 12px;justify-content:space-between}.mou-story-owner{display:flex;align-items:center;gap:10px;padding:0;background:transparent;color:#fff;text-align:left}.mou-story-owner-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#17130c;border:1px solid #d8c18a;color:#e2ca8e;font-weight:800}.mou-story-owner-avatar img{width:100%;height:100%;object-fit:cover}.mou-story-owner-meta b{display:block;font-size:14px}.mou-story-owner-meta small{display:block;font-size:10px;color:#c5b995;margin-top:3px}.mou-story-close{position:static;flex:0 0 38px;background:#ffffff12;border:1px solid #ffffff2b}
+.mou-story-media{position:relative}.mou-story-media img,.mou-story-media video{object-fit:contain}.mou-story-caption{z-index:2;padding:18px 18px 24px;font-size:14px}.mou-story-hit{position:absolute;z-index:2;top:100px;bottom:65px;width:28%;padding:0;border:0;border-radius:0;background:transparent}.mou-story-prev{left:0}.mou-story-next{right:0}.mou-story-hit:disabled{display:none}
+@media(max-width:560px){.mou-story-viewer-inner{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}.mou-story-media img,.mou-story-media video{object-fit:contain}.mou-story-caption{padding-bottom:max(22px,env(safe-area-inset-bottom))}}
 (()=>{'use strict';
 const ROOT='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/';
 const token=()=>localStorage.getItem('mou_player_token')||'';
@@ -42,7 +49,34 @@ function storyStyles(){if(document.getElementById('mouStoryStyles'))return;const
 .mou-story-ring.mou-story-timer{border:0;padding:3px;background:conic-gradient(#d8c18a calc(var(--story-progress,1)*1turn),rgba(216,193,138,.16) 0);box-shadow:0 0 12px rgba(216,193,138,.12)}
 .mou-story-avatar{width:100%;height:100%;display:grid;place-items:center;border-radius:50%;background:#090909;border:2px solid #080808;color:#d8c18a;overflow:hidden;font-size:20px}.mou-story-avatar img{width:100%;height:100%;object-fit:cover;border:0}.mou-story-avatar{position:relative}.mou-story-avatar img{object-fit:cover}.mou-story-video-mark{position:absolute;right:1px;bottom:1px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:#090909;color:#d8c18a;font-size:9px;border:1px solid #d8c18a}
 `;document.head.appendChild(s);}
-function viewer(group,index){const story=group[index];const layer=document.createElement('div');layer.className='mou-story-viewer';const media=story.media.match(/\.(mp4|webm|mov)(\?|$)/i)?'<video src="'+esc(story.media)+'" controls autoplay playsinline></video>':'<img src="'+esc(story.media)+'" alt="Story de '+esc(story.pseudo)+'">';layer.innerHTML='<section class="mou-story-viewer-inner"><div class="mou-story-progress"><span></span></div><header class="mou-story-head">'+(story.photo?'<img src="'+esc(story.photo)+'" alt="">':'')+'<div><b>'+esc(story.pseudo)+'</b><small>'+new Date(story.created).toLocaleString('fr-FR')+'</small></div></header><button class="mou-story-close" aria-label="Fermer">×</button><div class="mou-story-media">'+media+'</div>'+(story.caption?'<div class="mou-story-caption">'+esc(story.caption)+'</div>':'')+'</section>';layer.querySelector('.mou-story-close').onclick=()=>layer.remove();layer.addEventListener('click',e=>{if(e.target===layer)layer.remove();});document.body.appendChild(layer);}
+function viewer(group,index){
+ let current=Math.max(0,Math.min(index,group.length-1));
+ const layer=document.createElement('div');layer.className='mou-story-viewer';
+ layer.innerHTML='<section class="mou-story-viewer-inner" role="dialog" aria-modal="true" aria-label="Story"><div class="mou-story-progress-list"></div><header class="mou-story-head"><button type="button" class="mou-story-owner" aria-label="Voir le profil du joueur"><span class="mou-story-owner-avatar"></span><span class="mou-story-owner-meta"><b></b><small></small></span></button><button class="mou-story-close" aria-label="Fermer">×</button></header><div class="mou-story-media"></div><div class="mou-story-caption"></div><button class="mou-story-hit mou-story-prev" aria-label="Story précédente"></button><button class="mou-story-hit mou-story-next" aria-label="Story suivante"></button></section>';
+ const inner=layer.querySelector('.mou-story-viewer-inner'),progress=layer.querySelector('.mou-story-progress-list'),media=layer.querySelector('.mou-story-media'),owner=layer.querySelector('.mou-story-owner'),caption=layer.querySelector('.mou-story-caption');
+ function render(){
+  const s=group[current],isVideo=/\\.(mp4|webm|mov|m4v)(\\?|$)/i.test(s.media)||String(s.media).includes('/video/upload/');
+  progress.innerHTML=group.map((x,i)=>'<span class="mou-story-progress"><i style="width:'+(i<current?'100%':'0%')+'"></i></span>').join('');
+  owner.querySelector('.mou-story-owner-avatar').innerHTML=s.photo?'<img src="'+esc(s.photo)+'" alt="">':esc((s.pseudo||'?').slice(0,1).toUpperCase());
+  owner.querySelector('b').textContent=s.pseudo||'Joueur';
+  owner.querySelector('small').textContent='Propriétaire de la story · '+new Date(s.created).toLocaleString('fr-FR');
+  owner.dataset.pseudo=s.pseudo||'';
+  media.innerHTML=isVideo?'<video src="'+esc(s.media)+'" controls autoplay playsinline></video>':'<img src="'+esc(s.media)+'" alt="Story de '+esc(s.pseudo)+'">';
+  caption.textContent=s.caption||'';
+  caption.hidden=!s.caption;
+  layer.querySelector('.mou-story-prev').disabled=current===0;
+  layer.querySelector('.mou-story-next').disabled=current===group.length-1;
+ }
+ const close=()=>{layer.querySelector('video')?.pause();layer.remove();};
+ const move=delta=>{const next=current+delta;if(next<0||next>=group.length)return;current=next;render();};
+ layer.querySelector('.mou-story-close').onclick=close;
+ layer.querySelector('.mou-story-prev').onclick=()=>move(-1);
+ layer.querySelector('.mou-story-next').onclick=()=>move(1);
+ owner.onclick=()=>{const name=owner.dataset.pseudo;if(name&&window.MOU_OPEN_PUBLIC_PLAYER)window.MOU_OPEN_PUBLIC_PLAYER(name);};
+ layer.addEventListener('click',e=>{if(e.target===layer)close();});
+ document.addEventListener('keydown',function onKey(e){if(!layer.isConnected){document.removeEventListener('keydown',onKey);return;}if(e.key==='Escape'){close();document.removeEventListener('keydown',onKey);}if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);});
+ render();document.body.appendChild(layer);
+}
 function storyThumb(s){const url=String(s.media||'');if(!url)return String(s.photo||'');if(/\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)||url.includes('/video/upload/'))return url.replace('/video/upload/','/video/upload/so_0/').replace(/\.(mp4|mov|webm|m4v)(\?.*)?$/i,'.jpg');return url;}
 async function loadStories(){const rail=document.querySelector('.mou-stories-rail');if(!rail||!token())return;try{stories=(await api('stories')).stories||[];const groups=new Map();stories.forEach(s=>{if(!groups.has(s.authorId))groups.set(s.authorId,[]);groups.get(s.authorId).push(s);});let html='<button class="mou-story-tile" id="mouAddStory"><span class="mou-story-ring"><span class="mou-story-plus">＋</span></span><b>Ma story</b></button>';for(const group of groups.values()){const s=group[group.length-1],remaining=Math.max(0,Math.min(1,(Date.parse(s.expires||s.created)-Date.now())/86400000));html+='<button class="mou-story-tile" data-story-author="'+esc(s.authorId)+'"><span class="mou-story-ring mou-story-timer" style="--story-progress:'+remaining+'"><span class="mou-story-avatar">'+(storyThumb(s)?'<img src="'+esc(storyThumb(s))+'" alt="Aperçu de la story" loading="lazy" onerror="this.onerror=null;this.src=\''+esc(s.photo||'')+'\';">':'✦')+(String(s.media||'').includes('/video/upload/')?'<span class="mou-story-video-mark">▶</span>':'')+'</span></span><b>'+esc(s.pseudo)+'</b></button>';}rail.innerHTML=html;rail.querySelector('#mouAddStory').onclick=openComposer;rail.querySelectorAll('[data-story-author]').forEach(btn=>btn.onclick=()=>viewer(groups.get(btn.dataset.storyAuthor),0));}catch(e){rail.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
 function openComposer(){document.querySelector('.mou-story-create')?.classList.add('open');}
