@@ -38,7 +38,7 @@ function render(){
 async function refresh(){try{posts=(await api()).posts||[];render();}catch(e){root.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
 function open(){if(!token()){alert('Connecte-toi pour publier.');return;}modal.hidden=false;document.body.style.overflow='hidden';}
 function close(){modal.hidden=true;document.body.style.overflow='';}
-$('#feedOpenComposer').onclick=open;$('#feedFloatingButton').onclick=open;modal.querySelectorAll('[data-close]').forEach(x=>x.onclick=close);
+$('#feedOpenComposer').onclick=open;$('#feedFloatingButton').onclick=open;document.getElementById('mouSocialCreate')?.addEventListener('click',open);modal.querySelectorAll('[data-close]').forEach(x=>x.onclick=close);
 
 const photoInput=form.elements.image,preview=$('#feedPreview'),previewCount=$('#feedPhotoCount');
 function previewPhotos(){const files=Array.from(photoInput.files||[]);preview.innerHTML='';preview.hidden=!files.length;previewCount.textContent=files.length+'/5 photo(s)';files.forEach(file=>{const tile=document.createElement('div');tile.className='feed-preview-tile';const img=document.createElement('img');img.alt=file.name;img.src=URL.createObjectURL(file);tile.appendChild(img);preview.appendChild(tile);});}
