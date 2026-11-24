@@ -9,14 +9,20 @@ exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi pour accéder aux stories.'});
  const b=body(event),now=Date.now();
  try{
-  const [player,relations]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),all(REL)]);
-  const pf=player.fields||{},pseudo=String(pf['Pseudo Free Fire']||me.pseudo||'Joueur'),photo=String(pf.Photo||'');
-  const friends=new Set(relations.filter(x=>x.fields?.[R.status]==='Acceptée'&&(x.fields[R.from]===me.id||x.fields[R.to]===me.id)).map(x=>x.fields[R.from]===me.id?x.fields[R.to]:x.fields[R.from]));
   if(event.httpMethod==='GET'){
+   // Charger d'abord les stories : une panne de lecture des relations ne doit
+   // jamais masquer les stories publiques ou celles du joueur connecté.
    const rows=await all(TABLE);
-   const visible=rows.filter(x=>{const f=x.fields||{};return f[F.status]==='Publié'&&Date.parse(f[F.expires]||'')>now&&(f[F.author]===me.id||f[F.audience]==='Tous'||(f[F.audience]==='Amis'&&friends.has(f[F.author])));});
+   let friends=new Set();
+   try{
+    const relations=await all(REL);
+    friends=new Set(relations.filter(x=>x.fields?.[R.status]==='Acceptée'&&(x.fields[R.from]===me.id||x.fields[R.to]===me.id)).map(x=>x.fields[R.from]===me.id?x.fields[R.to]:x.fields[R.from]));
+   }catch(relationError){console.warn('Stories: relations indisponibles, stories publiques conservées',relationError);}
+   const visible=rows.filter(x=>{const f=x.fields||{};const expiry=Date.parse(f[F.expires]||'')||Date.parse(f[F.created]||'')+86400000;return f[F.status]==='Publié'&&expiry>now&&(f[F.author]===me.id||f[F.audience]==='Tous'||(f[F.audience]==='Amis'&&friends.has(f[F.author])));});
    return out(200,{stories:visible.sort((a,b)=>String(a.fields[F.created]).localeCompare(String(b.fields[F.created]))).map(x=>{const f=x.fields||{};return{id:x.id,authorId:f[F.author],pseudo:f[F.pseudo]||'Joueur',photo:f[F.photo]||'',media:f[F.media]||'',caption:f[F.caption]||'',created:f[F.created]||'',expires:f[F.expires]||'',mine:f[F.author]===me.id};})});
   }
+  const player=await airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true');
+  const pf=player.fields||{},pseudo=String(pf['Pseudo Free Fire']||me.pseudo||'Joueur'),photo=String(pf.Photo||'');
   if(event.httpMethod!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(b.action==='publish'){
    const media=String(b.media||''),caption=String(b.caption||'').trim(),audience=b.audience==='Tous'?'Tous':'Amis';
