@@ -72,7 +72,7 @@ function viewer(group,index){
  layer.querySelector('.mou-story-close').onclick=close;
  layer.querySelector('.mou-story-prev').onclick=()=>move(-1);
  layer.querySelector('.mou-story-next').onclick=()=>move(1);
- owner.onclick=()=>{const name=owner.dataset.pseudo;if(name&&window.MOU_OPEN_PUBLIC_PLAYER)window.MOU_OPEN_PUBLIC_PLAYER(name);};
+ owner.onclick=()=>{const name=owner.dataset.pseudo;close();if(name&&window.MOU_OPEN_PUBLIC_PLAYER)window.MOU_OPEN_PUBLIC_PLAYER(name);};
  layer.addEventListener('click',e=>{if(e.target===layer)close();});
  document.addEventListener('keydown',function onKey(e){if(!layer.isConnected){document.removeEventListener('keydown',onKey);return;}if(e.key==='Escape'){close();document.removeEventListener('keydown',onKey);}if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);});
  render();document.body.appendChild(layer);
