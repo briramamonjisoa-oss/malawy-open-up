@@ -10,7 +10,7 @@ document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let pageHistory=[];
 let currentPage='home';
-const validPages=['home','register','profile','players','matches','ranking','admin'];
+const validPages=['home','community','register','profile','players','matches','ranking','admin'];
 function getSavedPage(){const saved=localStorage.getItem('mou_last_page')||'home';if(!validPages.includes(saved))return 'home';if(saved==='admin'&&!state.token)return 'home';return saved;}
 function tab(n,remember=true){
  if(!document.getElementById(n))return;
