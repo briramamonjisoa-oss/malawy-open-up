@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const ROOT='https://malawy-open-up.briramonjisoa.workers.dev/.netlify/functions/';
+const ROOT='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/';
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(name,method='GET',data){const r=await fetch(ROOT+name,{method,headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{}),cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erreur réseau');return d;}
