@@ -19,7 +19,7 @@ exports.handler=async event=>{
   }
   if(event.httpMethod!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(b.action==='publish'){
-   const media=String(b.media||''),caption=String(b.caption||'').trim(),audience=b.audience==='Amis'?'Amis':'Tous';
+   const media=String(b.media||''),caption=String(b.caption||'').trim(),audience=b.audience==='Tous'?'Tous':'Amis';
    if(!media||!/^https:\/\//i.test(media))return out(400,{error:'Ajoute une photo ou une vidéo valide.'});
    if(caption.length>180)return out(400,{error:'La légende est trop longue.'});
    const created=new Date().toISOString(),expires=new Date(now+86400000).toISOString(),id=me.id+'_'+Date.now();
