@@ -99,7 +99,20 @@
 <p>Retrouve les participants, les résultats et le classement officiel du tournoi.</p>
 <button class="primary" data-go="ranking">Consulter le classement</button>
 </div>
-<div id="communityFeed" class="panel community-feed">
+</section>
+
+<section id="community" class="page mou-community-page">
+ <header class="mou-community-top">
+  <div><span class="mou-community-kicker">MALAWY OPEN UP · ESPORT</span><h2>Communauté</h2><p>La communauté des joueurs, des guildes et des compétiteurs</p></div>
+  <div class="mou-community-top-actions"><button type="button" aria-label="Messages" title="Messages"><svg viewBox="0 0 24 24"><path d="m21 3-8.5 18-3.2-7.3L2 10.5 21 3Z"/><path d="m9.3 13.7 5-5"/></svg></button><button type="button" aria-label="Favoris" title="Favoris"><svg viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button></div>
+ </header>
+ <section class="mou-stories" aria-label="Stories">
+  <div class="mou-stories-heading"><span>STORIES</span><small>24 HEURES · BIENTÔT</small></div>
+  <div class="mou-stories-rail"><div class="mou-story-own"><span class="mou-story-ring"><span>＋</span></span><b>Ma story</b></div><div class="mou-story-empty"><span class="mou-story-ring"><span>✦</span></span><b>Les stories</b></div><div class="mou-story-empty"><span class="mou-story-ring"><span>✧</span></span><b>arrivent</b></div><div class="mou-story-empty"><span class="mou-story-ring"><span>✦</span></span><b>bientôt</b></div></div>
+ </section>
+ <div class="mou-community-feed-wrap">
+  <div class="mou-feed-section-title"><div><span class="mou-community-kicker">MALAWY SOCIAL</span><h3>Le fil communautaire</h3></div><button type="button" data-tab="players">Explorer les joueurs <span>↗</span></button></div>
+  <div id="communityFeed" class="panel community-feed">
  <div class="feed-heading"><div><span class="eyebrow">MALAWY COMMUNITY</span><h3>LE FIL DE LA COMMUNAUTÉ</h3></div><span id="feedCount" class="muted">Chargement…</span></div>
  <button type="button" id="feedOpenComposer" class="feed-compose-trigger"><span>＋</span> Partager avec la communauté…</button>
  <div id="feedPosts"><p class="muted">Chargement des publications…</p></div>
@@ -109,7 +122,9 @@
  <form id="feedComposerForm"><textarea name="content" maxlength="2000" placeholder="Quoi de neuf dans l’arène ?"></textarea><div class="feed-photo-picker"><label class="feed-photo-label" for="feedPhotoInput" aria-label="Ajouter jusqu’à cinq photos"><span class="feed-photo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.5"/></svg></span><span>Ajouter des photos</span><small>Jusqu’à 5 photos</small><input id="feedPhotoInput" type="file" name="image" accept="image/*" multiple></label><span id="feedPhotoCount" class="feed-photo-count">0/5 photo(s)</span></div><div id="feedPreview" class="feed-preview-grid" hidden></div><p id="feedMessage" class="message" aria-live="polite"></p><button class="primary" type="submit">Publier</button></form></div>
 </div>
 <button type="button" id="feedFloatingButton" class="feed-floating" aria-label="Créer une publication">＋</button>
+ </div>
 </section>
+
 
 <section id="register" class="page">
 <div class="eyebrow">COMMUNAUTÉ · COMPÉTITIONS</div>
@@ -326,7 +341,7 @@
 <script src="/admin-dashboard.js?v=20261115-2"></script>
 <script src="/tournaments-ui.js?black-velvet-glass-20261116-confirm"></script>
 
-<script src="/community-feed.js?v=7"></script>
+<script src="/community-feed.js?v=8"></script>
 <script src="/friends-ui.js?v=1"></script>
 <script src="/navbar-v2.js?v=1"></script>
 <script src="/push-notifications.js?v=5"></script>
