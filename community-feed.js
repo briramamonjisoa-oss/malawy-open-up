@@ -22,19 +22,23 @@ function confirmDelete(){
  });
 }
 
-const actionIcon=(name)=>({
+const actionIcon=name=>({
 like:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg>',
-love:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-8.5-5-8.5-11a4.7 4.7 0 0 1 8.5-2.7A4.7 4.7 0 0 1 20.5 9c0 6-8.5 11-8.5 11Z"/><path d="M8.5 11.5h7"/></svg>',
-laugh:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.2 3 4 3 4-3 4-3M8.5 9.5h.01M15.5 9.5h.01"/></svg>'
+comment:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg>',
+share:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-8.5 18-3.2-7.3L2 10.5 21 3Z"/><path d="m9.3 13.7 5-5"/></svg>',
+save:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>'
 }[name]||'');
 function render(){
  $('#feedCount').textContent=posts.length+' publication(s)';
  root.innerHTML=posts.map(p=>{
-  const count=t=>p.reactions.filter(r=>r.type===t).length;
+  const likeCount=p.reactions.length;
+  const commentCount=p.comments.length;
+  const liked=p.reactions.some(r=>r.mine&&r.type==="J'aime");
+  const saved=(JSON.parse(localStorage.getItem('mou_saved_posts')||'[]')).includes(String(p.id));
   const comments=p.comments.filter(c=>!c.parent);
-  const reactions=[['J\'aime','like'],['J\'adore','love'],['Haha','laugh']].map(([t,icon])=>'<button type="button" class="feed-reaction" data-react="'+t+'" aria-pressed="'+p.reactions.some(r=>r.mine&&r.type===t)+'">'+actionIcon(icon)+'<span>'+t+'</span><small>'+count(t)+'</small></button>').join('');
   const commentMarkup=comments.map(c=>'<p><b>'+esc(c.pseudo)+'</b> '+esc(c.text)+' <button type="button" data-reply="'+esc(c.id)+'">Répondre</button>'+p.comments.filter(x=>x.parent===c.id).map(x=>'<br>↳ <b>'+esc(x.pseudo)+'</b> '+esc(x.text)).join('')+'</p>').join('');
-  return '<article class="feed-post" data-id="'+esc(p.id)+'"><div class="feed-media">'+photosMarkup(p.image)+'<header class="feed-author"><span class="feed-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="">':esc((p.pseudo||'?')[0]))+'</span><span class="feed-author-meta"><b>'+esc(p.pseudo)+'</b><small>'+esc(dt(p.created))+'</small></span></header>'+(p.canDelete?'<button type="button" class="feed-delete" data-delete="1" aria-label="Supprimer cette publication" title="Plus d’options">⋯</button>':'')+'<div class="feed-glass">'+(p.content?'<p class="feed-caption">'+esc(p.content)+'</p>':'')+'<div class="feed-reactions">'+reactions+'</div></div></div><div class="feed-comments">'+commentMarkup+'<form class="feed-comment-form"><input name="text" required maxlength="800" placeholder="Écrire un commentaire…"><button aria-label="Envoyer le commentaire">Envoyer</button></form></div></article>';
+  const hasPhoto=photoList(p.image).length>0;
+  return '<article class="feed-post" data-id="'+esc(p.id)+'"><div class="feed-media '+(hasPhoto?'has-photo':'text-only')+'">'+photosMarkup(p.image)+'<header class="feed-author"><span class="feed-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="">':esc((p.pseudo||'?')[0]))+'</span><span class="feed-author-meta"><b>'+esc(p.pseudo)+'</b><small>'+esc(dt(p.created))+'</small></span></header>'+(p.canDelete?'<button type="button" class="feed-delete" data-delete="1" aria-label="Plus d’options" title="Plus d’options">⋯</button>':'')+'<div class="feed-glass">'+(p.content?'<p class="feed-caption">'+esc(p.content)+'</p>':'')+'<div class="feed-reactions"><button type="button" class="feed-icon-action" data-react="J\'aime" aria-label="J’aime" aria-pressed="'+liked+'">'+actionIcon('like')+'<small>'+likeCount+'</small></button><button type="button" class="feed-icon-action" data-comments="1" aria-label="Commentaires">'+actionIcon('comment')+'<small>'+commentCount+'</small></button><button type="button" class="feed-icon-action" data-share="1" aria-label="Partager">'+actionIcon('share')+'</button><button type="button" class="feed-icon-action" data-save="1" aria-label="Enregistrer" aria-pressed="'+saved+'">'+actionIcon('save')+'</button></div></div></div><div class="feed-comments" hidden>'+commentMarkup+'<form class="feed-comment-form"><input name="text" required maxlength="800" placeholder="Écrire un commentaire…"><button aria-label="Envoyer le commentaire">Envoyer</button></form></div></article>';
  }).join('')||'<p class="muted">Aucune publication pour le moment.</p>';
 }
 async function refresh(){try{posts=(await api()).posts||[];render();}catch(e){root.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
