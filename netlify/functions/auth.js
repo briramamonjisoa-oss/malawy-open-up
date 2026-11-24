@@ -17,7 +17,7 @@ exports.airtable = async (path, options={}) => {
   const token=env.AIRTABLE_TOKEN, base=env.AIRTABLE_BASE_ID;
   if(!token||!base) throw new Error('Configuration Airtable manquante : vérifie AIRTABLE_TOKEN et AIRTABLE_BASE_ID dans les paramètres du Worker Cloudflare.');
   const r=await fetch(`https://api.airtable.com/v0/${base}/${path}`,{...options,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',...(options.headers||{})}});
-  const d=await r.json(); if(!r.ok) throw new Error(d.error?.message||'Erreur Airtable'); return d;
+  const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}if(!r.ok){const detail=d.error?.message||d.error?.type||raw.slice(0,180)||'Réponse vide';throw new Error('Airtable HTTP '+r.status+' : '+detail);}return d;
 };
 
 exports.verifyPlayer = (event) => {
