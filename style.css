@@ -939,3 +939,40 @@ body.mou-community-active .mou-social-dock{
 .feed-reaction small{color:#e0c88e;font-size:9px}
 .feed-comments{margin:0;padding:13px;border:0;border-top:1px solid rgba(216,189,122,.16);border-radius:0;background:#09090a}
 @media(max-width:420px){.feed-media{min-height:210px}.feed-gallery .feed-image{min-height:210px}.feed-reaction{font-size:9px;padding:7px 3px}.feed-caption{font-size:12px}}
+
+
+/* COMMUNITY LAYOUT FIX — keep the social screen clean and the dock inside viewport */
+body.mou-community-active #homeHero{display:none!important}
+body.mou-community-active main{padding-bottom:0!important}
+body.mou-community-active #community.page{padding-top:22px!important}
+body.mou-community-active #community>.page-back{display:none!important}
+body.mou-community-active .mou-social-dock{
+ position:fixed!important;z-index:10040!important;left:50%!important;right:auto!important;
+ bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;
+ width:calc(100vw - 28px)!important;max-width:460px!important;min-width:0!important;
+ height:72px!important;min-height:72px!important;box-sizing:border-box!important;
+ padding:6px 8px!important;gap:2px!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 52px minmax(0,1fr) minmax(0,1fr)!important;
+ align-items:center!important;justify-items:stretch!important;
+ overflow:hidden!important;
+}
+body.mou-community-active .mou-social-dock button{
+ width:100%!important;min-width:0!important;max-width:100%!important;height:56px!important;
+ flex:none!important;padding:3px 1px!important;margin:0!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:3px!important;overflow:hidden!important;white-space:nowrap!important;
+}
+body.mou-community-active .mou-social-dock button svg{width:19px!important;height:19px!important;flex:0 0 19px!important}
+body.mou-community-active .mou-social-dock button span{display:block!important;max-width:100%!important;font-size:8px!important;line-height:1.1!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.mou-community-active .mou-social-dock .mou-social-create{
+ width:50px!important;height:50px!important;min-width:50px!important;max-width:50px!important;
+ justify-self:center!important;border-radius:50%!important;padding:0!important;
+}
+body.mou-community-active .mou-social-dock .mou-social-create svg{width:25px!important;height:25px!important;flex:0 0 25px!important}
+body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
+@media(max-width:360px){
+ body.mou-community-active .mou-social-dock{width:calc(100vw - 20px)!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 46px minmax(0,1fr) minmax(0,1fr)!important;padding:5px!important}
+ body.mou-community-active .mou-social-dock .mou-social-create{width:44px!important;height:44px!important;min-width:44px!important;max-width:44px!important}
+ body.mou-community-active .mou-social-dock button span{font-size:7px!important}
+}
