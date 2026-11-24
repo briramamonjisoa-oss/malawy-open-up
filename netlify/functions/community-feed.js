@@ -1,5 +1,5 @@
 const {airtable,verifyPlayer,verify}=require('./auth');
-const POSTS='tbltBxmUUVIfPYLCs',REACTIONS='tblQ9pxLdxCtRikyR',COMMENTS='tblMi1WWNVioVT2As';
+const POSTS='tbltBxmUUVIfPYLCs',REACTIONS='tblQ9pxLdxCtRikyR',COMMENTS='tblMi1WWNVioVT2As',PLAYERS='tblz0rJpaQBpafBN2';
 const F={p:{title:'fldohdagvSTcjPbMD',author:'flde1j39JdPXunYKk',pseudo:'fld7S8WadtrhtitNs',photo:'fld6DAinzN0BXHfxO',content:'fldfNdaDjLNPExWu4',image:'fldGcsqV9Hgh6JMqA',created:'fld66Uh2GK2kdZpOL',status:'fldt5TLMRPoj9kox5'},r:{key:'fldOjwBK4D9VW2eVs',post:'fldnD3s3S8yXDBwBO',author:'fldlkKxt0144dAALY',type:'fldPmKe5VyFbTTKJp',created:'flddbbu8Etwccrdfz'},c:{text:'fldDIQiZn8NBE1b8h',post:'fldfe4dqKQTp2DIGl',parent:'fldlAGClV0n0Ut7GW',author:'fld13nH3PfYI4n5bF',pseudo:'fldC7kjuSfbQJId8P',photo:'flddzRuP7lCM4g2fT',created:'fldcm8YXYQXoP9tVO'}};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const parse=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
@@ -8,7 +8,7 @@ exports.handler=async event=>{
  const player=verifyPlayer(event),admin=verify(event);if(!player&&!admin)return out(401,{error:'Connecte-toi pour accéder à la communauté.'});
  const method=event.httpMethod||'GET',body=parse(event),now=new Date().toISOString();
  try{
-  const playerRecord=player?await airtable('Inscriptions/'+encodeURIComponent(player.id)):{};
+  const playerRecord=player?await airtable(PLAYERS+'/'+encodeURIComponent(player.id)):{};
   const playerFields=playerRecord.fields||{},playerPseudo=String(playerFields['Pseudo Free Fire']||'Joueur').slice(0,32),playerPhoto=String(playerFields.Photo||'');
   if(method==='GET'){
    const [posts,reactions,comments]=await Promise.all([all(POSTS),all(REACTIONS),all(COMMENTS)]);
