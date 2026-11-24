@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const API = 'https://malawy-open-up.briramonjisoa.workers.dev/.netlify/functions/friends';
+  const API = 'https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/friends';
   const token = () => localStorage.getItem('mou_player_token') || '';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let relations = [];
