@@ -15,6 +15,21 @@ exports.handler=async event=>{
   const myPseudo=String(fields(mine)[F.pseudo]||me.pseudo||'Joueur').slice(0,32);
   if(method==='GET'){
    const action=event.queryStringParameters?.action||'list';
+   if(action==='suggestions'){
+    const [players,allRelations]=await Promise.all([all(PLAYERS),all(RELATIONS)]);
+    const accepted=allRelations.filter(r=>fields(r)[R.status]==='Acceptée');
+    const myFriends=new Set();
+    const excluded=new Set();
+    for(const r of allRelations){const f=fields(r);if(f[R.from]===me.id)excluded.add(f[R.to]);if(f[R.to]===me.id)excluded.add(f[R.from]);}
+    for(const r of accepted){const f=fields(r);if(f[R.from]===me.id)myFriends.add(f[R.to]);if(f[R.to]===me.id)myFriends.add(f[R.from]);}
+    const friendSets=new Map();
+    for(const r of accepted){const f=fields(r),a=f[R.from],z=f[R.to];if(!friendSets.has(a))friendSets.set(a,new Set());if(!friendSets.has(z))friendSets.set(z,new Set());friendSets.get(a).add(z);friendSets.get(z).add(a);}
+    const myMode=String(fields(mine)['Mode de combat']||'').trim().toLocaleLowerCase('fr');
+    const suggestions=players.filter(p=>p.id!==me.id&&!excluded.has(p.id)&&String(fields(p)[F.status]||'').toLocaleLowerCase('fr').includes('accept'))
+     .map(p=>{const f=fields(p),mutual=[...(friendSets.get(p.id)||[])].filter(id=>myFriends.has(id)).length,sameMode=Boolean(myMode&&String(f['Mode de combat']||'').trim().toLocaleLowerCase('fr')===myMode),score=mutual*10+(sameMode?2:0);return{id:p.id,pseudo:f[F.pseudo]||'Joueur',photo:f[F.photo]||'',mutualFriends:mutual,reason:mutual?mutual+' ami(s) en commun':sameMode?'Même mode de jeu':'À découvrir dans la communauté',score};})
+     .sort((a,b)=>b.score-a.score||a.pseudo.localeCompare(b.pseudo,'fr')).slice(0,12);
+    return out(200,{players:suggestions});
+   }
    if(action==='search'){
     const q=String(event.queryStringParameters?.q||'').trim().toLocaleLowerCase('fr');
     if(q.length<2)return out(200,{players:[]});
