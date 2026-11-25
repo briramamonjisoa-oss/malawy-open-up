@@ -111,9 +111,23 @@ function renderMessages(){
   const name=m.senderPseudo||'Joueur',avatar=m.senderPhoto?'<img src="'+esc(m.senderPhoto)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
   const stamp=new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
   const raw=String(m.content||''),quote=raw.match(/^↪ ([^\n]+)\n\n/),body=quote?raw.slice(quote[0].length):raw;
-  return '<article class="mou-chat-message-row '+(m.mine?'mine':'')+'"><button type="button" class="mou-chat-sender-avatar" data-public-player="'+esc(name)+'" aria-label="Voir le profil de '+esc(name)+'">'+avatar+'</button><div class="mou-chat-message-main"><button type="button" class="mou-chat-sender-name" data-public-player="'+esc(name)+'">'+esc(name)+'</button><div class="mou-chat-bubble '+(m.mine?'mine':'')+'" data-message-id="'+esc(m.messageId||m.id)+'">'+(quote?'<div class="mou-reply-quote">'+esc(quote[1])+'</div>':'')+renderMedia(body)+'<time>'+esc(stamp)+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time><div class="mou-message-actions"><button type="button" data-reply="'+esc(m.messageId||m.id)+'">↩ Répondre</button>'+(!activeGroupId?'<button type="button" data-react="'+esc(m.messageId||m.id)+'">☺ Réagir</button>':'')+'</div></div></div></article>';
+  return '<article class="mou-chat-message-row '+(m.mine?'mine':'')+'"><button type="button" class="mou-chat-sender-avatar" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'" aria-label="Voir le profil de '+esc(name)+'">'+avatar+'</button><div class="mou-chat-message-main"><button type="button" class="mou-chat-sender-name" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'">'+esc(name)+'</button><div class="mou-chat-bubble '+(m.mine?'mine':'')+'" data-message-id="'+esc(m.messageId||m.id)+'">'+(quote?'<div class="mou-reply-quote">'+esc(quote[1])+'</div>':'')+renderMedia(body)+'<time>'+esc(stamp)+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time><div class="mou-message-actions"><button type="button" data-reply="'+esc(m.messageId||m.id)+'">↩ Répondre</button>'+(!activeGroupId?'<button type="button" data-react="'+esc(m.messageId||m.id)+'">☺ Réagir</button>':'')+'</div></div></div></article>';
  }).join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
  box.scrollTop=box.scrollHeight;
+}
+async function openSenderProfile(id){
+ if(!id)return;
+ try{
+  const data=await request('players?fast=1'),player=(Array.isArray(data)?data:[]).find(x=>x.id===id);
+  if(!player){status('Profil joueur indisponible.');return;}
+  let modal=document.getElementById('mouSenderProfileModal');
+  if(!modal){modal=document.createElement('div');modal.id='mouSenderProfileModal';modal.className='mou-sender-profile-modal';modal.innerHTML='<section><button type="button" class="close" aria-label="Fermer">×</button><div class="avatar"></div><h3 class="name"></h3><p class="uid"></p><div class="stats"></div></section>';document.body.append(modal);modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('.close'))modal.hidden=true;});}
+  modal.querySelector('.avatar').innerHTML=player.photo?'<img src="'+esc(player.photo)+'" alt="">':esc(String(player.pseudo||'?').slice(0,1).toUpperCase());
+  modal.querySelector('.name').textContent=player.pseudo||'Joueur';
+  modal.querySelector('.uid').textContent='UID Free Fire : '+(player.playerId||'Non renseigné');
+  modal.querySelector('.stats').innerHTML='<span><b>'+Number(player.points||0)+'</b> Points</span><span><b>'+Number(player.wins||0)+'</b> Victoires</span><span><b>'+Number(player.losses||0)+'</b> Défaites</span>';
+  modal.hidden=false;
+ }catch(e){status(e.message);}
 }
 async function refreshInbox(){
  if(!token()){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">Connecte-toi avec ton compte joueur pour ouvrir ta messagerie.</p>';return;}
@@ -217,6 +231,7 @@ chatForm.parentElement.insertBefore(themeBar,chatForm);
 
 const replyPreview=document.createElement('div');replyPreview.className='mou-reply-preview';replyPreview.hidden=true;chatForm.parentElement.insertBefore(replyPreview,toolsBar);
 $('mouChatMessages').addEventListener('click',async e=>{
+ const profile=e.target.closest('[data-player-id]');if(profile){e.preventDefault();e.stopPropagation();openSenderProfile(profile.dataset.playerId);return;}
  const reply=e.target.closest('[data-reply]');if(reply){const m=messages.find(x=>(x.messageId||x.id)===reply.dataset.reply);if(!m)return;const content=String(m.content||'').replace(/^↪ [^\\n]+\\n\\n/,'');replyTo={name:m.senderPseudo||'Joueur',content:content.slice(0,140)};replyPreview.textContent='Réponse à '+replyTo.name+' : '+replyTo.content;replyPreview.hidden=false;$('mouChatInput').focus();return;}
  const react=e.target.closest('[data-react]');if(react){let picker=react.parentElement.querySelector('.mou-reaction-picker');if(picker){picker.remove();return;}picker=document.createElement('span');picker.className='mou-reaction-picker';picker.innerHTML=['❤️','😂','👍','😮','😢','🔥'].map(emoji=>'<button type=\"button\" data-emoji=\"'+emoji+'\" data-message=\"'+esc(react.dataset.react)+'\">'+emoji+'</button>').join('');react.parentElement.append(picker);return;}
  const choice=e.target.closest('[data-emoji]');if(choice){try{const result=await request('message-actions',{method:'POST',body:JSON.stringify({messageId:choice.dataset.message,emoji:choice.dataset.emoji})});choice.parentElement.innerHTML=result.removed?'':'<b>'+choice.dataset.emoji+'</b>'; }catch(error){status(error.message);}return;}
