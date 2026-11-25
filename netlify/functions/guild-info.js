@@ -5,7 +5,7 @@ const headers={'Content-Type':'application/json; charset=utf-8','Access-Control-
 async function airtable(env,path,options={}){const r=await fetch('https://api.airtable.com/v0/'+env.AIRTABLE_BASE_ID+'/'+path,{...options,headers:{Authorization:'Bearer '+env.AIRTABLE_TOKEN,'Content-Type':'application/json',...(options.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error?.message||'Airtable HTTP '+r.status);return d;}
 async function cached(env,guildId){
  const formula=guildId?"{ID guilde}='"+guildId+"'":'';
- const q=new URLSearchParams({pageSize:guildId?'1':'100',sort[0][field]:'Synchronisé le',sort[0][direction]:'desc'});
+ const q=new URLSearchParams({pageSize:guildId?'1':'100','sort[0][field]':'Synchronisé le','sort[0][direction]':'desc'});
  if(formula)q.set('filterByFormula',formula);
  const d=await airtable(env,encodeURIComponent(GUILD_TABLE)+'?'+q);
  return guildId?(d.records?.[0]||null):(d.records||[]);
