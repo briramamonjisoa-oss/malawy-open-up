@@ -114,7 +114,8 @@ async function refreshInbox(){
  renderContacts();
 }
 async function openChat(id,name){
- activeId=id;activeName=name;
+ activeId=id;activeGroupId='';activeName=name;
+ const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;$('mouChatAvatar').textContent=name.slice(0,1).toUpperCase();
  shell.classList.add('chat-open');renderContacts();
@@ -136,7 +137,7 @@ $('mouMessageContacts').addEventListener('click',e=>{
 });
 $('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 $('mouChatForm').addEventListener('submit',async e=>{
- e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||!activeId)return;
+ e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||(!activeId&&!activeGroupId))return;
  const button=$('mouChatForm').querySelector('button');button.disabled=true;status('Envoi…');
  try{
   if(activeGroupId)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:activeGroupId,content})});
