@@ -5,6 +5,8 @@
   const VAPID_PUBLIC_KEY = 'BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI';
   const $ = selector => document.querySelector(selector);
   let historyItems = [];
+  let historyLoading = false;
+  let badgeRefreshTimer = null;
 
   function playerToken() { return localStorage.getItem('mou_player_token') || ''; }
   function adminToken() { return sessionStorage.getItem('mou_admin_token') || ''; }
@@ -200,18 +202,23 @@
     localStorage.setItem('mou_push_saved_endpoint', endpoint);
   }
 
-  async function loadHistory() {
+  async function loadHistory(options = {}) {
+    if (historyLoading) return;
+    historyLoading = true;
     const list = $('#mouNotificationList');
     const status = $('#mouPushStatus');
-    if (!list || !status) return;
+    if (!list || !status) { historyLoading = false; return; }
     if (!playerToken()) {
       status.textContent = 'Connecte-toi à ton compte joueur pour recevoir et consulter tes notifications.';
       list.innerHTML = '';
+      historyItems = [];
+      updateBadge();
+      historyLoading = false;
       return;
     }
-    status.textContent = 'Chargement…';
+    if (!options.silent) status.textContent = 'Chargement…';
     try {
-      await syncCurrentSubscription();
+      if (options.syncSubscription !== false) await syncCurrentSubscription();
       const data = await request('');
       historyItems = data.notifications || [];
       status.textContent = window.MalawyAndroid
@@ -241,8 +248,19 @@
       });
       updateBadge();
     } catch (error) {
-      status.textContent = error.message;
+      if (!options.silent) status.textContent = error.message;
+    } finally {
+      historyLoading = false;
     }
+  }
+
+  function startBadgeAutoRefresh() {
+    if (badgeRefreshTimer) clearInterval(badgeRefreshTimer);
+    badgeRefreshTimer = setInterval(() => {
+      if (!document.hidden && playerToken()) {
+        loadHistory({ silent: true, syncSubscription: false });
+      }
+    }, 30000);
   }
 
   async function enablePush() {
@@ -406,8 +424,9 @@
     });
     window.addEventListener('mou:admin-auth', createAdminUI);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && playerToken()) loadHistory();
+      if (!document.hidden && playerToken()) loadHistory({ silent: true, syncSubscription: false });
     });
+    startBadgeAutoRefresh();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
