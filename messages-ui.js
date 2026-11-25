@@ -17,6 +17,15 @@ $('mouMessageSearch').addEventListener('input',renderContacts);
 $('mouMessageContacts').addEventListener('click',e=>{const b=e.target.closest('[data-contact]');if(!b)return;const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);});
 $('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');});
 $('mouChatForm').addEventListener('submit',async e=>{e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||!activeId)return;const send=e.submitter;$('mouChatForm').querySelector('button').disabled=true;status('Envoi…');try{await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:activeId,content})});input.value='';const d=await request('messages?with='+encodeURIComponent(activeId));messages=d.messages||[];renderMessages();status('Envoyé');}catch(err){status(err.message);}finally{$('mouChatForm').querySelector('button').disabled=false;input.focus();}});
-document.addEventListener('click',e=>{if(e.target.closest('[data-tab="messages"]')){load();if(activeId&&window.innerWidth>640)openChat(activeId,activeName);}});
-window.addEventListener('mou:player-auth',load);
+// navigation-fix.js intercepts tab clicks during capture; watch the actual page state instead.
+let wasActive=false;
+const page=document.getElementById('messages');
+const observePage=()=>{
+ const active=page.classList.contains('active');
+ if(active&&!wasActive)load();
+ wasActive=active;
+};
+new MutationObserver(observePage).observe(page,{attributes:true,attributeFilter:['class']});
+observePage();
+window.addEventListener('mou:player-auth',()=>{if(page.classList.contains('active'))load();});
 })();
