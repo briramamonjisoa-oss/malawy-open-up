@@ -1,4 +1,4 @@
-# Production deployment workflow — redeploy trigger after MALAWY OPEN UP feed update.
+# Production deployment workflow — redeploy trigger for profile restoration (2026-11-25).
 name: Deploy MALAWY OPEN UP to Cloudflare Production
 
 on:
@@ -26,8 +26,6 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
 
       - name: Install dependencies
         run: npm install
