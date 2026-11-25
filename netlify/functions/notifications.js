@@ -69,6 +69,32 @@ async function queuePlayerApproval(player) {
   }
 }
 
+async function queuePlayerEventNotification(playerId, title, message, url, key) {
+  const id = clean(playerId), notificationKey = clean(key);
+  if (!id || !notificationKey || !clean(title) || !clean(message)) return { queued: false };
+  const queued = await all(QUEUE);
+  const existing = queued.find(record => clean(record.fields?.['Notification Key']) === notificationKey);
+  if (existing && clean(existing.fields?.Status) !== 'Échec') return { queued: false, duplicate: true };
+  const created = await airtable(encodeURIComponent(QUEUE), {
+    method: 'POST',
+    body: JSON.stringify({ records: [{ fields: {
+      Title: clean(title).slice(0, 80),
+      Message: clean(message).slice(0, 500),
+      URL: clean(url) || '/#home',
+      'Target type': 'player',
+      'Target ID': id,
+      'Scheduled At': new Date().toISOString(),
+      Status: 'En attente',
+      'Notification Key': notificationKey
+    } }] })
+  });
+  const env = globalThis.__MOU_ENV || process.env;
+  if ((env.VAPID_PRIVATE_KEY && env.VAPID_PUBLIC_KEY) || env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    await processScheduledNotifications(env);
+  }
+  return { queued: true, id: created.records?.[0]?.id || '' };
+}
+
 function playerIdsFromSignup(fields) {
   const ids = [];
   for (let i = 1; i <= 4; i++) {
