@@ -98,7 +98,7 @@ function renderContacts(){
  $('mouMessageContacts').innerHTML=list.length?list.map(c=>{
   const last=latestFor(c.id),unread=contactsMessages.filter(m=>m.senderId===c.id&&m.recipientId!==c.id&&m.mine===false&&!m.readAt).length;
   const preview=last?(last.mine?'Vous : ':'')+last.content:'Aucun message pour le moment';
-  return '<button type="button" class="mou-message-contact '+(c.id===activeId?'active':'')+'" data-contact="'+esc(c.id)+'"><span class="mou-contact-avatar">'+esc(c.pseudo.slice(0,1).toUpperCase())+'</span><span class="mou-contact-copy"><b>'+esc(c.pseudo)+'</b><small>'+esc(preview)+'</small></span><span class="mou-contact-meta">'+(last?'<time>'+esc(time(last.created))+'</time>':'')+(unread?'<i>'+unread+'</i>':'')+'</span></button>';
+  return '<button type="button" class="mou-message-contact '+(c.id===activeId?'active':'')+'" data-contact="'+esc(c.id)+'"><span class="mou-contact-avatar">'+(c.photo?'<img src="'+esc(c.photo)+'" alt="" loading="lazy">':esc(c.pseudo.slice(0,1).toUpperCase()))+'</span><span class="mou-contact-copy"><b>'+esc(c.pseudo)+'</b><small>'+esc(preview)+'</small><small class="mou-contact-presence">'+(c.online?'En ligne':'Hors ligne')+'</small></span><span class="mou-contact-meta">'+(last?'<time>'+esc(time(last.created))+'</time>':'')+(unread?'<i>'+unread+'</i>':'')+'</span></button>';
  }).join(''):'<p class="mou-message-empty" style="padding:18px">'+(contacts.length?'Aucun ami trouvé.':'Aucun ami accepté pour le moment. Va dans Profil → Mon réseau pour ajouter des joueurs et accepter les demandes.')+'</p>';
 }
 function renderMessages(){
