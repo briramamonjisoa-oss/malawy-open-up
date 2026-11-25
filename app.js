@@ -445,6 +445,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCon
   if(!state.playerToken){document.body.classList.add('access-locked');$('#accessGate').hidden=false;return;}
   await loadPlayerProfile();
   if(state.player){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;const destination=getSavedPage();tab(destination==='admin'&&!state.admin?'home':destination,false);}
- }catch(error){console.error('Session restoration failed:',error);if(error.name==='AbortError'||error instanceof TypeError){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;console.warn('MALAWY démarre en mode réseau dégradé; les données protégées se synchroniseront ensuite.');}}
+ }catch(error){console.error('Session restoration failed:',error);if(state.playerToken){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;if(!state.player){$('#playerProfile').hidden=true;if(getSavedPage()==='profile')tab('home',false);}console.warn('Session MALAWY conservée : échec temporaire de synchronisation du profil. Aucun nouvel identifiant n’est nécessaire.');}else{document.body.classList.add('access-locked');$('#accessGate').hidden=false;}}
  finally{document.documentElement.classList.remove('mou-session-checking');}
 })();
