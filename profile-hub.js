@@ -93,7 +93,6 @@
 
     const scoreHost = $('#mouProfileScore', shell);
     if (stats) { stats.querySelectorAll('article').forEach(card=>scoreHost.appendChild(card)); stats.remove(); }
-    if (freeFire) $('#mouProfileModalContent', shell).appendChild(freeFire);
     const content = $('#mouProfileModalContent', shell);
     const modal = $('#mouProfileModal', shell);
     const title = $('#mouProfileModalTitle', shell);
@@ -119,6 +118,7 @@
     }
     function open(key){
       const section=sections[key]; if(!section)return;
+      restoreNodes();
       content.replaceChildren();
       section.nodes.forEach(node=>{if(node){node.hidden=false;content.appendChild(node);}});
       if(key==='presence'&&presence){presence.hidden=false;}
@@ -129,8 +129,8 @@
     }
     function close(){
       modal.hidden=true;document.body.style.overflow='';
-      content.replaceChildren();
       restoreNodes();
+      content.replaceChildren();
       Object.values(sections).forEach(s=>s.nodes.forEach(n=>{if(n)n.hidden=false;}));
     }
     shell.addEventListener('click',e=>{
