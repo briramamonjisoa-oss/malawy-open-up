@@ -399,6 +399,15 @@
       return;
     }
     if (window.MalawyAndroid) {
+      if (typeof window.MalawyAndroid.areNotificationsEnabled === 'function' && !window.MalawyAndroid.areNotificationsEnabled()) {
+        status.textContent = 'Autorisation des notifications nécessaire…';
+        if (typeof window.MalawyAndroid.requestNotificationPermissionFromWeb === 'function') {
+          window.MalawyAndroid.requestNotificationPermissionFromWeb();
+        } else {
+          status.textContent = 'Autorise les notifications MALAWY OPEN UP dans les paramètres Android.';
+        }
+        return;
+      }
       registerAndroidPush();
       status.textContent = 'Activation des notifications Android…';
       return;
@@ -539,6 +548,15 @@
     }
     window.addEventListener('mou:refresh-fcm-token', () => {
       if (playerToken()) registerAndroidPush();
+    });
+    window.addEventListener('mou:notification-permission-result', event => {
+      const status = $('#mouPushStatus');
+      if (event.detail === true && window.MalawyAndroid?.areNotificationsEnabled?.()) {
+        if (status) status.textContent = 'Autorisation accordée. Activation des notifications Android…';
+        if (playerToken()) registerAndroidPush();
+      } else if (status) {
+        status.textContent = 'Notifications bloquées. Autorise-les dans les paramètres Android de MALAWY OPEN UP, puis réessaie.';
+      }
     });
     if (adminToken()) createAdminUI();
     window.addEventListener('mou:player-auth', () => {
