@@ -158,26 +158,21 @@ $('#playersList').innerHTML=state.tournamentGroups.length?state.tournamentGroups
  <div class="tournament-roster-body"><b>JOUEURS INSCRITS</b>
  ${t.signups.map(s=>`<div class="tournament-signup-row">${s.logo?`<img class="tournament-team-logo" src="${esc(s.logo)}" alt="Logo équipe">`:''}<div class="tournament-signup-info">${s.teamName?`<strong>${esc(s.teamName)}</strong>`:''}<div class="tournament-player-names">${(s.playerDetails||s.players.map(name=>({name,photo:''}))).map(player=>`<button type="button" class="tournament-player-chip public-player-row" data-public-player="${esc(player.name.replace(/ \(remplaçant\)$/i,''))}" aria-label="Voir le profil de ${esc(player.name)}">${player.photo?`<img src="${esc(player.photo)}" alt="Photo ${esc(player.name)}" loading="lazy" onerror="this.remove()">`:''}<span>${esc(player.name)}</span></button>`).join('')}</div></div><span class="tournament-signup-status ${s.status==='Acceptée'?'approved':'pending'}">${esc(s.status)}</span></div>`).join('')}
  </div></article>`).join(''):'<p class="muted">Aucune inscription à un tournoi pour le moment.</p>';
-const community=state.players.slice().sort((a,b)=>String(a.pseudo||'').localeCompare(String(b.pseudo||''),'fr'));
-const guild=state.guildInfo,onlineCount=Number(guild?.online);
+const community=state.players.filter(isAcceptedPlayer).slice().sort((a,b)=>String(a.pseudo||'').localeCompare(String(b.pseudo||''),'fr'));
 const search=String(document.getElementById('communityPlayerSearch')?.value||'').trim().toLocaleLowerCase('fr');
 const visiblePlayers=community.filter(p=>!search||String(p.pseudo||'').toLocaleLowerCase('fr').includes(search)||String(p.playerId||'').includes(search));
-const guildPending=!!state.guildError||!guild;
-const onlineValue=guild?.online;
-const onlineDisplay=!guildPending&&onlineValue!==null&&onlineValue!==undefined&&onlineValue!==''&&Number.isFinite(Number(onlineValue))?String(Number(onlineValue)):'En attente';
-const guildDetails=guildPending?'Fonction en attente':('Niveau '+esc(guild?.level??'—')+' · '+esc(guild?.members??'—')+'/'+esc(guild?.capacity??'—')+' membres');
-const guildSummary='<article class="guild-live-summary"><div><span class="eyebrow">GUILDE CIA · EN DIRECT</span><strong>'+esc(guild?.name||'CIA')+'</strong><small>'+guildDetails+'</small>'+(guild?.syncedAt?'<small>Actualisation : '+esc(new Date(guild.syncedAt).toLocaleString('fr-FR'))+'</small>':'')+'</div><div class="guild-online-total"><b id="communityGuildOnlineCount">'+onlineDisplay+'</b><small>'+(guildPending?'Fonction en attente':'membres connectés')+'</small></div></article>';
-$('#communityGuildSummary').innerHTML=guildSummary;
-$('#communityPlayersCount').textContent=community.length+' joueur(s) dans MALAWY OPEN UP';
-$('#communityPlayersList').innerHTML=visiblePlayers.length?visiblePlayers.map(p=>{
- const bi=p.freeFireProfile?.basicInfo||{},clan=p.freeFireProfile?.clanBasicInfo||{};
- const isGuild=String(clan.clanId||'')==='3076348376';
+$('#communityPlayersCount').textContent=community.length+' joueur(s) validé(s) dans la communauté mondiale';
+const playerLoadError=(state.adminLoadErrors||[]).find(message=>message.startsWith('Inscriptions :'));
+$('#communityPlayersList').innerHTML=playerLoadError
+ ? '<p class="message">Impossible de charger les joueurs : '+esc(playerLoadError.replace(/^Inscriptions : /,''))+'</p><p class="muted">Vérifie ta connexion puis appuie sur Actualiser.</p>'
+ : visiblePlayers.length?visiblePlayers.map(p=>{
+ const bi=p.freeFireProfile?.basicInfo||{};
  const onlineFlag=typeof bi.isOnline==='boolean'?bi.isOnline:(typeof bi.online==='boolean'?bi.online:null);
  const presence=onlineFlag===true?'En ligne':onlineFlag===false?'Hors ligne':'Présence individuelle non fournie';
  const presenceClass=onlineFlag===true?'online':onlineFlag===false?'offline':'unknown';
  const last=bi.lastLoginAt?new Date(Number(bi.lastLoginAt)*1000).toLocaleString('fr-FR'):'Non communiquée';
- return '<button type="button" class="community-player-card public-player-row" data-public-player="'+esc(p.pseudo)+'"><span class="community-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy">':esc(String(p.pseudo||'?').slice(0,1).toUpperCase()))+'</span><span class="community-player-main"><b>'+esc(p.pseudo)+'</b><small>UID '+esc(p.playerId||'—')+' · Niveau '+esc(bi.level??'—')+'</small><small>'+(isGuild?'Membre de CIA':'Guilde non confirmée')+' · '+esc(p.status||'Statut inconnu')+'</small><small>Dernière connexion : '+esc(last)+'</small></span><span class="community-presence '+presenceClass+'"><i></i>'+presence+'</span></button>';
-}).join(''):'<p class="muted">Aucun joueur ne correspond à cette recherche.</p>';
+ return '<button type="button" class="community-player-card public-player-row" data-public-player="'+esc(p.pseudo)+'"><span class="community-avatar">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy">':esc(String(p.pseudo||'?').slice(0,1).toUpperCase()))+'</span><span class="community-player-main"><b>'+esc(p.pseudo)+'</b><small>UID '+esc(p.playerId||'—')+' · Niveau '+esc(bi.level??'—')+'</small><small>Communauté mondiale · '+esc(p.status||'Compte validé')+'</small><small>Dernière connexion : '+esc(last)+'</small></span><span class="community-presence '+presenceClass+'"><i></i>'+presence+'</span></button>';
+}).join(''):'<p class="muted">'+(search?'Aucun joueur ne correspond à cette recherche.':'Aucun joueur validé pour le moment. Les nouveaux joueurs apparaîtront ici après validation de leur compte.')+'</p>';
 const manualStats=rank;
 $('#publicMatchList').innerHTML=(manualStats.length?'<h3>STATISTIQUES DES JOUEURS</h3>'+manualStats.map(p=>'<div class="item"><div><b>'+esc(p.name)+'</b><small>'+p.played+' match(s) · '+p.wins+' victoire(s) · '+p.losses+' défaite(s)</small></div><strong>'+p.wins+'/'+p.played+'</strong></div>').join(''):'')+(state.matches.filter(x=>x.status==='Terminé'||!x.status).length?'<h3>RÉSULTATS DES MATCHS</h3>'+state.matches.filter(x=>x.status==='Terminé'||!x.status).map(x=>'<div class="item"><div><b>'+esc(x.a)+' vs '+esc(x.b)+'</b><small>'+esc(x.date||'')+'</small></div><strong>'+(Number(x.sa)||0)+' — '+(Number(x.sb)||0)+'</strong></div>').join(''):'')||'<p class="muted">Aucune statistique ni résultat enregistré pour le moment.</p>';
 $('#topPlayers').innerHTML=rank.length?rank.slice(0,3).map((p,i)=>`<button type="button" class="top-player rank-${i+1} public-player-row" data-public-player="${esc(p.name)}"><b>${i===0?'TOP 1':'TOP '+(i+1)}</b><div class="player-avatar">${avatar(p)}</div><strong>${esc(p.name)}</strong><big>${p.points} <small>PTS</small></big><span>${p.wins} victoire(s) · ${p.played} match(s)</span></button>`).join(''):'<p class="muted">Le podium apparaîtra après les premiers matchs.</p>';
