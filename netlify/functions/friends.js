@@ -1,4 +1,5 @@
 const {airtable,verifyPlayer}=require('./auth');
+const {queuePlayerEventNotification}=require('./notifications');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const RELATIONS='tblQoAGcQhii58Hwe';
 const F={pseudo:'fldaNsxza3T3krjfr',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeSrLJZVOC'};
@@ -60,6 +61,7 @@ exports.handler=async event=>{
    if(existing){const st=fields(existing)[R.status];if(st==='Acceptée')return out(409,{error:'Vous êtes déjà amis.'});if(st==='En attente')return out(200,{success:true,alreadyPending:true});if(st==='Bloquée')return out(403,{error:'Cette relation est bloquée.'});await airtable(RELATIONS+'/'+existing.id,{method:'PATCH',body:JSON.stringify({fields:{[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.updated]:now}})});}
    else await airtable(encodeURIComponent(RELATIONS),{method:'POST',body:JSON.stringify({records:[{fields:{[R.key]:key,[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.created]:now,[R.updated]:now}}]})});
    tableCache.delete(RELATIONS);
+   try{await queuePlayerEventNotification(target,'Nouvelle demande d’ami',myPseudo+' souhaite devenir ton ami.','/#profile','friend-request:'+key+':'+now);}catch(error){console.warn('Notification de demande d’ami non envoyée:',error.message);}
    return out(201,{success:true,status:'En attente'});
   }
   if(action==='respond'){
@@ -68,6 +70,9 @@ exports.handler=async event=>{
    if(f[R.to]!==me.id||f[R.status]!=='En attente')return out(403,{error:'Cette demande ne peut pas être traitée.'});
    await airtable(encodeURIComponent(RELATIONS)+'/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({fields:{[R.status]:decision,[R.updated]:now}})});
    tableCache.delete(RELATIONS);
+   if(decision==='Acceptée'){
+    try{await queuePlayerEventNotification(f[R.from],'Demande d’ami acceptée',myPseudo+' a accepté ta demande d’ami.','/#profile','friend-accepted:'+id);}catch(error){console.warn('Notification d’acceptation non envoyée:',error.message);}
+   }
    return out(200,{success:true});
   }
   if(action==='remove'){
