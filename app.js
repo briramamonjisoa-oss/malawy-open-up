@@ -256,7 +256,7 @@ async function loadPlayerProfile(options={}){
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
   state.player=p;
   fetch(API_ORIGIN+'/.netlify/functions/guild-info?fast=1',{cache:'no-store'}).then(gr=>gr.json()).then(gd=>{if(gd?.id){state.guildInfo=gd;try{render();}catch(e){}}}).catch(e=>console.warn('Guilde Free Fire non actualisée:',e.message));// La vérification silencieuse du profil ne doit pas déclencher une navigation.$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
-  $('#profilePseudo').textContent=p.pseudo;$('#profileDisplayName').value=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
+  $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=state.guildInfo&&String(state.guildInfo.id)==='3076348376'?{...ff.clanBasicInfo,clanName:state.guildInfo.name,clanLevel:state.guildInfo.level,memberNum:state.guildInfo.members,capacity:state.guildInfo.capacity}:ff.clanBasicInfo||{},pet=ff.petInfo||{};
   const ffCard=$('#freeFireProfileCard');
@@ -330,13 +330,6 @@ $('#playerLoginForm').addEventListener('submit',async e=>{
  try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),pin:String(f.get('pin'))})});const out=await r.json();if(!r.ok)throw Error(out.error||'Connexion impossible');
  state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();window.dispatchEvent(new Event('mou:player-auth'));if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
-});
-$('#saveProfileDisplayName').addEventListener('click',async()=>{
- const input=$('#profileDisplayName'),msg=$('#profileMsg'),pseudo=String(input.value||'').trim();
- if(!/^[\\p{L}\\p{N}_. -]{3,24}$/u.test(pseudo)){msg.textContent='Le pseudo doit contenir 3 à 24 caractères.';return;}
- const button=$('#saveProfileDisplayName');button.disabled=true;msg.textContent='Enregistrement du pseudo…';
- try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changeDisplayName',pseudo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le pseudo');msg.textContent='Pseudo MALAWY mis à jour.';await loadPlayerProfile();}
- catch(e){msg.textContent=e.message;}finally{button.disabled=false;}
 });
 $('#saveProfilePhoto').addEventListener('click',async()=>{
  const file=$('#profilePhoto').files[0],msg=$('#profileMsg');if(!file){msg.textContent='Choisis une photo avant de continuer.';return;}
