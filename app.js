@@ -310,21 +310,40 @@ window.addEventListener('mou:player-auth',async()=>{
 });
 $('#showSignup').onclick=()=>{$('#playerSignupForm').hidden=false;$('#playerLoginForm').hidden=true;};
 $('#showLogin').onclick=()=>{$('#playerSignupForm').hidden=true;$('#playerLoginForm').hidden=false;};
+async function prepareSignupNotifications(){
+ if(window.MalawyAndroid&&typeof window.MalawyAndroid.requestFcmToken==='function'){
+  const existing=localStorage.getItem('mou_fcm_saved_token');if(existing)return {fcmToken:existing};
+  return await new Promise((resolve,reject)=>{
+   let done=false;const finish=(fn,value)=>{if(done)return;done=true;window.removeEventListener('mou:fcm-token',handler);clearTimeout(timer);fn(value);};
+   const handler=event=>{const token=String(event.detail||'').trim();if(token.length>40)finish(resolve,{fcmToken:token});else finish(reject,new Error('Jeton de notification Android invalide.'));};
+   const timer=setTimeout(()=>finish(reject,new Error('Autorisation de notification Android nécessaire. Réessaie.')),15000);
+   window.addEventListener('mou:fcm-token',handler,{once:true});try{window.MalawyAndroid.requestFcmToken();}catch(error){finish(reject,error);}
+  });
+ }
+ if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw Error('Les notifications ne sont pas disponibles sur cet appareil.');
+ if(Notification.permission!=='granted'&&await Notification.requestPermission()!=='granted')throw Error('Tu dois autoriser les notifications pour créer ton compte.');
+ const registration=await navigator.serviceWorker.ready;let subscription=await registration.pushManager.getSubscription();
+ if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(atob('BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI'.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))});
+ return {subscription:subscription.toJSON()};
+}
 $('#playerSignupForm').addEventListener('submit',async e=>{
- e.preventDefault();const f=new FormData(e.target),msg=$('#signupMsg'),button=e.submitter;button.disabled=true;msg.textContent='Préparation de ta demande…';
+ e.preventDefault();const f=new FormData(e.target),msg=$('#signupMsg'),button=e.submitter;button.disabled=true;
  try{
-  const file=f.get('photo');let photo='';
-  if(file&&file.size){
-   msg.textContent='Envoi de ta photo…';
-   try{photo=await uploadPhoto(file);}catch(photoError){console.warn('Photo non envoyée:',photoError);msg.textContent='Photo indisponible, envoi de la demande sans photo…';}
-  }
-  msg.textContent='Envoi de ta demande…';
-  const payload={pseudo:String(f.get('pseudo')).trim(),playerId:String(f.get('playerId')).trim(),mode:String(f.get('mode')),pin:String(f.get('pin'))};
-  if(photo)payload.photo=photo;
-  const r=await fetch(API_ORIGIN+'/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');
-  msg.textContent='Demande envoyée ! Attends la validation de l’administration. Tu pourras ensuite te connecter avec ton pseudo, UID et PIN.';e.target.reset();
- }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
+  const uid=String(f.get('playerId')||'').trim(),pin=String(f.get('pin')||''),file=f.get('photo');
+  if(!/^[0-9]{5,40}$/.test(uid))throw Error('Entre un UID Free Fire valide.');
+  if(!file||!file.size)throw Error('La photo de profil est obligatoire.');
+  if(!/^[0-9]{4,8}$/.test(pin))throw Error('Le PIN doit contenir 4 à 8 chiffres.');
+  msg.textContent='Activation des notifications obligatoires…';const push=await prepareSignupNotifications();
+  msg.textContent='Envoi de ta photo…';const photo=await uploadPhoto(file);
+  msg.textContent='Vérification du profil Free Fire…';
+  const r=await fetch(API_ORIGIN+'/.netlify/functions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:uid,pin,photo,...push})});
+  const out=await r.json();if(!r.ok)throw Error(out.error||'Inscription impossible');if(!out.token)throw Error('Compte créé. Connecte-toi avec ton UID et ton PIN.');
+  state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);
+  if(push.fcmToken)localStorage.setItem('mou_fcm_saved_token',push.fcmToken);
+  msg.textContent='Profil vérifié ! Bienvenue sur MALAWY OPEN UP.';
+  e.target.reset();await loadPlayerProfile();
+  if(state.player){$('#accessGate').hidden=true;document.body.classList.remove('access-locked');$('#playerSignupForm').hidden=true;$('#playerProfile').hidden=false;tab('profile');}
+ }catch(err){msg.textContent=err.message||'Une erreur est survenue.';}finally{button.disabled=false;}
 });
 $('#playerLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target),msg=$('#gateMsg'),button=e.submitter;button.disabled=true;msg.textContent='Vérification…';

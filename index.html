@@ -59,15 +59,13 @@
    </form>
 
    <form id="playerSignupForm" class="form access-form mou-auth-form" hidden>
-    <label class="mou-auth-field"><span>PSEUDO FREE FIRE</span><input name="pseudo" required maxlength="32" autocomplete="nickname" placeholder="Ton pseudo dans le jeu"></label>
-    <label class="mou-auth-field"><span>UID FREE FIRE</span><input name="playerId" required maxlength="40" inputmode="numeric" pattern="[0-9]+" placeholder="Ton UID Free Fire"></label>
-    <label class="mou-auth-field"><span>MODE DE COMBAT</span><select name="mode" required><option value="">Choisir un mode</option><option>1 VS 1</option><option>2 VS 1</option></select></label>
-    <label class="mou-auth-field"><span>PHOTO DE PROFIL (FACULTATIF)</span><input name="photo" type="file" accept="image/*"></label>
-    <label class="mou-auth-field"><span>CHOISIS TON CODE PIN</span><input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="4 à 8 chiffres"></label>
-    <button class="primary mou-auth-submit" type="submit">Envoyer ma demande <span aria-hidden="true">↗</span></button>
+    <label class="mou-auth-field"><span>UID FREE FIRE</span><input name="playerId" required maxlength="40" inputmode="numeric" pattern="[0-9]{5,40}" autocomplete="username" placeholder="Entre ton UID Free Fire"></label>
+    <label class="mou-auth-field"><span>PHOTO DE PROFIL · OBLIGATOIRE</span><input name="photo" type="file" accept="image/*" required></label>
+    <label class="mou-auth-field"><span>CRÉE TON CODE PIN</span><input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" placeholder="4 à 8 chiffres"></label>
+    <p class="access-note">Les notifications sont obligatoires pour recevoir la confirmation de vérification et les alertes de MALAWY OPEN UP.</p>
+    <button class="primary mou-auth-submit" type="submit">Vérifier et créer mon compte <span aria-hidden="true">↗</span></button>
     <p id="signupMsg" class="message mou-auth-message" aria-live="polite"></p>
     <p class="mou-auth-create">Déjà un compte ? <button type="button" id="showLogin">Retour à la connexion</button></p>
-    <p class="access-note">Ton accès sera activé après validation par l’administration.</p>
    </form>
 
    <div class="mou-auth-admin">
