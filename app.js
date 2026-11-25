@@ -72,12 +72,13 @@ document.addEventListener('click',e=>{
  const go=e.target.closest('[data-go]');if(go)tab(go.dataset.go);
 });
 const initialPage=getSavedPage();
-history.replaceState({mouPage:initialPage},'','#'+initialPage);
+history.replaceState({mouPage:initialPage,mouBase:true},'','#'+initialPage);
+history.pushState({mouPage:initialPage,mouBackGuard:true,mouNavigationManaged:true},'','#'+initialPage);
 tab(initialPage,false);
-window.addEventListener('popstate',()=>{
+window.addEventListener('popstate',event=>{
+ if(event.state?.mouNavigationManaged||event.state?.mouBase)return;
  const previous=pageHistory.pop()||'home';
  tab(previous,false);
- if(previous==='home')history.replaceState({mouPage:'home'},'','#home');
 });
 async function api(path,opts={}){
  if(!navigator.onLine){window.dispatchEvent(new Event('mou:network-error'));throw Error('Vérifiez votre connexion Internet.');}
