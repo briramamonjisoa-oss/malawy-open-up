@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const shell=$('messages')?.querySelector('.mou-messages-shell');
 if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
-let contacts=[],activeId='',activeName='',messages=[],poll=null,lastLoad=0;
+let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const page=()=>document.getElementById('messages');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -46,8 +46,8 @@ function renderGuildCard(data){
  const title=card.querySelector('.mou-guild-card-title'),desc=card.querySelector('.mou-guild-card-desc'),button=card.querySelector('.mou-guild-card-action');
  if(data.group){
   title.textContent=data.group.name||'Groupe de guilde';
-  desc.textContent=data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde.';
-  button.hidden=true;button.onclick=null;
+  desc.textContent=data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde. Discute avec les membres.';
+  button.hidden=false;button.disabled=false;button.textContent='Ouvrir le groupe';button.onclick=()=>openGuildChat(data.group.id,data.group.name);
  }else{
   const name=data.guild?.name||'ta guilde';
   title.textContent='Crée le groupe de '+name;
@@ -55,6 +55,16 @@ function renderGuildCard(data){
   button.hidden=false;button.textContent='Créer le groupe';button.disabled=false;
   button.onclick=createGuildGroup;
  }
+}
+async function openGuildChat(guildId,name){
+ activeId='';activeGroupId=String(guildId||'');activeName=name||'Groupe de guilde';
+ $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
+ $('mouChatName').textContent=activeName;$('mouChatAvatar').textContent='✦';
+ const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Discussion de guilde · Membres officiels';
+ shell.classList.add('chat-open');renderContacts();status('');
+ $('mouChatMessages').innerHTML='<p class="mou-message-empty">Chargement du groupe…</p>';
+ try{const d=await request('messages?group='+encodeURIComponent(activeGroupId));messages=d.messages||[];renderMessages();}
+ catch(e){$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
 }
 async function refreshGuildGroup(){
  if(!token())return;
@@ -79,6 +89,7 @@ async function createGuildGroup(){
 }
 
 function status(msg){const el=$('mouChatStatus');if(el)el.textContent=msg||'';}
+const groupStyle=document.createElement('style');groupStyle.textContent='.mou-group-sender{display:block;margin:0 0 5px;color:#d8c18a;font-size:10px;letter-spacing:.03em}.mou-chat-header .mou-chat-avatar{color:#d8c18a}';document.head.appendChild(groupStyle);
 function latestFor(id){return contactsMessages.filter(m=>m.senderId===id||m.recipientId===id).sort((a,b)=>String(b.created).localeCompare(String(a.created)))[0];}
 let contactsMessages=[];
 function renderContacts(){
@@ -92,7 +103,7 @@ function renderContacts(){
 }
 function renderMessages(){
  const box=$('mouChatMessages');
- box.innerHTML=messages.length?messages.map(m=>'<div class="mou-chat-bubble '+(m.mine?'mine':'')+'">'+esc(m.content).replace(/\n/g,'<br>')+'<time>'+esc(new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(m.mine?(m.readAt?' · Lu':' · Envoyé'):'')+'</time></div>').join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
+ box.innerHTML=messages.length?messages.map(m=>'<div class="mou-chat-bubble '+(m.mine?'mine':'')+'">'+(activeGroupId?'<b class="mou-group-sender">'+esc(m.senderPseudo||'Joueur')+'</b>':'')+esc(m.content).replace(/\n/g,'<br>')+'<time>'+esc(new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time></div>').join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
  box.scrollTop=box.scrollHeight;
 }
 async function refreshInbox(){
@@ -123,22 +134,23 @@ $('mouMessageContacts').addEventListener('click',e=>{
  const b=e.target.closest('[data-contact]');if(!b)return;
  const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);
 });
-$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';});
+$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 $('mouChatForm').addEventListener('submit',async e=>{
  e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||!activeId)return;
  const button=$('mouChatForm').querySelector('button');button.disabled=true;status('Envoi…');
  try{
-  await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:activeId,content})});
-  input.value='';const d=await request('messages?with='+encodeURIComponent(activeId));messages=d.messages||[];
-  renderMessages();await refreshInbox();status('Envoyé');
+  if(activeGroupId)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:activeGroupId,content})});
+  else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:activeId,content})});
+  input.value='';const d=await request(activeGroupId?'messages?group='+encodeURIComponent(activeGroupId):'messages?with='+encodeURIComponent(activeId));messages=d.messages||[];
+  renderMessages();if(!activeGroupId)await refreshInbox();status('Envoyé');
  }catch(err){status(err.message);}finally{button.disabled=false;input.focus();}
 });
 async function pollInbox(){
  if(!page().classList.contains('active')||document.hidden||!token())return;
  try{
   await refreshInbox();
-  if(activeId&&shell.classList.contains('chat-open')){
-   const d=await request('messages?with='+encodeURIComponent(activeId));messages=d.messages||[];renderMessages();
+  if(shell.classList.contains('chat-open')&&(activeId||activeGroupId)){
+   const d=await request(activeGroupId?'messages?group='+encodeURIComponent(activeGroupId):'messages?with='+encodeURIComponent(activeId));messages=d.messages||[];renderMessages();
   }
  }catch(e){status(e.message);}
 }
@@ -150,7 +162,7 @@ let wasActive=false;
 const observePage=()=>{
  const active=page().classList.contains('active');
  if(active&&!wasActive)load();
- if(!active&&wasActive){activeId='';shell.classList.remove('chat-open');}
+ if(!active&&wasActive){activeId='';activeGroupId='';shell.classList.remove('chat-open');}
  wasActive=active;
 };
 new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilter:['class']});
