@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.PermissionRequest;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -43,6 +44,8 @@ public class MainActivity extends Activity {
     private boolean updateDialogVisible = false;
     private static final int FILE_CHOOSER_REQUEST = 501;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 502;
+    private static final int MICROPHONE_PERMISSION_REQUEST = 503;
+    private PermissionRequest pendingWebPermissionRequest;
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -368,6 +371,33 @@ public class MainActivity extends Activity {
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    boolean asksForAudio = false;
+                    for (String resource : request.getResources()) {
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) asksForAudio = true;
+                    }
+                    String requestHost = request.getOrigin() == null ? "" : request.getOrigin().getHost();
+                    boolean trustedOrigin = HOME.contains(requestHost) && requestHost.equals(Uri.parse(HOME).getHost());
+                    if (!asksForAudio || !trustedOrigin) {
+                        request.deny();
+                        return;
+                    }
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                        return;
+                    }
+                    if (pendingWebPermissionRequest != null) pendingWebPermissionRequest.deny();
+                    pendingWebPermissionRequest = request;
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_REQUEST);
+                });
+            }
+
+            @Override public void onPermissionRequestCanceled(PermissionRequest request) {
+                if (pendingWebPermissionRequest == request) pendingWebPermissionRequest = null;
+            }
+
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;
@@ -390,6 +420,23 @@ public class MainActivity extends Activity {
         requestNotificationPermission();
         handleNotificationIntent(getIntent());
         if (hasValidatedInternet()) checkForUpdate();
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MICROPHONE_PERMISSION_REQUEST) {
+            PermissionRequest request = pendingWebPermissionRequest;
+            pendingWebPermissionRequest = null;
+            if (request == null) return;
+            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                try { request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE}); }
+                catch (Exception error) { android.util.Log.w("MALAWY_MIC", "WebView microphone request expired", error); }
+            } else {
+                try { request.deny(); } catch (Exception ignored) { }
+                android.util.Log.w("MALAWY_MIC", "Microphone permission denied by Android");
+            }
+        }
     }
 
     private void requestNotificationPermission() {
@@ -460,6 +507,7 @@ public class MainActivity extends Activity {
     @Override protected void onDestroy() {
         unregisterNetworkCallback();
         if (webView != null) {
+            if (pendingWebPermissionRequest != null) { try { pendingWebPermissionRequest.deny(); } catch (Exception ignored) { } pendingWebPermissionRequest = null; }
             webView.removeJavascriptInterface("MalawyAndroid");
             webView.destroy();
             webView = null;
