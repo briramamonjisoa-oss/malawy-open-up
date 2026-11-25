@@ -64,7 +64,7 @@
       #mouFriends .mou-friends-stats b{color:#e4cd94;font-size:19px;font-variant-numeric:tabular-nums}
       #mouFriends .mou-friends-stats span{color:#a9a193;font-size:11px}
       #mouFriends .mou-friends-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:5px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.24)}
-      #mouFriends .mou-friends-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:38px;padding:7px 4px;border:1px solid transparent;border-radius:10px;background:transparent;color:#a9a193;font:600 11px/1.2 inherit;white-space:nowrap}
+      #mouFriends .mou-friends-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:38px;padding:7px 4px;border:1px solid transparent;border-radius:10px;background:transparent;color:#a9a193;font-family:inherit;font-size:11px;font-weight:600;line-height:1.2;white-space:nowrap}
       #mouFriends .mou-friends-tabs button.is-active{border-color:rgba(216,193,138,.25);background:linear-gradient(135deg,rgba(216,193,138,.18),rgba(216,193,138,.07));color:#f1dfb7}
       #mouFriends .mou-friends-tabs i{display:inline-grid;min-width:17px;height:17px;place-items:center;border-radius:20px;background:rgba(216,193,138,.17);font-size:9px;font-style:normal}
       #mouFriends .mou-friends-content{padding-top:15px}
