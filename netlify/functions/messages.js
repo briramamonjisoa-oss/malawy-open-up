@@ -1,8 +1,21 @@
 const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
-const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2';
+const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2',GROUPS='tblOf7CoOFBKpIueo';
 const F={id:'fldBfRkQQLeYnV9ti',key:'fldaRDVwnflWRAR0L',from:'fldV3hCY47mznFBfu',fromName:'fldO6V4B8zA2QGNfW',to:'fld1Kaj1hVyHDPeb0',toName:'fld6MjPNGRqATQDmD',content:'fldOMcUM8kSHFz3ML',created:'fldbLOwXN5hSzieoD',read:'fldtXgb1lWgzNBc0E',status:'fldiPm5xI7CBgEq5q'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
+const P={pseudo:'fldaNsxza3T3krjfr',profile:'fldJAultgWl4cZfCW',status:'fldmc3ktn1we8phLq'};
+const G={guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',status:'fldBZBT3Vm1aexeXD'};
+const approved=v=>['accepte','acceptee','accepted','valide','validee','approved'].includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+async function verifyGuildMember(playerId,guildId){
+ if(!/^[0-9]{5,24}$/.test(guildId))return null;
+ const [player,groups]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(playerId)+'?returnFieldsByFieldId=true'),all(GROUPS)]);
+ const pf=player.fields||{};if(!approved(pf[P.status]))return null;
+ let profile={};try{profile=JSON.parse(pf[P.profile]||'{}')}catch{}
+ if(String(profile.clanBasicInfo?.clanId||'')!==guildId)return null;
+ const group=groups.find(row=>String(row.fields?.[G.guildId]||'')===guildId&&row.fields?.[G.status]==='Actif');
+ if(!group)return null;
+ return {groupId:guildId,groupName:String(group.fields?.[G.name]||'Groupe de guilde'),pseudo:String(pf[P.pseudo]||profile.basicInfo?.nickname||'Joueur')};
+}
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
@@ -12,6 +25,15 @@ exports.handler=async event=>{
  const b=body(event),method=event.httpMethod||'GET';
  try{
   if(method==='GET'){
+   const groupId=String(event.queryStringParameters?.group||'');
+   if(groupId){
+    const membership=await verifyGuildMember(me.id,groupId);
+    if(!membership)return out(403,{error:'Tu dois appartenir à cette guilde et son groupe officiel doit être actif.'});
+    const key='group:'+groupId,rows=await all(TABLE);
+    const visible=rows.filter(r=>r.fields?.[F.key]===key&&r.fields?.[F.status]!=='Supprimé');
+    return out(200,{group:{id:membership.groupId,name:membership.groupName},messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:key,recipientPseudo:membership.groupName,content:f[F.content],created:f[F.created],readAt:'',mine:f[F.from]===me.id};})});
+   }
+
    const withId=String(event.queryStringParameters?.with||'');
    if(withId&&withId!==me.id&&!await accepted(me.id,withId))return out(403,{error:'La messagerie privée est réservée aux amis acceptés.'});
    const rows=await all(TABLE),visible=rows.filter(r=>{const f=r.fields||{};return (f[F.from]===me.id||f[F.to]===me.id)&&(!withId||f[F.from]===withId||f[F.to]===withId)&&f[F.status]!=='Supprimé';});
@@ -20,6 +42,16 @@ exports.handler=async event=>{
     await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
    }
    return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:withId&&f[F.to]===me.id&&!f[F.read]?new Date().toISOString():(f[F.read]||''),mine:f[F.from]===me.id};})});
+  }
+  if(method==='POST'&&b.action==='sendGroup'){
+   const groupId=String(b.groupId||''),content=String(b.content||'').trim();
+   if(!content||content.length>1000)return out(400,{error:'Le message doit contenir entre 1 et 1 000 caractères.'});
+   const membership=await verifyGuildMember(me.id,groupId);
+   if(!membership)return out(403,{error:'Tu dois appartenir à cette guilde et son groupe officiel doit être actif.'});
+   const id='msg_'+crypto.randomUUID(),created=new Date().toISOString(),key='group:'+groupId;
+   const fields={[F.id]:id,[F.key]:key,[F.from]:me.id,[F.fromName]:membership.pseudo,[F.to]:key,[F.toName]:membership.groupName,[F.content]:content,[F.created]:created,[F.status]:'Envoyé'};
+   const saved=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields}]})});
+   return out(201,{success:true,id:saved.records?.[0]?.id,message:{id,senderId:me.id,senderPseudo:membership.pseudo,recipientId:key,recipientPseudo:membership.groupName,content,created,mine:true}});
   }
   if(method!=='POST'||b.action!=='send')return out(400,{error:'Action inconnue.'});
   const target=String(b.targetId||''),content=String(b.content||'').trim();
