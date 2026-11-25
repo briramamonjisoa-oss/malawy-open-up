@@ -121,11 +121,13 @@ function renderMessages(){
  // Keep native audio elements alive across unchanged polls in Android WebView.
  const renderKey=JSON.stringify([activeId,activeGroupId,messages.map(m=>[m.messageId||m.id,m.content,m.created,m.readAt||''])]);
  if(renderKey===lastRenderedMessagesKey)return;
- const audioState=[...box.querySelectorAll('audio.mou-chat-audio')].map(audio=>({
-  messageId:audio.closest('[data-message-id]')?.dataset.messageId||'',
-  currentTime:Number.isFinite(audio.currentTime)?audio.currentTime:0,
-  paused:audio.paused,muted:audio.muted,volume:audio.volume
- }));
+ const audioElements=new Map();
+ // Detach existing players before updating the message list: moving the same
+ // DOM node preserves its decoder, playback position and active audio session.
+ for(const audio of [...box.querySelectorAll('audio.mou-chat-audio')]){
+  const messageId=audio.closest('[data-message-id]')?.dataset.messageId||'';
+  if(messageId){audioElements.set(messageId,audio);audio.remove();}
+ }
  const wasNearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;
  box.innerHTML=messages.length?messages.map(m=>{
   const name=m.senderPseudo||'Joueur',avatar=m.senderPhoto?'<img src="'+esc(m.senderPhoto)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
@@ -133,15 +135,13 @@ function renderMessages(){
   const raw=String(m.content||''),quote=raw.match(/^↪ ([^\n]+)\n\n/),body=quote?raw.slice(quote[0].length):raw;
   return '<article class="mou-chat-message-row '+(m.mine?'mine':'')+'"><button type="button" class="mou-chat-sender-avatar" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'" aria-label="Voir le profil de '+esc(name)+'">'+avatar+'</button><div class="mou-chat-message-main"><button type="button" class="mou-chat-sender-name" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'">'+esc(name)+'</button><div class="mou-chat-bubble '+(m.mine?'mine':'')+'" data-message-id="'+esc(m.messageId||m.id)+'">'+(quote?'<div class="mou-reply-quote">'+esc(quote[1])+'</div>':'')+renderMedia(body)+'<time>'+esc(stamp)+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time><div class="mou-message-actions"><button type="button" data-reply="'+esc(m.messageId||m.id)+'">↩ Répondre</button>'+(!activeGroupId?'<button type="button" data-react="'+esc(m.messageId||m.id)+'">☺ Réagir</button>':'')+'</div></div></div></article>';
  }).join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
- for(const state of audioState){
-  const audio=[...box.querySelectorAll('audio.mou-chat-audio')].find(el=>el.closest('[data-message-id]')?.dataset.messageId===state.messageId);
-  if(!audio)continue;
-  audio.muted=state.muted;audio.volume=state.volume;
-  const restore=()=>{try{audio.currentTime=state.currentTime;}catch{}if(!state.paused)audio.play().catch(()=>{});};
-  if(audio.readyState>=1)restore();else audio.addEventListener('loadedmetadata',restore,{once:true});
+ for(const [messageId,audio] of audioElements){
+  const bubble=[...box.querySelectorAll('.mou-chat-bubble[data-message-id]')].find(el=>el.dataset.messageId===messageId);
+  const replacement=bubble?.querySelector('audio.mou-chat-audio');
+  if(replacement)replacement.replaceWith(audio);
  }
  lastRenderedMessagesKey=renderKey;
- if(wasNearBottom||!audioState.length)box.scrollTop=box.scrollHeight;
+ if(wasNearBottom||!audioElements.size)box.scrollTop=box.scrollHeight;
 }
 async function openSenderProfile(id){
  if(!id)return;
