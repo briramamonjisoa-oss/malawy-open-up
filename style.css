@@ -1251,3 +1251,8 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
  .mou-messages-shell:not(.chat-open) .mou-chat-panel{display:none}
  .mou-messages-shell.chat-open .mou-chat-panel{display:flex}
 }
+
+/* Messenger profile photos and online indicators */
+.mou-contact-avatar,.mou-chat-avatar{position:relative;overflow:hidden}
+.mou-contact-avatar img,.mou-chat-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.mou-contact-presence{display:block;margin-top:3px;color:#8f897d;font-size:9px!important}
