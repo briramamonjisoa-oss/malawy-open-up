@@ -1,6 +1,6 @@
 const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
-const {queuePlayerEventNotification}=require('./notifications');
+const {queuePlayerEventNotification,queuePlayersEventNotification}=require('./notifications');
 const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2',GROUPS='tblOf7CoOFBKpIueo';
 const F={id:'fldBfRkQQLeYnV9ti',key:'fldaRDVwnflWRAR0L',from:'fldV3hCY47mznFBfu',fromName:'fldO6V4B8zA2QGNfW',to:'fld1Kaj1hVyHDPeb0',toName:'fld6MjPNGRqATQDmD',content:'fldOMcUM8kSHFz3ML',created:'fldbLOwXN5hSzieoD',read:'fldtXgb1lWgzNBc0E',status:'fldiPm5xI7CBgEq5q'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
@@ -20,6 +20,16 @@ async function verifyGuildMember(playerId,guildId){
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
+async function guildMemberIds(guildId) {
+ const players=await all(PLAYERS),members=[];
+ for(const row of players){
+  const f=row.fields||{};
+  if(!approved(f[P.status]))continue;
+  let profile={};try{profile=JSON.parse(f[P.profile]||'{}')}catch{}
+  if(String(profile.clanBasicInfo?.clanId||'')===guildId)members.push({id:row.id,pseudo:String(f[P.pseudo]||profile.basicInfo?.nickname||'Joueur')});
+ }
+ return members;
+}
 async function accepted(a,b){const rows=await all(REL);return rows.some(r=>r.fields?.[R.status]==='Acceptée'&&((r.fields[R.from]===a&&r.fields[R.to]===b)||(r.fields[R.to]===a&&r.fields[R.from]===b)));}
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi pour accéder à la messagerie.'});
@@ -52,6 +62,10 @@ exports.handler=async event=>{
    const id='msg_'+crypto.randomUUID(),created=new Date().toISOString(),key='group:'+groupId;
    const fields={[F.id]:id,[F.key]:key,[F.from]:me.id,[F.fromName]:membership.pseudo,[F.to]:key,[F.toName]:membership.groupName,[F.content]:content,[F.created]:created,[F.status]:'Envoyé'};
    const saved=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields}]})});
+   try{
+    const recipients=(await guildMemberIds(groupId)).filter(player=>player.id!==me.id);
+    await queuePlayersEventNotification(recipients.map(player=>player.id),'Nouveau message dans ta guilde',membership.pseudo+' a écrit dans le groupe '+membership.groupName+'.','/#messages','guild-message:'+id);
+   }catch(error){console.warn('Notifications du groupe de guilde non envoyées:',error.message);}
    return out(201,{success:true,id:saved.records?.[0]?.id,message:{id,senderId:me.id,senderPseudo:membership.pseudo,recipientId:key,recipientPseudo:membership.groupName,content,created,mine:true}});
   }
   if(method!=='POST'||b.action!=='send')return out(400,{error:'Action inconnue.'});

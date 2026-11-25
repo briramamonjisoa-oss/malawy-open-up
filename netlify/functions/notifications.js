@@ -95,6 +95,34 @@ async function queuePlayerEventNotification(playerId, title, message, url, key) 
   return { queued: true, id: created.records?.[0]?.id || '' };
 }
 
+async function queuePlayersEventNotification(playerIds, title, message, url, keyPrefix) {
+  const ids = [...new Set((playerIds || []).map(clean).filter(Boolean))];
+  if (!ids.length || !clean(keyPrefix) || !clean(title) || !clean(message)) return { queued: 0 };
+  const queued = await all(QUEUE);
+  const existing = new Set(queued
+    .filter(record => clean(record.fields?.Status) !== 'Échec')
+    .map(record => clean(record.fields?.['Notification Key'])));
+  const rows = ids.filter(id => !existing.has(clean(keyPrefix) + ':' + id)).map(id => ({
+    fields: {
+      Title: clean(title).slice(0, 80),
+      Message: clean(message).slice(0, 500),
+      URL: clean(url) || '/#messages',
+      'Target type': 'player',
+      'Target ID': id,
+      'Scheduled At': new Date().toISOString(),
+      Status: 'En attente',
+      'Notification Key': clean(keyPrefix) + ':' + id
+    }
+  }));
+  if (!rows.length) return { queued: 0, duplicate: true };
+  await createBatch(QUEUE, rows);
+  const env = globalThis.__MOU_ENV || process.env;
+  if ((env.VAPID_PRIVATE_KEY && env.VAPID_PUBLIC_KEY) || env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    await processScheduledNotifications(env);
+  }
+  return { queued: rows.length };
+}
+
 function playerIdsFromSignup(fields) {
   const ids = [];
   for (let i = 1; i <= 4; i++) {
@@ -273,6 +301,7 @@ async function processScheduledNotifications(env) {
 
 exports.queuePlayerApproval = queuePlayerApproval;
 exports.queuePlayerEventNotification = queuePlayerEventNotification;
+exports.queuePlayersEventNotification = queuePlayersEventNotification;
 exports.processScheduledNotifications = processScheduledNotifications;
 
 exports.handler = async event => {
