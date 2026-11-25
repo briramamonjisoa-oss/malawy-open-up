@@ -1,5 +1,6 @@
 const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
+const {queuePlayerEventNotification}=require('./notifications');
 const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2',GROUPS='tblOf7CoOFBKpIueo';
 const F={id:'fldBfRkQQLeYnV9ti',key:'fldaRDVwnflWRAR0L',from:'fldV3hCY47mznFBfu',fromName:'fldO6V4B8zA2QGNfW',to:'fld1Kaj1hVyHDPeb0',toName:'fld6MjPNGRqATQDmD',content:'fldOMcUM8kSHFz3ML',created:'fldbLOwXN5hSzieoD',read:'fldtXgb1lWgzNBc0E',status:'fldiPm5xI7CBgEq5q'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
@@ -63,6 +64,7 @@ exports.handler=async event=>{
   const id='msg_'+crypto.randomUUID(),created=new Date().toISOString(),key=[me.id,target].sort().join('_');
   const fields={[F.id]:id,[F.key]:key,[F.from]:me.id,[F.fromName]:senderPseudo,[F.to]:target,[F.toName]:recipientPseudo,[F.content]:content,[F.created]:created,[F.status]:'Envoyé'};
   const saved=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields}]})});
+  try{await queuePlayerEventNotification(target,'Nouveau message',senderPseudo+' t’a envoyé un message.','/#messages','message:'+id+':'+target);}catch(error){console.warn('Notification de message non envoyée:',error.message);}
   return out(201,{success:true,id:saved.records?.[0]?.id,message:{id,senderId:me.id,senderPseudo,recipientId:target,recipientPseudo,content,created,mine:true}});
  }catch(e){return out(500,{error:e.message||'Erreur messagerie.'});}
 };
