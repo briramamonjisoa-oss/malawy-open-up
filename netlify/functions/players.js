@@ -63,7 +63,8 @@ exports.handler = async (event) => {
 
       return {
         id: record.id,
-        pseudo: fields['Pseudo Free Fire'] || 'Joueur',
+        pseudo: fields['Nom affiché MALAWY'] || fields['Pseudo Free Fire'] || 'Joueur',
+        freeFirePseudo: fields['Pseudo Free Fire'] || 'Joueur',
         playerId: fields['ID Free Fire'] || '',
         mode: fields['Mode de combat'] || 'Inscrit',
         status,
