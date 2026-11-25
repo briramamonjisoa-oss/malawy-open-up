@@ -64,3 +64,23 @@
  body.mou-chat-fullscreen #mouNavV2,body.mou-chat-fullscreen nav.bottom{display:none!important}
 }
 @media(min-width:761px){.mou-flow-chat .mou-messages-shell,.mou-flow-chat .mou-chat-panel{min-height:680px!important}}
+
+
+/* Mobile corrections from user screenshot: strict message rows, hidden inline actions. */
+.mou-flow-chat .mou-chat-message-row{
+ display:flex!important;position:relative!important;float:none!important;
+ clear:both!important;width:100%!important;flex:0 0 auto!important;
+ align-items:flex-end!important;gap:8px!important;min-height:max-content!important;
+}
+.mou-flow-chat .mou-chat-message-row.mine{flex-direction:row-reverse!important;justify-content:flex-start!important;margin-left:0!important}
+.mou-flow-chat .mou-chat-message-row:not(.mine){flex-direction:row!important;justify-content:flex-start!important;margin-right:0!important}
+.mou-flow-chat .mou-chat-message-main{display:flex!important;flex:0 1 auto!important;width:auto!important;max-width:calc(100% - 44px)!important;min-width:0!important;align-items:flex-start!important}
+.mou-flow-chat .mou-chat-message-row.mine .mou-chat-message-main{align-items:flex-end!important}
+.mou-flow-chat .mou-chat-bubble{display:block!important;width:max-content!important;max-width:100%!important;min-width:0!important;white-space:normal!important}
+.mou-flow-chat .mou-message-actions{display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
+.mou-flow-chat .mou-chat-sender-name{max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.mou-flow-chat .mou-chat-sender-avatar{flex:0 0 34px!important}
+.mou-flow-chat .mou-chat-messages{align-items:stretch!important}
+.mou-flow-chat .mou-flow-context{z-index:130020!important}
+#mouFlowSheet{z-index:130040!important}
+#mouFlowSheet .panel{padding-bottom:calc(24px + env(safe-area-inset-bottom))!important}
