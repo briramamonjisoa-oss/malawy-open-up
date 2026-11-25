@@ -91,6 +91,15 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public boolean areNotificationsEnabled() {
+            if (Build.VERSION.SDK_INT >= 33 &&
+                ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+            return androidx.core.app.NotificationManagerCompat.from(MainActivity.this).areNotificationsEnabled();
+        }
+
+        @JavascriptInterface
         public void requestFcmToken() {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
                 if (!task.isSuccessful() || webView == null) return;
