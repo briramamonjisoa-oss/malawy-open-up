@@ -22,13 +22,12 @@ function setup(){
  `;document.head.append(style);
  const profile=document.createElement('section');profile.id='mouFlowProfile';profile.innerHTML='<div class="top"><button class="close" type="button" aria-label="Fermer">×</button></div><div class="hero"><div class="avatar">M</div><h2>Joueur</h2><div class="online">Statut indisponible</div><p class="bio"></p></div><div class="actions"><button type="button" data-profile-action="message">Message</button><button type="button" data-profile-action="audio">Appel audio</button><button type="button" data-profile-action="video">Vidéo</button></div><div class="card"><h3>INFORMATIONS DU JOUEUR</h3><div class="info"><span>Pseudo</span><span data-info="pseudo">—</span></div><div class="info"><span>UID Free Fire</span><span data-info="uid">—</span></div><div class="info"><span>Points</span><span data-info="points">—</span></div><div class="info"><span>Victoires</span><span data-info="wins">—</span></div></div><div class="card"><h3>PHOTOS PARTAGÉES</h3><p class="bio">Les médias de cette conversation sont accessibles dans l’historique des messages.</p></div>';
  document.body.append(profile);
- const sheet=document.createElement('div');sheet.id='mouFlowSheet';sheet.innerHTML='<div class="panel"><h3 style="margin:0 0 14px;color:#ead9a9">Joindre un média</h3><div class="tiles"><button type="button" data-pick="gallery">▧<br>Galerie</button><button type="button" data-pick="camera">▣<br>Caméra</button><button type="button" data-pick="voice">♬<br>Vocal</button></div></div>';document.body.append(sheet);
+ const sheet=document.createElement('div');sheet.id='mouFlowSheet';sheet.innerHTML='<div class="panel"><h3 style="margin:0 0 14px;color:#ead9a9">Joindre un média</h3><div class="tiles"><button type="button" data-pick="gallery">▧<br>Galerie</button><button type="button" data-pick="camera">▣<br>Caméra</button></div></div>';document.body.append(sheet);
  const media=$('mouChatMediaInput'),attach=$('mouChatAttach');
  attach?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();sheet.classList.add('show');},true);
  sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.classList.remove('show');});
  sheet.querySelector('[data-pick="gallery"]').onclick=()=>{sheet.classList.remove('show');media?.click();};
  sheet.querySelector('[data-pick="camera"]').onclick=()=>{sheet.classList.remove('show');let camera=$('mouFlowCamera');if(!camera){camera=document.createElement('input');camera.type='file';camera.id='mouFlowCamera';camera.accept='image/*';camera.capture='environment';camera.hidden=true;document.body.append(camera);camera.addEventListener('change',()=>{if(camera.files?.[0]){const dt=new DataTransfer();dt.items.add(camera.files[0]);media.files=dt.files;media.dispatchEvent(new Event('change',{bubbles:true}));}});}camera.click();};
- sheet.querySelector('[data-pick="voice"]').onclick=()=>{sheet.classList.remove('show');$('mouChatVoice')?.click();};
  const avatar=head.querySelector('#mouChatAvatar'),name=head.querySelector('#mouChatName');
  async function openProfile(){const id=window.MOU_CURRENT_CHAT?.id;if(!id)return;profile.classList.add('show');const pseudo=name?.textContent||'Joueur';profile.querySelector('h2').textContent=pseudo;profile.querySelector('.avatar').textContent=pseudo.slice(0,1).toUpperCase();profile.querySelector('[data-info="pseudo"]').textContent=pseudo;
  try{const data=await api('players?fast=1'),player=(Array.isArray(data)?data:[]).find(x=>String(x.id)===String(id));if(!player)return;profile.querySelector('.avatar').innerHTML=player.photo?'<img src="'+esc(player.photo)+'" alt="">':esc(pseudo.slice(0,1).toUpperCase());profile.querySelector('.online').textContent=player.online?'● En ligne':'○ Hors ligne';profile.querySelector('.bio').textContent=player.bio||'Joueur de la communauté MALAWY OPEN UP';profile.querySelector('[data-info="uid"]').textContent=player.playerId||'Non renseigné';profile.querySelector('[data-info="points"]').textContent=String(player.points??'—');profile.querySelector('[data-info="wins"]').textContent=String(player.wins??'—');}catch(e){console.warn('Profil MALAWY:',e.message);}
@@ -66,13 +65,12 @@ function mountFlowLayout(){
  const shell=document.querySelector('#messages .mou-messages-shell');
  shell?.classList.add('mou-flow-chat');
  const page=document.getElementById('messages');page?.classList.add('mou-flow-chat');
- // Flow composer: attach and microphone controls live inside the rounded input field.
+ // Flow composer: media attachment control stays inside the rounded input field.
  const field=document.createElement('div');field.className='mou-flow-field';
- const attach=document.getElementById('mouChatAttach'),voice=document.getElementById('mouChatVoice');
+ const attach=document.getElementById('mouChatAttach');
  const mediaStatus=document.getElementById('mouChatMediaStatus');
  field.append(input);
  if(attach)field.append(attach);
- if(voice)field.append(voice);
  if(mediaStatus)field.append(mediaStatus);
  form.insertBefore(field,send);
  form.classList.add('mou-flow-composer');
