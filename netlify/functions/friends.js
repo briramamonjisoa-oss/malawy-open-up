@@ -2,7 +2,7 @@ const {airtable,verifyPlayer}=require('./auth');
 const {queuePlayerEventNotification}=require('./notifications');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const RELATIONS='tblQoAGcQhii58Hwe';
-const F={pseudo:'fldaNsxza3T3krjfr',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeSrLJZVOC',lastSeen:'fldnilxQoLEsLNiH2',circleSeen:'fld6FLW3XcwyuqgRo'};
+const F={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeSrLJZVOC',lastSeen:'fldnilxQoLEsLNiH2',circleSeen:'fld6FLW3XcwyuqgRo'};
 const R={key:'fldv1Zlsgkl0YQDHR',from:'fldV969gNKryDledy',fromName:'fldZnm4SNGHBE04cz',to:'fldbn9UWoDNNZPpS6',toName:'fldsPztDNdzkcBdh6',status:'fldV1k5nClaf3CT9M',created:'fldXjv0WpwBUiBFW9',updated:'fldh9cgvKYYYfHnGh'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
@@ -45,7 +45,7 @@ exports.handler=async event=>{
     if(q.length<2)return out(200,{players:[]});
     const rows=await all(PLAYERS);
     const relations=await all(RELATIONS);
-    const players=rows.filter(x=>x.id!==me.id&&String(fields(x)[F.status]||'').toLocaleLowerCase('fr').includes('accept')&&String(fields(x)[F.pseudo]||'').toLocaleLowerCase('fr').includes(q)).slice(0,20).map(x=>({id:x.id,pseudo:fields(x)[F.pseudo]||'Joueur',photo:fields(x)[F.photo]||'',relation:relations.find(r=>{const f=fields(r);return f[R.key]===[me.id,x.id].sort().join('_')})?.fields?.[R.status]||'Aucune'}));
+    const players=rows.filter(x=>x.id!==me.id&&String(fields(x)[F.status]||'').toLocaleLowerCase('fr').includes('accept')&&(String(fields(x)[F.pseudo]||'').toLocaleLowerCase('fr').includes(q)||String(fields(x)[F.uid]||'').includes(q))).slice(0,20).map(x=>({id:x.id,pseudo:fields(x)[F.pseudo]||'Joueur',uid:fields(x)[F.uid]||'',photo:fields(x)[F.photo]||'',relation:relations.find(r=>{const f=fields(r);return f[R.key]===[me.id,x.id].sort().join('_')})?.fields?.[R.status]||'Aucune'}));
     return out(200,{players});
    }
    const rows=await all(RELATIONS,event.queryStringParameters?.fresh==='1');
