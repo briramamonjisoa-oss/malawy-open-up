@@ -182,7 +182,7 @@ async function uploadChatMedia(file,kind){
   if(targetGroup)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content:payload})});
   else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId,content:payload})});
   const d=await request(targetGroup?'messages?group='+encodeURIComponent(targetGroup):'messages?with='+encodeURIComponent(targetId));
-  messages=d.messages||[];renderMessages();if(!targetGroup)await refreshInbox();
+  messages=d.messages||[];renderMessages();
   mediaStatus.textContent='Média envoyé.';
  }catch(error){mediaStatus.textContent=error.message;}
 }
@@ -212,7 +212,7 @@ $('mouChatForm').addEventListener('submit',async e=>{
  const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;
  const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content,created:new Date().toISOString(),mine:true,pending:true};
  messages.push(optimistic);input.value='';renderMessages();status('');button.disabled=false;
- if(!targetGroup)refreshInbox().catch(()=>{});
+ 
  try{
   const result=targetGroup
    ?await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content})})
@@ -220,7 +220,7 @@ $('mouChatForm').addEventListener('submit',async e=>{
   const saved=result.message||null;
   if(saved){const index=messages.findIndex(x=>x.id===optimistic.id);if(index>=0)messages[index]=saved;}
   renderMessages();status('');
-  if(!targetGroup)refreshInbox().catch(()=>{});
+  
  }catch(err){
   messages=messages.filter(x=>x.id!==optimistic.id);renderMessages();status(err.message);input.value=content;
  }finally{input.focus();}
