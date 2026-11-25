@@ -26,7 +26,7 @@ exports.handler=async event=>{
   }
   if(method==='GET'&&event.queryStringParameters?.incoming==='1'){
    const incoming=await find(TABLE,`AND({Destinataire record ID}=${val(me.id)},{Statut}="ringing")`);
-   const live=[];for(const row of incoming){const f=row.fields||{};if(Date.parse(f[F.expires]||'')>Date.now()&&await friend(f[F.from],me.id))live.push({callId:f[F.id],callerId:f[F.from],type:f[F.type],created:f[F.created]});}
+   const live=[];for(const row of incoming){const f=row.fields||{};if(f[F.offer]&&Date.parse(f[F.expires]||'')>Date.now()&&await friend(f[F.from],me.id))live.push({callId:f[F.id],callerId:f[F.from],type:f[F.type],created:f[F.created]});}
    return out(200,{incoming:live.slice(0,3)});
   }
   const callId=String(event.queryStringParameters?.callId||b.callId||'');
