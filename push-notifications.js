@@ -245,25 +245,47 @@
     badge.hidden = unread === 0;
   }
 
+  // Un seul mécanisme FCM partagé par le bouton d’activation et l’inscription.
+  function getAndroidFcmToken(timeout = 15000) {
+    if (!window.MalawyAndroid?.requestFcmToken) {
+      return Promise.reject(new Error('Ouvre MALAWY OPEN UP depuis son application Android.'));
+    }
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (error, token) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        window.removeEventListener('mou:fcm-token', onToken);
+        if (error) reject(error);
+        else resolve(token);
+      };
+      const onToken = event => {
+        const token = String(event.detail || '').trim();
+        if (token.length >= 40) finish(null, token);
+      };
+      const timer = setTimeout(() => finish(new Error('Firebase ne répond pas. Ferme puis rouvre MALAWY OPEN UP et réessaie.')), timeout);
+      window.addEventListener('mou:fcm-token', onToken);
+      try { window.MalawyAndroid.requestFcmToken(); }
+      catch (error) { finish(new Error('Impossible de contacter Firebase sur cet appareil.')); }
+    });
+  }
+
+  window.MalawyNotifications = window.MalawyNotifications || {};
+  window.MalawyNotifications.getAndroidFcmToken = getAndroidFcmToken;
+
   async function registerAndroidPush() {
     if (!window.MalawyAndroid || !playerToken()) return;
-    if (window.__mouFcmTokenHandler) window.removeEventListener('mou:fcm-token', window.__mouFcmTokenHandler);
-    window.__mouFcmTokenHandler = async event => {
-      const token = String(event.detail || '').trim();
-      if (!token) return;
-      try {
-        await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe-fcm', fcmToken: token }) });
-        localStorage.setItem('mou_fcm_saved_token', token);
-        const status = $('#mouPushStatus');
-        if (status) status.textContent = 'Notifications Android activées sur cet appareil.';
-      } catch (error) {
-        const status = $('#mouPushStatus');
-        if (status) status.textContent = 'Inscription des notifications Android impossible : ' + error.message;
-      }
-    };
-    window.addEventListener('mou:fcm-token', window.__mouFcmTokenHandler, { once: true });
-    try { window.MalawyAndroid.requestFcmToken(); }
-    catch (error) { console.warn('FCM bridge unavailable', error); }
+    try {
+      const token = await getAndroidFcmToken();
+      await request('', { method: 'POST', body: JSON.stringify({ action: 'subscribe-fcm', fcmToken: token }) });
+      localStorage.setItem('mou_fcm_saved_token', token);
+      const status = $('#mouPushStatus');
+      if (status) status.textContent = 'Notifications Android activées sur cet appareil.';
+    } catch (error) {
+      const status = $('#mouPushStatus');
+      if (status) status.textContent = 'Inscription des notifications Android impossible : ' + error.message;
+    }
   }
 
   async function syncCurrentSubscription() {
