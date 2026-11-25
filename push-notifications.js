@@ -221,11 +221,13 @@
       if (options.syncSubscription !== false) await syncCurrentSubscription();
       const data = await request('');
       historyItems = data.notifications || [];
-      status.textContent = window.MalawyAndroid
-        ? 'Notifications Android prises en charge par Firebase.'
-        : (('Notification' in window && Notification.permission === 'granted')
-          ? 'Notifications activées sur cet appareil.'
-          : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.');
+      if (!options.silent) {
+        status.textContent = window.MalawyAndroid
+          ? 'Notifications Android prises en charge par Firebase.'
+          : (('Notification' in window && Notification.permission === 'granted')
+            ? 'Notifications activées sur cet appareil.'
+            : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.');
+      }
       list.innerHTML = historyItems.map(item => `
         <article class="mou-notice-item ${item.readAt ? '' : 'unread'}">
           <b>${escapeHtml(item.title)}</b>
