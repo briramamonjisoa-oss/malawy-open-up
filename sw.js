@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v118';
+const CACHE = 'malawy-v119';
 
 const ASSETS = [
   '/',
@@ -6,6 +6,8 @@ const ASSETS = [
   '/offline.html',
   '/style.css',
   '/app.js',
+  '/messages-ui.js',
+  '/calls-ui.js',
   '/ui-controls.js',
   '/access-forms.js',
   '/admin-access.js',
