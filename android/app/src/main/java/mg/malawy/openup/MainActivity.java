@@ -53,6 +53,8 @@ public class MainActivity extends Activity {
     private ConnectivityManager.NetworkCallback networkCallback;
     private boolean offlineScreenVisible = false;
     private boolean networkCallbackRegistered = false;
+    private boolean webPageLoaded = false;
+    private String pendingNotificationPath = null;
 
     private static final String OFFLINE_HTML =
         "<!doctype html><html lang='fr'><head><meta charset='utf-8'>" +
@@ -97,6 +99,19 @@ public class MainActivity extends Activity {
                 return false;
             }
             return androidx.core.app.NotificationManagerCompat.from(MainActivity.this).areNotificationsEnabled();
+        }
+
+        @JavascriptInterface
+        public void requestNotificationPermissionFromWeb() {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT < 33 ||
+                    ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    dispatchNotificationPermissionResult(true);
+                    return;
+                }
+                ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
+            });
         }
 
         @JavascriptInterface
@@ -368,7 +383,9 @@ public class MainActivity extends Activity {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 if (!offlineScreenVisible && hasValidatedInternet()) {
+                    webPageLoaded = true;
                     view.evaluateJavascript("window.dispatchEvent(new Event('mou:refresh-fcm-token'));", null);
+                    openPendingNotificationIfReady();
                 }
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -447,6 +464,12 @@ public class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST) {
+            boolean granted = Build.VERSION.SDK_INT < 33 ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+            dispatchNotificationPermissionResult(granted);
+            return;
+        }
         if (requestCode == MICROPHONE_PERMISSION_REQUEST) {
             PermissionRequest request = pendingWebPermissionRequest;
             pendingWebPermissionRequest = null;
@@ -474,14 +497,36 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void dispatchNotificationPermissionResult(boolean granted) {
+        if (webView == null) return;
+        webView.post(() -> webView.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('mou:notification-permission-result',{detail:" + granted + "}));",
+            null
+        ));
+    }
+
     private void handleNotificationIntent(Intent intent) {
-        if (intent == null || webView == null || offlineScreenVisible || !hasValidatedInternet()) return;
+        if (intent == null) return;
         String path = intent.getStringExtra("mou_url");
-        if (path != null && !path.isEmpty()) {
-            String safePath = path.startsWith("/") ? path : "/";
-            webView.post(() -> webView.evaluateJavascript("window.location.href=" + JSONObject.quote(HOME + safePath) + ";", null));
-            intent.removeExtra("mou_url");
-        }
+        if (path == null || path.isEmpty()) return;
+        pendingNotificationPath = path.startsWith("/") && !path.startsWith("//") ? path : "/#home";
+        intent.removeExtra("mou_url");
+        openPendingNotificationIfReady();
+    }
+
+    private void openPendingNotificationIfReady() {
+        if (pendingNotificationPath == null || webView == null || !webPageLoaded || offlineScreenVisible || !hasValidatedInternet()) return;
+        String path = pendingNotificationPath;
+        pendingNotificationPath = null;
+        String safePath = path.startsWith("/") && !path.startsWith("//") ? path : "/#home";
+        webView.post(() -> {
+            if (webView == null) return;
+            if (offlineScreenVisible || !hasValidatedInternet()) {
+                pendingNotificationPath = safePath;
+                return;
+            }
+            webView.evaluateJavascript("window.location.href=" + JSONObject.quote(HOME + safePath) + ";", null);
+        });
     }
 
     @Override protected void onStart() {
