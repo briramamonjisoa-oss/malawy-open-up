@@ -165,7 +165,7 @@
       target.innerHTML = (data.players || []).map(p => {
         const relation = p.relation || 'Aucune';
         let action = relation === 'Acceptée' ? '<span class="mou-friend-copy"><small>Déjà ami</small></span>' : relation === 'En attente' ? '<span class="mou-friend-copy"><small>Demande en attente</small></span>' : relation === 'Bloquée' ? '<span class="mou-friend-copy"><small>Indisponible</small></span>' : '<button data-friend-add="' + esc(p.id) + '">Ajouter</button>';
-        return row(p.pseudo, 'Joueur MALAWY OPEN UP', action);
+        return row(p.pseudo, 'UID '+(p.uid||'non renseigné'), action);
       }).join('') || empty('Aucun joueur trouvé.');
     } catch (error) { target.innerHTML = empty(error.message); }
   }
