@@ -2,7 +2,7 @@ const {airtable,verifyPlayer}=require('./auth');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const CACHE='tblHgA9YIuR9Oqwe5';
 const GROUPS='tblOf7CoOFBKpIueo';
-const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgWl4cZfCW',synced:'fldr4kMBGAqlN6rU4'};
+const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgWl4cZfCW',synced:'fldr4kMBGAqlN6rU4',status:'fldmc3ktn1we8phLq'};\nconst APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];\nconst approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,''));
 const CF={id:'flde1aEl0Rfmt8oEb',name:'fldqXbfYepLyAxtrD',level:'fld0uMiE1PHh3GoAg',region:'fldNGVDjZxHMbaFKM',members:'fldudC5wdD6EZsQnB',capacity:'fldEVWY1R0aInz996',online:'flde3AkNObHR0BusJ',leader:'fld4Um2XwpcgXoySZ',leaderUid:'fldh2AcVScdk5TQEh',leaderJson:'fldXAWYVwscWFxbo4',raw:'fldhImFvhTHv55oPh',synced:'fldcgxLer6bnBKmkL'};
 const GF={groupId:'fldR1XeGsryaDzlAa',guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',level:'fldClrRG6DV8rrGsg',region:'fldOI53lZNVaqEyT3',leaderRecord:'fldKcXZ2Miz5CmKm1',leaderUid:'fldK0983lKd0dFqfH',leaderName:'flddhMQ8z9yVtfzU2',officers:'fld7ca2t1SdIwGo3c',status:'fldBZBT3Vm1aexeXD',created:'fldtKzjWbRofTULEA',updated:'fldafzcYOPNNq5xGc'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'},body:JSON.stringify(data)});
@@ -10,7 +10,7 @@ const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<2000);return rows;}
 const fields=r=>r?.fields||{};
 async function playerProfile(record,force=false){
- const f=fields(record),uid=String(f[PF.uid]||'').trim();if(!uid)throw new Error('UID Free Fire absent du compte.');
+ const f=fields(record),uid=String(f[PF.uid]||'').trim();if(!approved(f[PF.status]))throw new Error('Ton compte MALAWY OPEN UP doit être accepté et actif.');if(!uid)throw new Error('UID Free Fire absent du compte.');
  let profile=null;try{profile=JSON.parse(f[PF.profile]||'null')}catch{}
  const age=f[PF.synced]?Date.now()-Date.parse(f[PF.synced]):Infinity;
  if(force||!profile||!Number.isFinite(age)||age>5*60*1000){
