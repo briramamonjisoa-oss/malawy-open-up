@@ -1,6 +1,6 @@
 {
-  "latestVersionCode": 13,
-  "latestVersionName": "1.0.30",
+  "latestVersionCode": 14,
+  "latestVersionName": "1.0.31",
   "forceUpdate": true,
-  "apkUrl": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.30-in-app-updater/app-release.apk"
+  "apkUrl": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-release.apk"
 }
