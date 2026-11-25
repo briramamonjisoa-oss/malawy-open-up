@@ -36,7 +36,7 @@ exports.handler=async event=>{
 
    const withId=String(event.queryStringParameters?.with||'');
    if(withId&&withId!==me.id&&!await accepted(me.id,withId))return out(403,{error:'La messagerie privée est réservée aux amis acceptés.'});
-   const rows=await all(TABLE),visible=rows.filter(r=>{const f=r.fields||{};return (f[F.from]===me.id||f[F.to]===me.id)&&(!withId||f[F.from]===withId||f[F.to]===withId)&&f[F.status]!=='Supprimé';});
+   const rows=await all(TABLE),visible=rows.filter(r=>{const f=r.fields||{};return !String(f[F.key]||'').startsWith('group:')&&(f[F.from]===me.id||f[F.to]===me.id)&&(!withId||f[F.from]===withId||f[F.to]===withId)&&f[F.status]!=='Supprimé';});
    if(withId){
     const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
     await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
