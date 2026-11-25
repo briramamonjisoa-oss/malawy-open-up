@@ -36,7 +36,6 @@
         <button type="button" data-profile-open="history"><span>⌁</span><b>Historique</b><small>Matchs et résultats</small><i>›</i></button>
         <button type="button" data-profile-open="photo"><span>◎</span><b>Photo de profil</b><small>Modifier mon image</small><i>›</i></button>
       </div>
-      <div class="mou-profile-account"><div><b>Compte MALAWY</b><small>Session sécurisée avec ton PIN</small></div><button type="button" id="mouProfileLogout">Déconnexion</button></div>
       <div class="mou-profile-modal" id="mouProfileModal" hidden>
         <div class="mou-profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="mouProfileModalTitle">
           <header><button type="button" id="mouProfileBack" aria-label="Retour au profil">‹</button><div><span class="mou-profile-kicker">MALAWY OPEN UP</span><h2 id="mouProfileModalTitle">Mon espace</h2></div><button type="button" id="mouProfileClose" aria-label="Fermer">×</button></header>
@@ -164,7 +163,6 @@
       if(button){open(button.dataset.profileOpen);return;}
       if(e.target.closest('#mouProfileClose')||e.target===modal)close();
       if(e.target.closest('#mouProfileBack'))close();
-      if(e.target.closest('#mouProfileLogout'))logout?.click();
     });
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close();});
     $('#mouProfileHubAvatar',shell).innerHTML=$('#profileAvatar',profile)?.innerHTML||'M';
