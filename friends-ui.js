@@ -73,7 +73,7 @@
       #mouFriends .mou-friends-section-title small{color:#8f887b;font-size:10px}
       #mouFriends .mou-friends-list{display:grid;gap:8px}
       #mouFriends .mou-friend-row{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;max-width:100%;padding:10px;border:1px solid rgba(216,193,138,.13);border-radius:14px;background:rgba(255,255,255,.035)}
-      #mouFriends .mou-friend-row[data-public-player]{cursor:pointer;transition:border-color .18s,background .18s}#mouFriends .mou-friend-row[data-public-player]:hover{border-color:rgba(216,193,138,.4);background:rgba(216,193,138,.07)}#mouFriends .mou-friend-person{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}
+      #mouFriends .mou-friend-person[data-public-player]{cursor:pointer;border-radius:10px}#mouFriends .mou-friend-person[data-public-player]:hover .mou-friend-copy b{color:#e4cd94}#mouFriends .mou-friend-person[data-public-player]:focus-visible{outline:2px solid #dfc98f;outline-offset:3px}#mouFriends .mou-friend-person{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}
       #mouFriends .mou-friend-avatar{display:grid;flex:0 0 36px;width:36px;height:36px;place-items:center;border:1px solid rgba(216,193,138,.25);border-radius:50%;background:linear-gradient(145deg,#29251d,#101114);color:#e1c98f;font-size:13px;font-weight:800}
       #mouFriends .mou-friend-copy{min-width:0;overflow:hidden}
       #mouFriends .mou-friend-copy b{display:block;overflow:hidden;color:#eee8dc;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
@@ -117,7 +117,7 @@
   function row(name, subtitle, actions, publicProfile = false) {
     const safeName = name || 'Joueur';
     const profileAttrs = publicProfile ? ' data-public-player="' + esc(safeName) + '" role="button" tabindex="0" aria-label="Voir le profil de ' + esc(safeName) + '"' : '';
-    return '<article class="mou-friend-row"' + profileAttrs + '><div class="mou-friend-person"><span class="mou-friend-avatar">' + esc(String(safeName).slice(0,1).toUpperCase()) + '</span><span class="mou-friend-copy"><b>' + esc(safeName) + '</b><small>' + esc(subtitle || '') + '</small></span></div><div class="mou-friend-actions">' + actions + '</div></article>';
+    return '<article class="mou-friend-row"><div class="mou-friend-person"' + profileAttrs + '><span class="mou-friend-avatar">' + esc(String(safeName).slice(0,1).toUpperCase()) + '</span><span class="mou-friend-copy"><b>' + esc(safeName) + '</b><small>' + esc(subtitle || '') + '</small></span></div><div class="mou-friend-actions">' + actions + '</div></article>';
   }
   async function load() {
     if (!token()) return;
