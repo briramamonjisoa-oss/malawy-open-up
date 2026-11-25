@@ -1,3 +1,4 @@
+const crypto=require('crypto');
 const {airtable,verifyPlayer}=require('./auth');
 const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2';
 const F={id:'fldBfRkQQLeYnV9ti',key:'fldaRDVwnflWRAR0L',from:'fldV3hCY47mznFBfu',fromName:'fldO6V4B8zA2QGNfW',to:'fld1Kaj1hVyHDPeb0',toName:'fld6MjPNGRqATQDmD',content:'fldOMcUM8kSHFz3ML',created:'fldbLOwXN5hSzieoD',read:'fldtXgb1lWgzNBc0E',status:'fldiPm5xI7CBgEq5q'};

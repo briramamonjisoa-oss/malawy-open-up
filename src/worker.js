@@ -17,6 +17,7 @@ import friends from "../netlify/functions/friends.js";
 import stories from "../netlify/functions/stories.js";
 import messages from "../netlify/functions/messages.js";
 import presence from "../netlify/functions/presence.js";
+import guildGroups from "../netlify/functions/guild-groups.js";
 
 const handlers = {
   admin: admin.handler,
@@ -37,7 +38,8 @@ const handlers = {
   friends: friends.handler,
   stories: stories.handler,
   messages: messages.handler,
-  presence: presence.handler
+  presence: presence.handler,
+  "guild-groups": guildGroups.handler
 };
 
 function json(data, status = 200) {
@@ -62,7 +64,6 @@ export default {
     ctx.waitUntil(Promise.allSettled([
       handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
       handlers.players({httpMethod:"GET",headers:{},body:"",queryStringParameters:{syncOnly:"1"}}),
-      handlers["guild-info"]({httpMethod:"GET",headers:{},body:"",queryStringParameters:{refresh:"1"}}),
       notifications.processScheduledNotifications(env)
     ]));
   },

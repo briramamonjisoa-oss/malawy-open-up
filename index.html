@@ -80,16 +80,28 @@
 <button data-tab="register" class="tab">Inscription</button>
 <button data-tab="players" class="tab">Joueurs</button>
 <button data-tab="profile" class="tab">Mon profil</button>
+<button data-tab="messages" class="tab">Messages</button>
 <button data-tab="matches" class="tab">Matchs</button>
 <button data-tab="ranking" class="tab">Classement</button>
 </nav>
 
 <section id="home" class="page" aria-label="Accueil"></section>
 
+<section id="messages" class="page mou-messages-page">
+ <header class="mou-messages-heading"><div><span class="mou-community-kicker">MALAWY SOCIAL · PRIVÉ</span><h2>Messages</h2><p>Discute avec tes amis de la communauté</p></div><span class="mou-messages-lock">🔒 PRIVÉ</span></header>
+ <div class="mou-messages-shell">
+  <aside class="mou-messages-sidebar"><div class="mou-messages-search"><input id="mouMessageSearch" type="search" placeholder="Rechercher un ami…" autocomplete="off"></div><div id="mouMessageContacts" class="mou-message-contacts"><p class="mou-message-empty">Chargement des amis…</p></div></aside>
+  <section class="mou-chat-panel"><div id="mouChatEmpty" class="mou-chat-empty"><span>✉</span><h3>Ta messagerie</h3><p>Sélectionne un ami pour commencer une conversation privée.</p></div>
+   <div id="mouChatActive" class="mou-chat-active" hidden><header class="mou-chat-header"><button type="button" id="mouChatBack" class="mou-chat-back" aria-label="Retour aux contacts">‹</button><div id="mouChatAvatar" class="mou-chat-avatar">?</div><div><b id="mouChatName">Ami</b><small>Conversation privée</small></div></header><div id="mouChatMessages" class="mou-chat-messages"><p class="mou-message-empty">Chargement…</p></div><form id="mouChatForm" class="mou-chat-form"><input id="mouChatInput" name="content" maxlength="1000" placeholder="Écris ton message…" autocomplete="off" required><button type="submit" aria-label="Envoyer">➤</button></form><p id="mouChatStatus" class="mou-chat-status" aria-live="polite"></p></div>
+  </section>
+ </div><p class="mou-messages-note">La messagerie est réservée aux joueurs connectés qui sont amis (demande acceptée).</p>
+</section>
+
+
 <section id="community" class="page mou-community-page">
  <header class="mou-community-top">
   <div><span class="mou-community-kicker">MALAWY OPEN UP · ESPORT</span><h2>Communauté</h2><p>La communauté des joueurs, des guildes et des compétiteurs</p></div>
-  <div class="mou-community-top-actions"><button type="button" aria-label="Messages" title="Messages"><svg viewBox="0 0 24 24"><path d="m21 3-8.5 18-3.2-7.3L2 10.5 21 3Z"/><path d="m9.3 13.7 5-5"/></svg></button><button type="button" aria-label="Favoris" title="Favoris"><svg viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button></div>
+  <div class="mou-community-top-actions"><button type="button" data-tab="messages" aria-label="Messages" title="Messages"><svg viewBox="0 0 24 24"><path d="m21 3-8.5 18-3.2-7.3L2 10.5 21 3Z"/><path d="m9.3 13.7 5-5"/></svg></button><button type="button" aria-label="Favoris" title="Favoris"><svg viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button></div>
  </header>
  <section class="mou-stories" aria-label="Stories">
   <div class="mou-stories-heading"><span>STORIES</span><small>24 HEURES · BIENTÔT</small></div>
@@ -320,7 +332,8 @@
 <button data-tab="home">⌂<small>Accueil</small></button>
 <button data-tab="register">＋<small>Inscription</small></button>
 <button data-tab="players">◉<small>Joueurs</small></button>
-<button data-tab="profile">◌<small>Mon profil</small></button>
+<button data-tab="profile">◌<small>Profil</small></button>
+<button data-tab="messages">✉<small>Messages</small></button>
 <button data-tab="ranking">≡<small>Classement</small></button>
 <button data-tab="admin">⌘<small>Admin</small></button>
 </nav>
@@ -335,6 +348,7 @@
 
 <script src="/community-feed.js?v=interactions-overlay-v6"></script>
 <script src="/friends-ui.js?v=1"></script>
+<script src="/messages-ui.js?v=1"></script>
 <script src="/stories-presence-ui.js?v=11"></script>
 <script src="/navbar-v2.js?v=meniscus-1"></script>
 <script src="/push-notifications.js?v=5"></script>
@@ -357,10 +371,10 @@
     document.documentElement.style.overflow='hidden';
   }
   function check(){
-    var ua=navigator.userAgent||'';
-    if(!/Android/i.test(ua)) return;
     var bridge=window.MalawyAndroid;
-    var installed=bridge&&typeof bridge.getVersionCode==='function'?Number(bridge.getVersionCode()):0;
+    // Le contrôle obligatoire ne concerne que l'APK natif, jamais Chrome/PWA.
+    if(!bridge||typeof bridge.getVersionCode!=='function') return;
+    var installed=Number(bridge.getVersionCode());
     fetch('/app-version.json?legacy='+Date.now(),{cache:'no-store'})
       .then(function(r){if(!r.ok)throw new Error('version '+r.status);return r.json();})
       .then(function(v){
