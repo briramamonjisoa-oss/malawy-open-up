@@ -97,7 +97,7 @@ function renderContacts(){
  const list=contacts.filter(c=>c.pseudo.toLocaleLowerCase('fr').includes(q));
  $('mouMessageContacts').innerHTML=list.length?list.map(c=>{
   const last=latestFor(c.id),unread=contactsMessages.filter(m=>m.senderId===c.id&&m.recipientId!==c.id&&m.mine===false&&!m.readAt).length;
-  const preview=last?(last.mine?'Vous : ':'')+last.content:'Aucun message pour le moment';
+  const preview=last?(last.mine?'Vous : ':'')+(mediaEnvelope(last.content)?(mediaEnvelope(last.content).type==='image'?'📷 Photo':mediaEnvelope(last.content).type==='video'?'🎬 Vidéo':'🎙 Vocal'):last.content):'Aucun message pour le moment';
   return '<button type="button" class="mou-message-contact '+(c.id===activeId?'active':'')+'" data-contact="'+esc(c.id)+'"><span class="mou-contact-avatar">'+(c.photo?'<img src="'+esc(c.photo)+'" alt="" loading="lazy">':esc(c.pseudo.slice(0,1).toUpperCase()))+'</span><span class="mou-contact-copy"><b>'+esc(c.pseudo)+'</b><small>'+esc(preview)+'</small><small class="mou-contact-presence">'+(c.online?'En ligne':'Hors ligne')+'</small></span><span class="mou-contact-meta">'+(last?'<time>'+esc(time(last.created))+'</time>':'')+(unread?'<i>'+unread+'</i>':'')+'</span></button>';
  }).join(''):'<p class="mou-message-empty" style="padding:18px">'+(contacts.length?'Aucun ami trouvé.':'Aucun ami accepté pour le moment. Va dans Profil → Mon réseau pour ajouter des joueurs et accepter les demandes.')+'</p>';
 }
@@ -137,6 +137,75 @@ $('mouMessageContacts').addEventListener('click',e=>{
  const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);
 });
 $('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
+
+// Media and voice-note controls (uploads use the existing unsigned Cloudinary preset).
+const mediaStyle=document.createElement('style');mediaStyle.textContent=`
+.mou-chat-tools{display:flex;align-items:center;gap:7px;padding:8px 12px 0}
+.mou-chat-tools button{display:grid;place-items:center;width:38px;height:36px;border:1px solid rgba(216,193,138,.25);border-radius:12px;background:rgba(216,193,138,.07);color:#e3d1a2;font-size:17px}
+.mou-chat-tools button:disabled{opacity:.45}
+.mou-chat-media{display:block;max-width:min(100%,260px);max-height:260px;margin-top:7px;border-radius:12px}
+.mou-chat-media video,.mou-chat-media audio{max-width:100%}
+.mou-chat-media audio{width:230px;height:38px}
+.mou-chat-bubble .mou-media-caption{display:block;margin-top:7px}
+.mou-chat-theme{display:flex;gap:6px;align-items:center}
+.mou-chat-theme button{width:24px;height:24px;border-radius:50%;border:1px solid #d8c18a}
+.mou-chat-theme button[aria-pressed=true]{outline:2px solid #fff;outline-offset:2px}
+.mou-messages-shell[data-chat-theme=gold] .mou-chat-bubble.mine{background:linear-gradient(145deg,rgba(161,130,69,.27),rgba(216,193,138,.105))}
+.mou-messages-shell[data-chat-theme=blue] .mou-chat-bubble.mine{border-color:rgba(91,165,235,.4);background:linear-gradient(145deg,rgba(42,104,163,.35),rgba(42,104,163,.12))}
+.mou-messages-shell[data-chat-theme=violet] .mou-chat-bubble.mine{border-color:rgba(174,124,225,.4);background:linear-gradient(145deg,rgba(111,65,153,.35),rgba(111,65,153,.12))}
+`;document.head.appendChild(mediaStyle);
+const chatForm=$('mouChatForm');
+const toolsBar=document.createElement('div');toolsBar.className='mou-chat-tools';
+toolsBar.innerHTML='<button type="button" id="mouChatAttach" aria-label="Joindre une photo ou vidéo" title="Photo / vidéo">＋</button><button type="button" id="mouChatVoice" aria-label="Enregistrer un message vocal" title="Message vocal">🎙</button><span id="mouChatMediaStatus" class="mou-chat-status" aria-live="polite"></span><input id="mouChatMediaInput" type="file" accept="image/*,video/*" hidden>';
+chatForm.parentElement.insertBefore(toolsBar,chatForm);
+const mediaInput=$('mouChatMediaInput'),mediaStatus=$('mouChatMediaStatus');
+function mediaEnvelope(content){try{if(content.startsWith('[[MOU_MEDIA]]'))return JSON.parse(content.slice(13));}catch{}return null;}
+function renderMedia(content){
+ const item=mediaEnvelope(content);if(!item)return esc(content).replace(/\n/g,'<br>');
+ const media=item.type==='image'?'<img class="mou-chat-media" src="'+esc(item.url)+'" alt="Photo envoyée" loading="lazy">':item.type==='video'?'<video class="mou-chat-media" src="'+esc(item.url)+'" controls playsinline preload="metadata"></video>':'<audio class="mou-chat-media" src="'+esc(item.url)+'" controls preload="metadata"></audio>';
+ return media+(item.caption?'<span class="mou-media-caption">'+esc(item.caption)+'</span>':'');
+}
+async function uploadChatMedia(file,kind){
+ if(!file)return;
+ const max=kind==='video'?12*1024*1024:8*1024*1024;
+ if(file.size>max){mediaStatus.textContent='Fichier trop volumineux (limite '+(max/1024/1024)+' Mo).';return;}
+ if(!activeId&&!activeGroupId){mediaStatus.textContent='Ouvre une conversation avant d’envoyer un fichier.';return;}
+ mediaStatus.textContent='Envoi du média…';
+ try{
+  const resource=kind==='image'?'image':'video';
+  const form=new FormData();form.append('file',file);form.append('upload_preset','malawy_photos');form.append('folder','malawy-messenger');
+  const response=await fetch('https://api.cloudinary.com/v1_1/owc0mtlg/'+resource+'/upload',{method:'POST',body:form});
+  const data=await response.json();if(!response.ok||!data.secure_url)throw new Error(data.error?.message||'Échec du téléversement.');
+  const payload='[[MOU_MEDIA]]'+JSON.stringify({type:kind,url:data.secure_url,name:file.name||'',caption:''});
+  const targetId=activeId,targetGroup=activeGroupId;
+  if(targetGroup)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content:payload})});
+  else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId,content:payload})});
+  const d=await request(targetGroup?'messages?group='+encodeURIComponent(targetGroup):'messages?with='+encodeURIComponent(targetId));
+  messages=d.messages||[];renderMessages();if(!targetGroup)await refreshInbox();
+  mediaStatus.textContent='Média envoyé.';
+ }catch(error){mediaStatus.textContent=error.message;}
+}
+$('mouChatAttach').addEventListener('click',()=>mediaInput.click());
+mediaInput.addEventListener('change',()=>{const file=mediaInput.files?.[0];if(file)uploadChatMedia(file,file.type.startsWith('image/')?'image':'video');mediaInput.value='';});
+let voiceRecorder=null,voiceChunks=[];
+$('mouChatVoice').addEventListener('click',async()=>{
+ const button=$('mouChatVoice');
+ if(voiceRecorder&&voiceRecorder.state==='recording'){voiceRecorder.stop();button.textContent='🎙';button.setAttribute('aria-label','Enregistrer un message vocal');return;}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){mediaStatus.textContent='Enregistrement vocal non pris en charge sur cet appareil.';return;}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  voiceChunks=[];voiceRecorder=new MediaRecorder(stream);
+  voiceRecorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data);};
+  voiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});const file=new File([blob],'message-vocal.webm',{type:blob.type});uploadChatMedia(file,'audio');};
+  voiceRecorder.start();button.textContent='■';button.setAttribute('aria-label','Arrêter l’enregistrement');mediaStatus.textContent='Enregistrement… Appuie à nouveau pour envoyer.';
+ }catch(error){mediaStatus.textContent='Autorisation micro refusée ou indisponible.';}
+});
+const savedTheme=localStorage.getItem('mou_chat_theme')||'gold';shell.dataset.chatTheme=savedTheme;
+const themeBar=document.createElement('div');themeBar.className='mou-chat-tools mou-chat-theme';themeBar.setAttribute('aria-label','Thème de discussion');
+themeBar.innerHTML='<span>Thème</span><button type="button" data-theme="gold" aria-label="Or"></button><button type="button" data-theme="blue" aria-label="Bleu"></button><button type="button" data-theme="violet" aria-label="Violet"></button>';
+themeBar.querySelectorAll('[data-theme]').forEach(btn=>{btn.style.background=({gold:'#d8c18a',blue:'#5ba5eb',violet:'#ae7ce1'})[btn.dataset.theme];btn.setAttribute('aria-pressed',String(btn.dataset.theme===savedTheme));btn.addEventListener('click',()=>{shell.dataset.chatTheme=btn.dataset.theme;localStorage.setItem('mou_chat_theme',btn.dataset.theme);themeBar.querySelectorAll('[data-theme]').forEach(x=>x.setAttribute('aria-pressed',String(x===btn)));});});
+chatForm.parentElement.insertBefore(themeBar,chatForm);
+
 $('mouChatForm').addEventListener('submit',async e=>{
  e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||(!activeId&&!activeGroupId))return;
  const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;
