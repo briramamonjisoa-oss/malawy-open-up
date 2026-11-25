@@ -36,7 +36,7 @@ function mountGuildCard(){
  #mouGuildMessengerCard .mou-guild-card-action:disabled{opacity:.55}
  @media(max-width:480px){#mouGuildMessengerCard{align-items:flex-start;flex-wrap:wrap}#mouGuildMessengerCard .mou-guild-card-action{margin-left:55px;max-width:none}}
  `;if(!document.getElementById(style.id))document.head.appendChild(style);
- shell.parentElement.insertBefore(card,shell);return card;
+ const home=document.getElementById('home'),heading=home?.querySelector('.mou-home-heading');if(heading)heading.insertAdjacentElement('afterend',card);else shell.parentElement.insertBefore(card,shell);return card;
 }
 let guildGroupState=null,guildCardTask=null;
 function renderGuildCard(data){
@@ -157,4 +157,5 @@ new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilte
 observePage();startPolling();
 window.addEventListener('mou:player-auth',()=>{if(page().classList.contains('active'))load();else refreshGuildGroup();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&page().classList.contains('active'))pollInbox();});
+refreshGuildGroup();
 })();
