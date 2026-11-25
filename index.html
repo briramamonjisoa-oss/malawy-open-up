@@ -62,10 +62,8 @@
     <label class="mou-auth-field"><span>UID FREE FIRE</span><input name="playerId" required maxlength="40" inputmode="numeric" pattern="[0-9]{5,40}" autocomplete="username" placeholder="Entre ton UID Free Fire"></label>
     <label class="mou-auth-field"><span>PHOTO DE PROFIL · OBLIGATOIRE</span><input name="photo" type="file" accept="image/*" required></label>
     <label class="mou-auth-field"><span>CRÉE TON CODE PIN</span><input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="new-password" placeholder="4 à 8 chiffres"></label>
-    <label class="mou-auth-notification-check" style="display:flex;align-items:center;gap:10px;margin:12px 0;padding:12px;border:1px solid rgba(216,193,138,.35);border-radius:12px;color:#e9dfc9;">
-     <input name="notificationsEnabled" type="checkbox" required style="width:20px;height:20px;accent-color:#d8c18a;flex:0 0 auto;">
-     <span>Activer les notifications sur mon téléphone</span>
-    </label>
+    <button type="button" id="mouSignupEnableNotifications" class="secondary" style="width:100%;margin:12px 0;">🔔 Activer les notifications</button>
+    <p id="mouSignupNotificationStatus" class="access-note" aria-live="polite">Active les notifications avant d’envoyer ta demande.</p>
     <p class="access-note">Les notifications sont obligatoires pour recevoir la confirmation de vérification et les alertes de MALAWY OPEN UP.</p>
     <button class="primary mou-auth-submit" type="submit">Vérifier et créer mon compte <span aria-hidden="true">↗</span></button>
     <p id="signupMsg" class="message mou-auth-message" aria-live="polite"></p>
@@ -382,7 +380,7 @@
 <script defer src="/navigation-fix.js?v=android-back-global-20261125-1"></script>
 <script defer src="/app.js?v=guild-welcome-photo-20261125-1"></script>
 <script defer src="/ui-controls.js"></script>
-<script defer src="/access-forms.js?v=signup-notification-checkbox-20261125-1"></script>
+<script defer src="/access-forms.js?v=signup-notification-real-20261125-1"></script>
 <script defer src="/admin-access.js"></script>
 <script defer src="/admin-dashboard.js?v=20261115-2"></script>
 <script defer src="/tournaments-ui.js?black-velvet-glass-20261116-confirm"></script>
