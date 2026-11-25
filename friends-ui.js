@@ -40,7 +40,7 @@
           <div class="mou-friends-section-title"><b>Demandes reçues</b><small>À confirmer</small></div>
           <div id="mouFriendIncoming" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Chargement…</p></div>
         </section>
-        <section class="mou-friend-pane" data-pane="suggestions" hidden>\n          <div class="mou-friends-section-title"><b>Joueurs à découvrir</b><small>Selon tes amis et ton mode</small></div>\n          <div id="mouFriendSuggestions" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Chargement des suggestions…</p></div>\n        </section>\n        <section class="mou-friend-pane" data-pane="search" hidden>
+        <section class="mou-friend-pane" data-pane="suggestions" hidden>\n          <div class="mou-friends-section-title"><b>Joueurs à découvrir</b><small>Selon tes amis en commun</small></div>\n          <div id="mouFriendSuggestions" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Chargement des suggestions…</p></div>\n        </section>\n        <section class="mou-friend-pane" data-pane="search" hidden>
           <div class="mou-friends-section-title"><b>Découvrir des joueurs</b><small>Recherche par pseudo</small></div>
           <label class="mou-friend-search"><span aria-hidden="true">⌕</span><input id="mouFriendSearch" type="search" minlength="2" placeholder="Rechercher un joueur…" autocomplete="off"></label>
           <div id="mouFriendSearchResults" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Saisis au moins 2 lettres pour commencer.</p></div>
