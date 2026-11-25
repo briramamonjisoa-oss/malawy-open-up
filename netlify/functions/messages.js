@@ -32,7 +32,7 @@ async function guildMemberIds(guildId) {
  }
  return members;
 }
-async function accepted(a,b){const rows=await find(REL,`AND({${R.status}}="Acceptée",OR(AND({${R.from}}=${value(a)},{${R.to}}=${value(b)}),AND({${R.from}}=${value(b)},{${R.to}}=${value(a)})))`);return rows.length>0;}
+async function accepted(a,b){const rows=await find(REL,`AND({${Statut}}="Acceptée",OR(AND({${R.from}}=${value(a)},{${R.to}}=${value(b)}),AND({${R.from}}=${value(b)},{${R.to}}=${value(a)})))`);return rows.length>0;}
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi pour accéder à la messagerie.'});
  const b=body(event),method=event.httpMethod||'GET';
