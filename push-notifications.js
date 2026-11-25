@@ -4,6 +4,8 @@
   // Public VAPID key: add it after generating the VAPID key pair and configuring Cloudflare.
   const VAPID_PUBLIC_KEY = 'BBpVJbMZlNL6Zf9zNlaU7MuWUFqPKGJFEVmxCq9Oe86W1UpfoYo-Ql4YoyUt8P_RhLVGAiDtl1kXHisuyAGINwI';
   const $ = selector => document.querySelector(selector);
+  let messageBadgeTimer = null;
+  let messageUnreadCount = 0;
   let historyItems = [];
   let historyLoading = false;
   let badgeRefreshTimer = null;
@@ -30,6 +32,11 @@
     style.textContent = `
       .mou-bell{position:relative;border:1px solid rgba(216,193,138,.35);background:#09090b;color:#d8c18a;border-radius:14px;min-width:44px;height:44px;font-size:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
       .mou-bell-count{position:absolute;right:-5px;top:-5px;background:linear-gradient(135deg,#e5d3a6,#bda66f);color:#100e09;border-radius:20px;min-width:18px;height:18px;padding:0 4px;font-size:11px;font-weight:900;display:grid;place-items:center}
+      
+      .mou-message-shortcut{position:relative;display:grid;place-items:center;width:44px;min-width:44px;height:44px;border:1px solid rgba(216,193,138,.35);border-radius:14px;background:#09090b;color:#d8c18a;font-size:21px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+      .mou-message-shortcut svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .mou-message-shortcut-count{position:absolute;right:-5px;top:-5px;display:grid;min-width:18px;height:18px;place-items:center;padding:0 4px;border-radius:20px;background:#d8c18a;color:#100e09;font-size:11px;font-weight:900}
+      .mou-message-shortcut-count[hidden]{display:none}
       body.mou-notice-open{overflow:hidden}
       body.mou-notice-open::before{content:'';position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.82);backdrop-filter:blur(9px)}
       .mou-notice-panel{position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);width:min( calc(100vw - 32px), 560px);max-height:min( calc(100dvh - 52px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 780px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;background:linear-gradient(155deg,rgba(22,21,18,.98),rgba(7,7,8,.99) 72%);color:#f3eee3;border:1px solid rgba(216,193,138,.48);border-radius:22px;padding:20px;box-shadow:0 26px 90px rgba(0,0,0,.78),inset 0 1px 0 rgba(255,255,255,.055)}
@@ -123,6 +130,13 @@
     button.innerHTML = '♢<span class="mou-bell-count" hidden>0</span>';
     const settings = $('#settingsToggle');
     header.insertBefore(button, settings || null);
+    const messageButton=document.createElement('button');
+    messageButton.type='button';messageButton.id='mouMessageShortcut';messageButton.className='mou-message-shortcut';
+    messageButton.setAttribute('aria-label','Messages');messageButton.title='Messages';
+    messageButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.5l7.2 3.1L13.5 21 21 3Z"/><path d="m10.2 13.6 5-5"/></svg><span class="mou-message-shortcut-count" hidden>0</span>';
+    header.insertBefore(messageButton,settings||null);
+    messageButton.addEventListener('click',()=>{const tab=document.querySelector('[data-tab="messages"]');if(tab)tab.click();});
+    updateMessageBadge();startMessageBadgeRefresh();
 
     const panel = document.createElement('aside');
     panel.id = 'mouNotificationPanel';
@@ -199,6 +213,28 @@
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Erreur de notification (' + response.status + ').');
     return data;
+  }
+
+  async function updateMessageBadge(){
+    const badge=$('#mouMessageShortcut .mou-message-shortcut-count');
+    if(!badge)return;
+    if(!playerToken()){messageUnreadCount=0;badge.hidden=true;return;}
+    try{
+      const response=await fetch(API+'/.netlify/functions/messages',{headers:auth(playerToken()),cache:'no-store'});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'Messages indisponibles');
+      messageUnreadCount=(data.messages||[]).filter(item=>!item.mine&&!item.readAt).length;
+      badge.textContent=messageUnreadCount>99?'99+':String(messageUnreadCount);
+      badge.hidden=messageUnreadCount===0;
+      const button=$('#mouMessageShortcut');if(button)button.setAttribute('aria-label',messageUnreadCount+' message(s) non lu(s)');
+    }catch(error){console.warn('MALAWY message badge:',error.message);}
+  }
+  function startMessageBadgeRefresh(){
+    if(messageBadgeTimer)clearInterval(messageBadgeTimer);
+    messageBadgeTimer=setInterval(()=>{if(!document.hidden)updateMessageBadge();},12000);
+    window.addEventListener('mou:messages-updated',updateMessageBadge);
+    window.addEventListener('mou:player-auth',updateMessageBadge);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateMessageBadge();});
   }
 
   function updateBadge() {
