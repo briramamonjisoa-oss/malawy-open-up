@@ -103,6 +103,7 @@ function renderContacts(){
 }
 function renderMessages(){
  const box=$('mouChatMessages');
+ if(activeId&&messages.length)saveChatCache(activeId,messages);
  box.innerHTML=messages.length?messages.map(m=>'<div class="mou-chat-bubble '+(m.mine?'mine':'')+'">'+(activeGroupId?'<b class="mou-group-sender">'+esc(m.senderPseudo||'Joueur')+'</b>':'')+renderMedia(m.content)+'<time>'+esc(new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time></div>').join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
  box.scrollTop=box.scrollHeight;
 }
@@ -123,12 +124,12 @@ async function openChat(id,name){
  messages=readChatCache(id);renderMessages();status('');
  try{
   const d=await request('messages?with='+encodeURIComponent(id));if(activeId!==id)return;messages=d.messages||[];
-  renderMessages();await refreshInbox();
+  renderMessages();contactsMessages=contactsMessages.filter(m=>m.senderId!==id&&m.recipientId!==id).concat(messages);renderContacts();
  }catch(e){if(!messages.length)$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
 }
 async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
- try{await Promise.all([refreshInbox(),refreshGuildGroup()]);lastLoad=Date.now();}
+ try{await refreshInbox();lastLoad=Date.now();refreshGuildGroup().catch(()=>{});}
  catch(e){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';}
 }
 $('mouMessageSearch').addEventListener('input',renderContacts);
@@ -235,7 +236,7 @@ async function pollInbox(){
 }
 function startPolling(){
  if(poll)clearInterval(poll);
- poll=setInterval(pollInbox,5000);
+ poll=setInterval(pollInbox,15000);
 }
 let wasActive=false;
 const observePage=()=>{
@@ -248,5 +249,5 @@ new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilte
 observePage();startPolling();
 window.addEventListener('mou:player-auth',()=>{if(page().classList.contains('active'))load();else refreshGuildGroup();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&page().classList.contains('active'))pollInbox();});
-refreshGuildGroup();
+// Le contrôle de guilde est lancé après le chargement léger de la boîte de réception.
 })();
