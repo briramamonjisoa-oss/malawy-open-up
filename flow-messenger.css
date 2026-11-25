@@ -1,53 +1,66 @@
-/* MALAWY Flow messenger — Black Glass + Gold */
-.mou-flow-chat{--flow-gold:#d8c18a}
-.mou-flow-chat .mou-messages-heading{display:none}
-.mou-flow-chat .mou-messages-shell{overflow:hidden!important;border:1px solid #d8c18a30!important;border-radius:24px!important;background:radial-gradient(ellipse at 50% -15%,#d8c18a12,transparent 48%),#080909!important;box-shadow:0 22px 70px #0008!important}
-.mou-flow-chat .mou-messages-sidebar{background:linear-gradient(180deg,#11110f,#080909)!important;border-right:1px solid #d8c18a25!important}
+/* MALAWY messenger — faithful Flow layout, Black Glass + Gold palette */
+.mou-flow-chat{--flow-bg:#080909;--flow-gold:#d8c18a;--flow-muted:#a49b88;color:#f3eee4}
+.mou-flow-chat .mou-messages-heading{display:none!important}
+.mou-flow-chat .mou-messages-shell{overflow:hidden!important;border:1px solid #d8c18a35!important;border-radius:24px!important;background:#080909!important;box-shadow:0 22px 70px #0009!important}
+.mou-flow-chat .mou-messages-sidebar{background:linear-gradient(180deg,#11110f,#080909)!important;border-right:1px solid #d8c18a22!important}
 .mou-flow-chat .mou-messages-search{padding:14px!important}
 .mou-flow-chat .mou-messages-search input{height:46px!important;border:1px solid #d8c18a35!important;border-radius:15px!important;background:#ffffff08!important;color:#f4eee3!important}
 .mou-flow-chat .mou-message-contact{display:flex!important;align-items:center!important;gap:12px!important;margin:4px 9px!important;padding:12px!important;width:calc(100% - 18px)!important;border:1px solid transparent!important;border-radius:17px!important;background:transparent!important;color:#f4eee3!important;text-align:left!important}
-.mou-flow-chat .mou-message-contact.active,.mou-flow-chat .mou-message-contact:hover{border-color:#d8c18a44!important;background:linear-gradient(110deg,#d8c18a1b,#fff05)!important}
-.mou-flow-chat .mou-contact-avatar{width:49px!important;height:49px!important;flex:0 0 49px!important;border:1px solid #d8c18a77!important}
+.mou-flow-chat .mou-message-contact.active,.mou-flow-chat .mou-message-contact:hover{border-color:#d8c18a44!important;background:#d8c18a16!important}
+.mou-flow-chat .mou-contact-avatar{width:49px!important;height:49px!important;flex:0 0 49px!important;border:1px solid #d8c18a77!important;border-radius:50%!important;overflow:hidden!important}
+.mou-flow-chat .mou-contact-avatar img,.mou-flow-chat .mou-flow-avatar img{width:100%;height:100%;object-fit:cover}
 .mou-flow-chat .mou-contact-copy{flex:1!important;min-width:0!important}
 .mou-flow-chat .mou-contact-copy b{color:#f4eee3!important;font-size:13px!important}
 .mou-flow-chat .mou-contact-copy small{color:#999184!important;font-size:11px!important}
 .mou-flow-chat .mou-contact-presence{color:#cbb982!important}
 .mou-flow-chat .mou-chat-panel,.mou-flow-chat .mou-chat-active{background:#080909!important}
-.mou-flow-chat .mou-chat-header{min-height:78px!important;padding:12px 16px!important;background:linear-gradient(180deg,#11110f,#090a0a)!important;border-bottom:1px solid #d8c18a30!important}
+.mou-flow-chat .mou-chat-header{display:flex!important;align-items:center!important;gap:12px!important;min-height:78px!important;padding:10px 14px!important;background:linear-gradient(180deg,#11110f,#090a0a)!important;border-bottom:1px solid #d8c18a30!important;box-shadow:0 6px 28px #0007!important}
 .mou-flow-chat .mou-chat-header b{font:800 15px Inter,Arial,sans-serif!important;color:#f4eee3!important}
-.mou-flow-chat .mou-chat-header small{display:block!important;margin-top:4px!important;color:#b8a77e!important;font-size:10px!important}
-.mou-flow-chat .mou-chat-back{border:1px solid #d8c18a44!important;background:#d8c18a12!important;color:#ead9a9!important}
-.mou-flow-chat .mou-chat-avatar{display:grid!important;place-items:center!important;overflow:hidden!important;background:radial-gradient(circle at 35% 25%,#5b4a2c,#14120d 65%)!important;color:#e7d5a6!important}
-.mou-flow-chat .mou-chat-messages{background:radial-gradient(ellipse at 50% 0%,#d8c18a0b,transparent 42%),#080909!important;scroll-behavior:smooth!important}
-.mou-flow-chat .mou-chat-message-row{animation:mouFlowIn .22s ease both!important}
-.mou-flow-chat .mou-chat-bubble{box-shadow:0 8px 24px #0004!important;backdrop-filter:blur(12px)!important}
-.mou-flow-chat .mou-chat-bubble.mine{background:linear-gradient(145deg,#806b443b,#d8c18a16)!important;border-color:#d8c18a66!important}
-.mou-flow-chat .mou-chat-bubble:not(.mine){background:linear-gradient(145deg,#ffffff10,#ffffff06)!important;border-color:#ffffff20!important}
-.mou-flow-chat .mou-chat-bubble time{color:#aaa18f!important;font-size:10px!important}
-.mou-flow-chat .mou-chat-form,.mou-flow-chat .mou-chat-tools,.mou-flow-chat .mou-chat-theme{background:#090a0a!important}
-.mou-flow-chat .mou-chat-form input{border:1px solid #d8c18a44!important;background:#ffffff0a!important;color:#f4eee3!important}
-.mou-flow-chat .mou-chat-form button{background:linear-gradient(135deg,#bda66f,#ead9a9)!important;color:#17140d!important}
-.mou-flow-chat .mou-chat-tools button{border:1px solid #d8c18a55!important;background:#d8c18a12!important;color:#ead9a9!important}
+.mou-flow-chat .mou-chat-header small{display:block!important;margin-top:4px!important;color:#b8a77e!important;font-size:11px!important}
+.mou-flow-chat .mou-chat-back,.mou-flow-chat .mou-call-header-actions button{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;flex:0 0 42px!important;border:1px solid #d8c18a55!important;border-radius:50%!important;background:#d8c18a10!important;color:#ead9a9!important}
+.mou-flow-chat .mou-chat-avatar{display:grid!important;place-items:center!important;overflow:hidden!important;width:58px!important;height:58px!important;flex:0 0 58px!important;border:2px solid #d8c18a88!important;border-radius:50%!important;background:#211d14!important;color:#ead9a9!important}
+.mou-flow-chat .mou-flow-avatar img{width:100%;height:100%;object-fit:cover}
+.mou-flow-chat .mou-call-header-actions{display:flex!important;gap:8px!important;margin-left:auto!important}
+.mou-flow-chat .mou-chat-messages{display:flex!important;flex-direction:column!important;gap:12px!important;padding:20px 14px!important;background:radial-gradient(ellipse at 50% 0%,#d8c18a0b,transparent 44%),#080909!important;scroll-behavior:smooth!important}
+.mou-flow-chat .mou-chat-message-row{display:flex!important;align-items:flex-end!important;gap:8px!important;max-width:100%!important;animation:mouFlowIn .25s ease both!important}
+.mou-flow-chat .mou-chat-message-row.mine{justify-content:flex-end!important}
+.mou-flow-chat .mou-chat-message-row:not(.mine) .mou-chat-message-main{align-items:flex-start!important}
+.mou-flow-chat .mou-chat-message-main{display:flex!important;flex-direction:column!important;min-width:0!important;max-width:84%!important}
+.mou-flow-chat .mou-chat-sender-avatar{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;flex:0 0 34px!important;overflow:hidden!important;border:1px solid #d8c18a66!important;border-radius:50%!important;background:#211d14!important;color:#ead9a9!important}
+.mou-flow-chat .mou-chat-sender-avatar img{width:100%;height:100%;object-fit:cover}
+.mou-flow-chat .mou-chat-sender-name{padding:0 8px 5px!important;background:none!important;border:0!important;color:#d8c18a!important;font-size:10px!important;font-weight:800!important;letter-spacing:.06em!important}
+.mou-flow-chat .mou-chat-bubble{position:relative!important;max-width:100%!important;padding:12px 15px 9px!important;border:1px solid #ffffff1c!important;border-radius:19px 19px 19px 5px!important;background:linear-gradient(180deg,#ffffff10,#ffffff06)!important;color:#f3eee4!important;box-shadow:0 7px 22px #0005!important;backdrop-filter:blur(12px)!important;font-size:15px!important;line-height:1.45!important;overflow-wrap:anywhere!important}
+.mou-flow-chat .mou-chat-bubble.mine{border-color:#d8c18a66!important;border-radius:19px 19px 5px 19px!important;background:linear-gradient(140deg,#8a744b4a,#d8c18a19)!important}
+.mou-flow-chat .mou-chat-bubble time{display:block!important;margin-top:7px!important;text-align:right!important;color:#aaa18f!important;font-size:10px!important}
+.mou-flow-chat .mou-message-actions{display:flex!important;gap:12px!important;margin-top:8px!important}
+.mou-flow-chat .mou-message-actions button{padding:0!important;border:0!important;background:none!important;color:#d8c18a!important;font-size:12px!important}
+.mou-flow-chat .mou-chat-media{display:block!important;max-width:min(100%,260px)!important;max-height:300px!important;margin-top:6px!important;border-radius:14px!important;object-fit:cover!important}
+.mou-flow-chat .mou-flow-day{align-self:center!important;margin:2px auto 10px!important;padding:4px 12px!important;border:1px solid #d8c18a20!important;border-radius:999px!important;background:#ffffff08!important;color:#a99b7b!important;font-size:10px!important;letter-spacing:.08em!important}
+.mou-flow-chat .mou-flow-composer{display:flex!important;align-items:center!important;gap:9px!important;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px))!important;border-top:1px solid #d8c18a22!important;background:linear-gradient(0deg,#0c0d0df5,#0c0d0dc9)!important;backdrop-filter:blur(16px)!important}
+.mou-flow-chat .mou-flow-field{display:flex!important;align-items:center!important;gap:2px!important;flex:1!important;min-width:0!important;min-height:48px!important;padding:2px 5px 2px 14px!important;border:1px solid #d8c18a38!important;border-radius:999px!important;background:#ffffff08!important}
+.mou-flow-chat .mou-flow-field:focus-within{border-color:#d8c18a99!important;box-shadow:0 0 0 3px #d8c18a18!important}
+.mou-flow-chat .mou-flow-field input{flex:1!important;min-width:0!important;width:100%!important;height:44px!important;padding:0 5px!important;border:0!important;outline:0!important;background:transparent!important;color:#f4eee3!important;font-size:15px!important}
+.mou-flow-chat .mou-flow-field input::placeholder{color:#928a7b!important}
+.mou-flow-chat .mou-flow-field #mouChatAttach,.mou-flow-chat .mou-flow-field #mouChatVoice{display:grid!important;place-items:center!important;width:36px!important;height:36px!important;flex:0 0 36px!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;color:#d8c18a!important;font-size:19px!important}
+.mou-flow-chat .mou-flow-field #mouChatMediaStatus{display:none!important}
+.mou-flow-chat .mou-flow-composer>button[type=submit]{display:grid!important;place-items:center!important;width:48px!important;height:48px!important;flex:0 0 48px!important;padding:0!important;border:0!important;border-radius:50%!important;background:linear-gradient(135deg,#bda66f,#ead9a9)!important;color:#17140d!important;font-size:21px!important;box-shadow:0 6px 22px #d8c18a33!important}
+.mou-flow-chat .mou-flow-reply{margin:0 12px 8px!important;padding:9px 12px!important;border-left:3px solid #d8c18a!important;border-radius:8px!important;background:#d8c18a12!important;color:#e5d3a6!important;font-size:12px!important}
+.mou-flow-chat .mou-chat-theme{display:none!important}
+.mou-flow-chat .mou-chat-status{padding:0 12px!important;color:#bba979!important;font-size:11px!important}
 .mou-flow-chat .mou-chat-empty{background:radial-gradient(circle at 50% 40%,#d8c18a14,transparent 45%),#080909!important}
-.mou-flow-chat .mou-chat-empty>span,.mou-flow-chat .mou-message-actions button{color:#d8c18a!important}
-.mou-flow-chat .mou-reply-preview{border-left-color:#d8c18a!important;background:#d8c18a12!important;color:#e5d3a6!important}
-.mou-flow-day{display:flex;align-items:center;gap:12px;margin:12px auto 22px;max-width:230px;color:#9e9277;font-size:10px;letter-spacing:.13em;text-transform:uppercase}
-.mou-flow-day:before,.mou-flow-day:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,#d8c18a66)}
-.mou-flow-day:after{transform:scaleX(-1)}
-.mou-flow-context{position:fixed;z-index:130000;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100vw - 24px);padding:9px;border:1px solid #d8c18a77;border-radius:17px;background:#100f0df5;box-shadow:0 18px 55px #000b;backdrop-filter:blur(18px)}
-.mou-flow-context button{padding:9px 11px;border:1px solid #d8c18a44;border-radius:11px;background:#d8c18a12;color:#ead9a9;font-size:12px}
-.mou-flow-lightbox{position:fixed;inset:0;z-index:130001;display:grid;place-items:center;padding:18px;background:#000e;backdrop-filter:blur(14px)}
-.mou-flow-lightbox img{max-width:95vw;max-height:88vh;object-fit:contain;border:1px solid #d8c18a77;border-radius:18px}
-.mou-flow-lightbox button{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;width:42px;height:42px;padding:0;border:1px solid #d8c18a66;border-radius:50%;background:#15130f;color:#ead9a9;font-size:24px}
-@keyframes mouFlowIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:760px){body.mou-chat-fullscreen .mou-flow-chat .mou-messages-shell{position:fixed!important;inset:0!important;z-index:100!important;width:100vw!important;height:100dvh!important;max-height:100dvh!important;border:0!important;border-radius:0!important}body.mou-chat-fullscreen .mou-flow-chat .mou-messages-sidebar{display:none!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-panel{width:100%!important;height:100%!important;min-height:0!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-active{display:flex!important;flex-direction:column!important;height:100%!important;max-height:100dvh!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-messages{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-bottom:20px!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-header{padding-top:calc(10px + env(safe-area-inset-top,0px))!important;flex:0 0 auto!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;flex:0 0 auto!important}}
-@media(min-width:761px){.mou-flow-chat .mou-messages-shell,.mou-flow-chat .mou-chat-panel{min-height:680px!important}}
-
-/* Match Flow's mobile hierarchy: header, scrollable timeline, compact actions, composer. */
+.mou-flow-chat .mou-message-empty{color:#a49b88!important}
+@keyframes mouFlowIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @media(max-width:760px){
- body.mou-chat-fullscreen .mou-flow-chat .mou-chat-bubble{max-width:86%!important;border-radius:22px!important;padding:14px 16px!important}
- body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form{gap:8px!important;border-top:1px solid #d8c18a22!important;background:rgba(8,9,9,.98)!important;backdrop-filter:blur(16px)!important}
- body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form input{border-radius:999px!important;padding:0 17px!important;background:#ffffff09!important}
- body.mou-chat-fullscreen .mou-flow-chat .mou-chat-tools button{width:42px!important;height:42px!important;border-radius:50%!important}
- body.mou-chat-fullscreen .mou-flow-chat .mou-chat-status:empty{display:none!important}
+ body.mou-chat-fullscreen{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;overflow:hidden!important;padding:0!important}
+ body.mou-chat-fullscreen #messages{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-messages-shell.chat-open{position:absolute!important;inset:0!important;display:flex!important;flex-direction:column!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;border:0!important;border-radius:0!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-messages-sidebar{display:none!important}
+ body.mou-chat-fullscreen #messages .mou-chat-panel{display:flex!important;flex:1 1 auto!important;min-height:0!important;width:100%!important;height:100%!important}
+ body.mou-chat-fullscreen #messages .mou-chat-active{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-flow-chat .mou-chat-header{flex:0 0 auto!important;padding-top:calc(10px + env(safe-area-inset-top,0px))!important}
+ body.mou-chat-fullscreen #messages .mou-chat-messages{flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+ body.mou-chat-fullscreen #messages .mou-flow-composer{flex:0 0 auto!important;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+ body.mou-chat-fullscreen #messages .mou-chat-status{flex:0 0 auto!important;max-height:24px!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #mouNavV2,body.mou-chat-fullscreen nav.bottom{display:none!important}
 }
+@media(min-width:761px){.mou-flow-chat .mou-messages-shell,.mou-flow-chat .mou-chat-panel{min-height:680px!important}}
