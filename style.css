@@ -1402,3 +1402,26 @@ body[data-accent=violet]{--accent:#ae7ce1;--lime:#ae7ce1}
     padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* FLOW MOBILE CHAT — stable viewport layout, composer always visible */
+@media (max-width:760px){
+ body.mou-chat-fullscreen{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding:0!important;overscroll-behavior:none!important}
+ body.mou-chat-fullscreen #mouNavV2,
+ body.mou-chat-fullscreen>nav.bottom,
+ body.mou-chat-fullscreen>.top,
+ body.mou-chat-fullscreen>header.top,
+ body.mou-chat-fullscreen>main>.tabs{display:none!important}
+ body.mou-chat-fullscreen #messages{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-messages-shell.chat-open{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;border:0!important;border-radius:0!important}
+ body.mou-chat-fullscreen #messages .mou-chat-panel{display:flex!important;flex:1 1 auto!important;min-width:0!important;min-height:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-chat-active{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-chat-header{display:flex!important;flex:0 0 auto!important;min-height:76px!important;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px!important}
+ body.mou-chat-fullscreen #messages .mou-chat-messages{display:flex!important;flex:1 1 0!important;min-height:0!important;height:auto!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;padding:16px 14px 22px!important}
+ body.mou-chat-fullscreen #messages .mou-reply-preview{flex:0 0 auto!important;max-height:54px!important;overflow:hidden!important}
+ body.mou-chat-fullscreen #messages .mou-chat-tools{display:flex!important;flex:0 0 48px!important;min-height:48px!important;max-height:48px!important;align-items:center!important;padding:4px 14px!important}
+ body.mou-chat-fullscreen #messages .mou-chat-theme{display:none!important}
+ body.mou-chat-fullscreen #messages .mou-chat-form{display:flex!important;flex:0 0 auto!important;min-height:66px!important;align-items:center!important;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))!important}
+ body.mou-chat-fullscreen #messages .mou-chat-form input{height:48px!important;min-height:48px!important;font-size:16px!important}
+ body.mou-chat-fullscreen #messages .mou-chat-form button{width:48px!important;height:48px!important;min-width:48px!important;flex:0 0 48px!important}
+ body.mou-chat-fullscreen #messages .mou-chat-status{display:block!important;flex:0 0 auto!important;min-height:0!important;max-height:24px!important;overflow:hidden!important;padding:0 14px env(safe-area-inset-bottom,0px)!important;background:#090a0a!important}
+}
