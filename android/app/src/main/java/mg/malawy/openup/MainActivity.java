@@ -40,7 +40,7 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private static final String HOME = "https://malawy-open-up.briramamonjisoa.workers.dev";
     private static final String VERSION_URL = HOME + "/app-version.json";
-    private static final String APK_URL = "https://malawy-open-up.briramonjisoa.workers.dev/download/android/latest";
+    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.29-direct-download/app-release.apk";
     private boolean updateDialogVisible = false;
     private static final int FILE_CHOOSER_REQUEST = 501;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 502;
