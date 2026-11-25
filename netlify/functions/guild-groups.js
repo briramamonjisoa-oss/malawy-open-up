@@ -2,7 +2,9 @@ const {airtable,verifyPlayer}=require('./auth');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const CACHE='tblHgA9YIuR9Oqwe5';
 const GROUPS='tblOf7CoOFBKpIueo';
-const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgWl4cZfCW',synced:'fldr4kMBGAqlN6rU4',status:'fldmc3ktn1we8phLq'};\nconst APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];\nconst approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,''));
+const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgWl4cZfCW',synced:'fldr4kMBGAqlN6rU4',status:'fldmc3ktn1we8phLq'};
+const APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];
+const approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,''));
 const CF={id:'flde1aEl0Rfmt8oEb',name:'fldqXbfYepLyAxtrD',level:'fld0uMiE1PHh3GoAg',region:'fldNGVDjZxHMbaFKM',members:'fldudC5wdD6EZsQnB',capacity:'fldEVWY1R0aInz996',online:'flde3AkNObHR0BusJ',leader:'fld4Um2XwpcgXoySZ',leaderUid:'fldh2AcVScdk5TQEh',leaderJson:'fldXAWYVwscWFxbo4',raw:'fldhImFvhTHv55oPh',synced:'fldcgxLer6bnBKmkL'};
 const GF={groupId:'fldR1XeGsryaDzlAa',guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',level:'fldClrRG6DV8rrGsg',region:'fldOI53lZNVaqEyT3',leaderRecord:'fldKcXZ2Miz5CmKm1',leaderUid:'fldK0983lKd0dFqfH',leaderName:'flddhMQ8z9yVtfzU2',officers:'fld7ca2t1SdIwGo3c',status:'fldBZBT3Vm1aexeXD',created:'fldtKzjWbRofTULEA',updated:'fldafzcYOPNNq5xGc'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'},body:JSON.stringify(data)});
@@ -56,8 +58,13 @@ exports.handler=async event=>{
   if(method==='GET'){
    const group=await getGroup(resolved.guildId);
    if(!group)return out(200,{group:null,guild:{id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0},canCreate:resolved.isLeader});
-   const g=publicGroup(group),isOfficer=g.officers.some(x=>x.playerRecordId===me.id);
-   if(!resolved.isLeader&&resolved.player.uid!==g.leaderUid&&!isOfficer)return out(403,{error:'Tu ne fais pas partie des responsables de ce groupe.'});
+   let g=publicGroup(group);
+   if(resolved.isLeader&&g.leaderUid!==resolved.player.uid){
+    const now=new Date().toISOString();
+    await airtable(GROUPS+'/'+group.id,{method:'PATCH',body:JSON.stringify({fields:{[GF.leaderRecord]:me.id,[GF.leaderUid]:resolved.player.uid,[GF.leaderName]:resolved.player.pseudo,[GF.name]:String(resolved.clan.clanName||resolved.clan.name||g.name),[GF.officers]:'[]',[GF.updated]:now}})});
+    const refreshed=await airtable(GROUPS+'/'+group.id+'?returnFieldsByFieldId=true');g=publicGroup(refreshed);
+   }
+   const isOfficer=g.officers.some(x=>x.playerRecordId===me.id);
    return out(200,{group:g,canCreate:resolved.isLeader&&g.leaderPlayerId!==me.id,role:resolved.isLeader?'leader':isOfficer?'officer':'member'});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
@@ -77,7 +84,8 @@ exports.handler=async event=>{
    }
    const groupId='guild_'+resolved.guildId;
    const saved=await airtable(encodeURIComponent(GROUPS),{method:'POST',body:JSON.stringify({records:[{fields:{[GF.groupId]:groupId,[GF.guildId]:resolved.guildId,[GF.name]:info.name,[GF.level]:info.level,[GF.region]:info.region,[GF.leaderRecord]:me.id,[GF.leaderUid]:resolved.player.uid,[GF.leaderName]:resolved.player.pseudo,[GF.officers]:'[]',[GF.status]:'Actif',[GF.created]:now,[GF.updated]:now}}]})});
-   return out(201,{success:true,group:publicGroup({id:saved.records?.[0]?.id,fields:saved.records?.[0]?.fields||{}})});
+   const created=await airtable(GROUPS+'/'+saved.records?.[0]?.id+'?returnFieldsByFieldId=true');
+   return out(201,{success:true,group:publicGroup(created)});
   }
   const group=await getGroup(resolved.guildId);if(!group)return out(404,{error:'Le groupe officiel de ta guilde n’existe pas encore.'});
   const gf=fields(group),officers=(()=>{try{return JSON.parse(gf[GF.officers]||'[]')}catch{return []}})();
