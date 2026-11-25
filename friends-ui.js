@@ -3,7 +3,7 @@
   const API = 'https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/friends';
   const token = () => localStorage.getItem('mou_player_token') || '';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let relations = [], timer, presenceTimer, activeFilter = 'friends', presenceBusy = false;
+  let relations = [], timer, presenceTimer, activeFilter = 'friends', presenceBusy = false, circlePresenceBusy = false;
   const request = async (url, options = {}) => {
     const response = await fetch(API + url, { ...options, headers: { Authorization: 'Bearer ' + token(), ...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers || {}) }, cache:'no-store' });
     const data = await response.json().catch(() => ({}));
@@ -75,6 +75,12 @@
       #mouFriends .mou-friend-row{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;max-width:100%;padding:10px;border:1px solid rgba(216,193,138,.13);border-radius:14px;background:rgba(255,255,255,.035)}
       #mouFriends .mou-friend-person[data-public-player]{cursor:pointer;border-radius:10px}#mouFriends .mou-friend-person[data-public-player]:hover .mou-friend-copy b{color:#e4cd94}#mouFriends .mou-friend-person[data-public-player]:focus-visible{outline:2px solid #dfc98f;outline-offset:3px}#mouFriends .mou-friend-person{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}
       #mouFriends .mou-friend-presence{display:inline-block;flex:0 0 9px;width:9px;height:9px;margin-right:1px;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:#777}#mouFriends .mou-friend-presence.is-online{background:#32d583;box-shadow:0 0 9px rgba(50,213,131,.65)}
+      #mouFriends .mou-circle-medallion{position:relative;display:inline-grid;flex:0 0 27px;width:27px;height:27px;place-items:center;margin-right:1px;border:1px solid rgba(216,193,138,.58);border-radius:50%;background:linear-gradient(145deg,rgba(20,19,17,.88),rgba(3,4,5,.76));color:#c9a85e;font-size:13px;font-weight:900;letter-spacing:-.08em;text-shadow:0 0 5px rgba(255,219,133,.35);box-shadow:inset 0 0 7px rgba(216,193,138,.12),0 0 7px rgba(216,193,138,.14)}
+      #mouFriends .mou-circle-medallion.is-active{border-color:#ffe3a0;color:#ffe6a6;text-shadow:0 0 5px #fff0c4,0 0 12px #e8bd60;box-shadow:0 0 5px #f2d184,0 0 13px rgba(255,207,104,.9),0 0 25px rgba(222,166,55,.68),inset 0 0 9px rgba(255,226,159,.3);animation:mouCircleGoldPulse 1.8s ease-in-out infinite}
+      #mouFriends .mou-circle-medallion:after{content:'';position:absolute;right:-2px;bottom:-1px;width:7px;height:7px;border:1px solid #090909;border-radius:50%;background:#777}
+      #mouFriends .mou-circle-medallion.is-online:after{background:#32e58b;box-shadow:0 0 5px #32e58b,0 0 10px rgba(50,229,139,.8)}
+      @keyframes mouCircleGoldPulse{0%,100%{filter:brightness(1);transform:scale(1);box-shadow:0 0 5px #f2d184,0 0 13px rgba(255,207,104,.78),0 0 22px rgba(222,166,55,.5),inset 0 0 9px rgba(255,226,159,.25)}50%{filter:brightness(1.45);transform:scale(1.06);box-shadow:0 0 8px #fff0c4,0 0 19px #f2d184,0 0 34px rgba(222,166,55,.95),inset 0 0 12px rgba(255,239,194,.48)}}
+      @media(prefers-reduced-motion:reduce){#mouFriends .mou-circle-medallion.is-active{animation:none}}
       #mouFriends .mou-friend-avatar{display:grid;flex:0 0 36px;width:36px;height:36px;place-items:center;border:1px solid rgba(216,193,138,.25);border-radius:50%;background:linear-gradient(145deg,#29251d,#101114);color:#e1c98f;font-size:13px;font-weight:800}
       #mouFriends .mou-friend-copy{min-width:0;overflow:hidden}
       #mouFriends .mou-friend-copy b{display:block;overflow:hidden;color:#eee8dc;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
@@ -116,11 +122,12 @@
     if (token()) { load(); startPresence(); }
   }
   const empty = text => '<p class="mou-friend-empty">' + esc(text) + '</p>';
-  function row(name, subtitle, actions, publicProfile = false, online = null) {
+  function row(name, subtitle, actions, publicProfile = false, online = null, circleOnline = false) {
     const safeName = name || 'Joueur';
     const profileAttrs = publicProfile ? ' data-public-player="' + esc(safeName) + '" role="button" tabindex="0" aria-label="Voir le profil de ' + esc(safeName) + '"' : '';
-    const presence = online === null ? '' : '<span class="mou-friend-presence' + (online ? ' is-online' : '') + '" title="' + (online ? 'En ligne' : 'Hors ligne') + '" aria-label="' + (online ? 'En ligne' : 'Hors ligne') + '"></span>';
-    return '<article class="mou-friend-row"><div class="mou-friend-person"' + profileAttrs + '>' + presence + '<span class="mou-friend-avatar">' + esc(String(safeName).slice(0,1).toUpperCase()) + '</span><span class="mou-friend-copy"><b>' + esc(safeName) + '</b><small>' + esc(subtitle || '') + '</small></span></div><div class="mou-friend-actions">' + actions + '</div></article>';
+    const presence = online === null ? '' : '<span class="mou-friend-presence' + (online ? ' is-online' : '') + '" title="' + (online ? 'En ligne sur Malawy' : 'Hors ligne') + '" aria-label="' + (online ? 'En ligne sur Malawy' : 'Hors ligne') + '"></span>';
+    const circleMark = online === null ? '' : '<span class="mou-circle-medallion' + (circleOnline ? ' is-active' : '') + (online ? ' is-online' : '') + '" title="' + (circleOnline ? 'Actif dans le Cercle' : 'Pas actif dans le Cercle') + '" aria-label="' + (circleOnline ? 'Actif dans le Cercle' : 'Pas actif dans le Cercle') + '">M</span>';
+    return '<article class="mou-friend-row"><div class="mou-friend-person"' + profileAttrs + ' >' + presence + circleMark + '<span class="mou-friend-avatar">' + esc(String(safeName).slice(0,1).toUpperCase()) + '</span><span class="mou-friend-copy"><b>' + esc(safeName) + '</b><small>' + esc(subtitle || '') + '</small></span></div><div class="mou-friend-actions">' + actions + '</div></article>';
   }
   async function load() {
     if (!token()) return;
@@ -136,7 +143,7 @@
       document.getElementById('mouRequestsCount').textContent = String(incoming.length);
       document.getElementById('mouRequestsBadge').textContent = String(incoming.length);
       document.getElementById('mouFriendIncoming').innerHTML = incoming.map(x => row(x.pseudo, 'Demande reçue', '<button data-friend-accept="' + esc(x.id) + '">Accepter</button><button data-friend-refuse="' + esc(x.id) + '">Refuser</button>')).join('') || empty('Aucune nouvelle demande pour le moment.');
-      document.getElementById('mouFriendAccepted').innerHTML = accepted.map(x => row(x.pseudo, x.online ? 'En ligne maintenant' : 'Hors ligne', '<button data-friend-remove="' + esc(x.id) + '">Retirer</button>', false, !!x.online)).join('') || empty('Ta liste est vide. Passe dans « Découvrir » pour rechercher des joueurs.');
+      document.getElementById('mouFriendAccepted').innerHTML = accepted.map(x => row(x.pseudo, (x.online ? 'En ligne sur Malawy' : 'Hors ligne') + (x.circleOnline ? ' · Actif dans le Cercle' : ''), '<button data-friend-remove="' + esc(x.id) + '">Retirer</button>', false, !!x.online, !!x.circleOnline)).join('') || empty('Ta liste est vide. Passe dans « Découvrir » pour rechercher des joueurs.');
     } catch (error) { if (message) message.textContent = error.message; }
   }
   async function loadSuggestions() {
@@ -184,15 +191,26 @@
     catch (error) { console.warn('MALAWY presence heartbeat failed:', error.message); }
     finally { presenceBusy = false; }
   }
+  function isCircleActive() { return document.visibilityState !== 'hidden' && !!document.querySelector('#community.active'); }
+  async function sendCirclePresence() {
+    if (!token() || !isCircleActive() || circlePresenceBusy) return;
+    circlePresenceBusy = true;
+    try { await request('', {method:'POST', body:JSON.stringify({action:'circle-presence'})}); }
+    catch (error) { console.warn('MALAWY Circle presence heartbeat failed:', error.message); }
+    finally { circlePresenceBusy = false; }
+  }
   function startPresence() {
     if (presenceTimer) clearInterval(presenceTimer);
     if (!token()) return;
     sendPresence();
+    sendCirclePresence();
     presenceTimer = setInterval(() => {
-      if (document.visibilityState !== 'hidden') { sendPresence(); load(); }
+      if (document.visibilityState !== 'hidden') { sendPresence(); sendCirclePresence(); load(); }
     }, 30000);
   }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token()) { sendPresence(); load(); } });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && token()) { sendPresence(); sendCirclePresence(); load(); } });
+  const circleObserver = new MutationObserver(() => { if (isCircleActive()) sendCirclePresence(); });
+  circleObserver.observe(document.documentElement, {subtree:true,attributes:true,attributeFilter:['class']});
   document.addEventListener('mou:player-auth', () => { mount(); load(); startPresence(); });
   document.addEventListener('DOMContentLoaded', mount);
   const observer = new MutationObserver(mount);
