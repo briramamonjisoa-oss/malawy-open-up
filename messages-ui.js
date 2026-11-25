@@ -223,8 +223,8 @@ $('mouChatMessages').addEventListener('click',async e=>{
 });
 $('mouChatForm').addEventListener('submit',async e=>{
  e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||(!activeId&&!activeGroupId))return;
- const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;const outgoing=replyTo?'↪ '+replyTo.name+' : '+replyTo.content+'\\n\\n'+content:content;replyTo=null;replyPreview.hidden=true;
- const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content,created:new Date().toISOString(),mine:true,pending:true};
+ const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;const outgoing=replyTo?'↪ '+replyTo.name+' : '+replyTo.content+'\n\n'+content:content;replyTo=null;replyPreview.hidden=true;
+ const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content:outgoing,created:new Date().toISOString(),mine:true,pending:true};
  messages.push(optimistic);input.value='';renderMessages();status('');button.disabled=false;
  
  try{
