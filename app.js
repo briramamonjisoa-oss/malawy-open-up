@@ -255,7 +255,7 @@ async function loadPlayerProfile(options={}){
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
   try{const gr=await fetch(API_ORIGIN+'/.netlify/functions/guild-info',{cache:'no-store'});const gd=await gr.json();if(gr.ok&&gd.id)state.guildInfo=gd;}catch(e){console.warn('Guilde Free Fire non actualisée:',e.message);}
   state.player=p;// La vérification silencieuse du profil ne doit pas déclencher une navigation.$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
-  $('#profilePseudo').textContent=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
+  $('#profilePseudo').textContent=p.pseudo;$('#profileDisplayName').value=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=state.guildInfo&&String(state.guildInfo.id)==='3076348376'?{...ff.clanBasicInfo,clanName:state.guildInfo.name,clanLevel:state.guildInfo.level,memberNum:state.guildInfo.members,capacity:state.guildInfo.capacity}:ff.clanBasicInfo||{},pet=ff.petInfo||{};
   const ffCard=$('#freeFireProfileCard');
@@ -330,6 +330,13 @@ $('#playerLoginForm').addEventListener('submit',async e=>{
  state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);await loadPlayerProfile();window.dispatchEvent(new Event('mou:player-auth'));if(state.player){tab('profile');$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;}
  }catch(err){msg.textContent=err.message;}finally{button.disabled=false;}
 });
+$('#saveProfileDisplayName').addEventListener('click',async()=>{
+ const input=$('#profileDisplayName'),msg=$('#profileMsg'),pseudo=String(input.value||'').trim();
+ if(!/^[\\p{L}\\p{N}_. -]{3,24}$/u.test(pseudo)){msg.textContent='Le pseudo doit contenir 3 à 24 caractères.';return;}
+ const button=$('#saveProfileDisplayName');button.disabled=true;msg.textContent='Enregistrement du pseudo…';
+ try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changeDisplayName',pseudo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le pseudo');msg.textContent='Pseudo MALAWY mis à jour.';await loadPlayerProfile();}
+ catch(e){msg.textContent=e.message;}finally{button.disabled=false;}
+});
 $('#saveProfilePhoto').addEventListener('click',async()=>{
  const file=$('#profilePhoto').files[0],msg=$('#profileMsg');if(!file){msg.textContent='Choisis une photo avant de continuer.';return;}
  try{msg.textContent='Envoi de la photo…';const photo=await uploadPhoto(file);const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({photo})});const d=await r.json();if(!r.ok)throw Error(d.error||'Enregistrement impossible');msg.textContent='Photo mise à jour !';await loadPlayerProfile();}
@@ -342,6 +349,9 @@ function closeSettings(){settingsMenu.hidden=true;settingsToggle.setAttribute('a
 settingsToggle.addEventListener('click',()=>{settingsMenu.hidden=!settingsMenu.hidden;settingsToggle.setAttribute('aria-expanded',String(!settingsMenu.hidden));$('#pinResetWrap').hidden=!state.playerToken;$('#themeToggle').textContent=document.body.dataset.theme==='light'?'🌙 Mode sombre':'☀️ Mode clair';});
 document.addEventListener('click',e=>{if(!e.target.closest('#settingsMenu')&&!e.target.closest('#settingsToggle'))closeSettings();});
 const savedTheme=localStorage.getItem('mou_theme')||'dark';document.body.dataset.theme=savedTheme;
+const savedAccent=localStorage.getItem('mou_accent')||'gold';document.body.dataset.accent=savedAccent;
+document.querySelectorAll('[data-accent]').forEach(button=>{button.setAttribute('aria-pressed',String(button.dataset.accent===savedAccent));button.addEventListener('click',()=>{document.body.dataset.accent=button.dataset.accent;localStorage.setItem('mou_accent',button.dataset.accent);document.querySelectorAll('[data-accent]').forEach(x=>x.setAttribute('aria-pressed',String(x===button)));});});
+
 $('#themeToggle').onclick=()=>{const next=document.body.dataset.theme==='light'?'dark':'light';document.body.dataset.theme=next;localStorage.setItem('mou_theme',next);$('#themeToggle').textContent=next==='light'?'🌙 Mode sombre':'☀️ Mode clair';};
 $('#settingsLogout').onclick=()=>{closeSettings();if(state.playerToken)$('#playerLogout').click();if(state.admin)$('#logout').click();if(!state.playerToken&&!state.admin){$('#accessGate').hidden=false;$('#gateMsg').textContent='Tu es déjà déconnecté.';}};
 $('#pinResetForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target),msg=$('#pinResetMsg'),button=e.target.querySelector('button[type="submit"]');const currentPin=String(f.get('currentPin')||''),newPin=String(f.get('newPin')||'');if(!/^[0-9]{4,8}$/.test(newPin)){msg.textContent='Le nouveau PIN doit contenir 4 à 8 chiffres.';return;}button.disabled=true;msg.textContent='Mise à jour…';try{const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.playerToken},body:JSON.stringify({action:'changePin',currentPin,newPin})});const d=await r.json();if(!r.ok)throw Error(d.error||'Impossible de modifier le PIN');e.target.reset();msg.textContent='Code PIN modifié avec succès.';}catch(err){msg.textContent=err.message;}finally{button.disabled=false;}});
