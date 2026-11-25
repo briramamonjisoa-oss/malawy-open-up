@@ -2,7 +2,24 @@
 const API='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/community-feed', $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const root=$('#feedPosts'),publicRoot=$('#homePublicPosts'),modal=$('#feedComposer'),form=$('#feedComposerForm');if(!root||!publicRoot||!modal||!form)return;
-let posts=[],friendIds=new Set(),reply='';
+let posts=[],friendIds=new Set(),viewerId='',reply='';
+const homeStyle=document.createElement('style');homeStyle.textContent=`
+.mou-home-feed{max-width:760px;margin:0 auto;padding:24px 14px 120px!important;color:#f3eee4}
+.mou-home-heading h2{margin:7px 0;font-size:clamp(26px,7vw,34px);color:#f3eee4}
+.mou-home-heading p{margin:0 0 20px;color:#a8a092}
+.mou-home-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 12px}
+.mou-home-section-title h3{margin:4px 0;color:#f3eee4;font-size:22px}
+.mou-home-section-title button{padding:8px 11px;border:1px solid rgba(216,193,138,.25);border-radius:10px;background:rgba(216,193,138,.08);color:#dfc98f;font-size:10px}
+.mou-home-suggestion-rail{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 12px;scroll-snap-type:x mandatory}
+.mou-home-suggestion{display:flex;flex:0 0 142px;min-width:0;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;border:1px solid rgba(216,193,138,.2);border-radius:17px;background:linear-gradient(145deg,rgba(30,28,24,.96),rgba(9,10,12,.98));scroll-snap-align:start;text-align:center}
+.mou-home-avatar{display:grid;width:54px;height:54px;overflow:hidden;place-items:center;border:1px solid rgba(216,193,138,.4);border-radius:50%;background:#242018;color:#dfc98f;font-weight:800}
+.mou-home-avatar img{width:100%;height:100%;object-fit:cover}
+.mou-home-suggestion b{max-width:100%;overflow:hidden;color:#f0eadf;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.mou-home-suggestion small{min-height:26px;color:#a9a092;font-size:9px;line-height:1.4}
+.mou-home-suggestion button{width:100%;padding:8px 9px;border:1px solid rgba(216,193,138,.32);border-radius:9px;background:rgba(216,193,138,.12);color:#e5d09a;font-size:10px}
+.mou-home-public{margin-top:12px}
+`;document.head.appendChild(homeStyle);
+
 const token=()=>sessionStorage.getItem('mou_admin_token')||localStorage.getItem('mou_player_token')||'';
 async function api(method='GET',data){if(!navigator.onLine)throw Error('Vous n’êtes pas connecté à Internet.');const r=await fetch(API,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token()},...(data?{body:JSON.stringify(data)}:{})});const d=await r.json();if(!r.ok)throw Error(d.error||'Action impossible');return d;}
 const dt=s=>s?new Date(s).toLocaleString('fr-FR'):'À l’instant';
@@ -31,7 +48,7 @@ adore:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.7 9l6.5.6
 save:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>'
 }[name]||'');
 function render(){
- const mine=String(JSON.parse(localStorage.getItem('mou_player_profile')||'{}').id||'');
+ const mine=String(viewerId||'');
  const friendPosts=posts.filter(p=>friendIds.has(String(p.authorId))||String(p.authorId)===mine);
  const publicPosts=posts.filter(p=>!friendIds.has(String(p.authorId))&&String(p.authorId)!==mine);
  $('#feedCount').textContent=friendPosts.length+' publication(s)';
@@ -49,7 +66,7 @@ function render(){
  publicRoot.innerHTML=renderList(publicPosts);
 }
 function openComments(post){document.querySelector('.mou-comments-backdrop')?.remove();const comments=posts.find(p=>String(p.id)===String(post.dataset.id))?.comments||[];const items=comments.filter(c=>!c.parent).map(c=>'<article class="mou-comment-item"><b>'+esc(c.pseudo)+'</b><p>'+esc(c.text)+'</p><button type="button" data-modal-reply="'+esc(c.id)+'">Répondre</button>'+comments.filter(x=>x.parent===c.id).map(x=>'<div class="mou-comment-reply"><b>'+esc(x.pseudo)+'</b><p>'+esc(x.text)+'</p></div>').join('')+'</article>').join('')||'<p class="mou-comments-empty">Pas encore de commentaire. Sois le premier !</p>';const layer=document.createElement('div');layer.className='mou-comments-backdrop';layer.innerHTML='<section class="mou-comments-modal" role="dialog" aria-modal="true" aria-label="Commentaires"><header><div><small>MALAWY SOCIAL</small><h3>Commentaires</h3></div><button type="button" class="mou-comments-close" aria-label="Fermer">×</button></header><div class="mou-comments-list">'+items+'</div><form class="mou-comments-modal-form" data-post-id="'+esc(post.dataset.id)+'"><input name="text" maxlength="800" required placeholder="Écrire un commentaire…"><button type="submit">Envoyer</button></form></section>';layer.addEventListener('click',e=>{if(e.target===layer||e.target.closest('.mou-comments-close'))layer.remove();const r=e.target.closest('[data-modal-reply]');if(r){reply=r.dataset.modalReply;const input=layer.querySelector('input[name=text]');input.placeholder='Répondre au commentaire…';input.focus();}});document.body.appendChild(layer);layer.querySelector('input[name=text]').focus();}
-async function refresh(){try{const [feed,network]=await Promise.all([api(),fetch('https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/friends',{headers:{Authorization:'Bearer '+token()},cache:'no-store'}).then(r=>r.json())]);posts=feed.posts||[];friendIds=new Set((network.relations||[]).filter(x=>x.status==='Acceptée').map(x=>String(x.otherId)));render();}catch(e){root.innerHTML='<p class="muted">'+esc(e.message)+'</p>';publicRoot.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
+async function refresh(){try{const [feed,network]=await Promise.all([api(),fetch('https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions/friends',{headers:{Authorization:'Bearer '+token()},cache:'no-store'}).then(r=>r.json())]);posts=feed.posts||[];viewerId=String(feed.viewerId||'');friendIds=new Set((network.relations||[]).filter(x=>x.status==='Acceptée').map(x=>String(x.otherId)));render();}catch(e){root.innerHTML='<p class="muted">'+esc(e.message)+'</p>';publicRoot.innerHTML='<p class="muted">'+esc(e.message)+'</p>';}}
 function open(){if(!token()){alert('Connecte-toi pour publier.');return;}modal.hidden=false;document.body.style.overflow='hidden';}
 function close(){modal.hidden=true;document.body.style.overflow='';}
 $('#feedOpenComposer').onclick=open;$('#feedFloatingButton').onclick=open;document.getElementById('mouSocialCreate')?.addEventListener('click',open);modal.querySelectorAll('[data-close]').forEach(x=>x.onclick=close);
