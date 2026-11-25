@@ -9,7 +9,7 @@ const G={guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',status:'fldBZBT3Vm
 const approved=v=>['accepte','acceptee','accepted','valide','validee','approved'].includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 async function verifyGuildMember(playerId,guildId){
  if(!/^[0-9]{5,24}$/.test(guildId))return null;
- const [player,groups]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(playerId)+'?returnFieldsByFieldId=true'),find(GROUPS,`AND({${ID guilde}}=${value(guildId)},{${Statut}}="Actif")`)]);
+ const [player,groups]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(playerId)+'?returnFieldsByFieldId=true'),find(GROUPS,`AND({ID guilde}=${value(guildId)},{Statut}="Actif")`)]);
  const pf=player.fields||{};if(!approved(pf[P.status]))return null;
  let profile={};try{profile=JSON.parse(pf[P.profile]||'{}')}catch{}
  if(String(profile.clanBasicInfo?.clanId||'')!==guildId)return null;
@@ -42,14 +42,14 @@ exports.handler=async event=>{
    if(groupId){
     const membership=await verifyGuildMember(me.id,groupId);
     if(!membership)return out(403,{error:'Tu dois appartenir à cette guilde et son groupe officiel doit être actif.'});
-    const key='group:'+groupId,rows=await find(TABLE,`AND({${Conversation Key}}=${value(key)},{${Statut}}!="Supprimé")`);
+    const key='group:'+groupId,rows=await find(TABLE,`AND({Conversation Key}=${value(key)},{Statut}!="Supprimé")`);
     const visible=rows.filter(r=>r.fields?.[F.key]===key&&r.fields?.[F.status]!=='Supprimé');
     return out(200,{group:{id:membership.groupId,name:membership.groupName},messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:key,recipientPseudo:membership.groupName,content:f[F.content],created:f[F.created],readAt:'',mine:f[F.from]===me.id};})});
    }
 
    const withId=String(event.queryStringParameters?.with||'');
    if(withId&&withId!==me.id&&!await accepted(me.id,withId))return out(403,{error:'La messagerie privée est réservée aux amis acceptés.'});
-   const pair=withId?`OR(AND({${Expéditeur record ID}}=${value(me.id)},{${Destinataire record ID}}=${value(withId)}),AND({${Expéditeur record ID}}=${value(withId)},{${Destinataire record ID}}=${value(me.id)}))`:`OR({${Expéditeur record ID}}=${value(me.id)},{${Destinataire record ID}}=${value(me.id)})`;const rows=await find(TABLE,`AND({${Statut}}!="Supprimé",NOT(LEFT({${Conversation Key}},6)="group:"),${pair})`),visible=rows;
+   const pair=withId?`OR(AND({Expéditeur record ID}=${value(me.id)},{Destinataire record ID}=${value(withId)}),AND({Expéditeur record ID}=${value(withId)},{Destinataire record ID}=${value(me.id)}))`:`OR({Expéditeur record ID}=${value(me.id)},{Destinataire record ID}=${value(me.id)})`;const rows=await find(TABLE,`AND({Statut}!="Supprimé",NOT(LEFT({Conversation Key},6)="group:"),${pair})`),visible=rows;
    if(withId){
     const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
     await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
