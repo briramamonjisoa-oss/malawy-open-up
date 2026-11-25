@@ -50,7 +50,7 @@ exports.handler=async event=>{
     const players=rows.filter(x=>x.id!==me.id&&String(fields(x)[F.status]||'').toLocaleLowerCase('fr').includes('accept')&&(String(fields(x)[F.pseudo]||'').toLocaleLowerCase('fr').includes(q)||String(fields(x)[F.uid]||'').includes(q))).slice(0,20).map(x=>({id:x.id,pseudo:fields(x)[F.pseudo]||'Joueur',uid:fields(x)[F.uid]||'',photo:fields(x)[F.photo]||'',relation:relations.find(r=>{const f=fields(r);return f[R.key]===[me.id,x.id].sort().join('_')})?.fields?.[R.status]||'Aucune'}));
     return out(200,{players});
    }
-   const rows=await find(RELATIONS,`OR({${R.from}}="${me.id}",{${R.to}}="${me.id}")`);
+   const rows=await find(RELATIONS,`OR({${Joueur demandeur ID}}="${me.id}",{${Joueur destinataire ID}}="${me.id}")`);
    const mineRelations=rows.filter(x=>fields(x)[R.from]===me.id||fields(x)[R.to]===me.id);
    const acceptedIds=mineRelations.filter(x=>fields(x)[R.status]==='Acceptée').map(x=>fields(x)[R.from]===me.id?fields(x)[R.to]:fields(x)[R.from]);
    const playerRows=acceptedIds.length?await byRecordIds(PLAYERS,acceptedIds):[];
