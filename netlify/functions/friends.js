@@ -56,7 +56,7 @@ exports.handler=async event=>{
    const target=String(b.targetId||'');if(!target||target===me.id)return out(400,{error:'Joueur invalide.'});
    const targetRecord=await airtable('Inscriptions/'+encodeURIComponent(target)+'?returnFieldsByFieldId=true');
    const targetFields=fields(targetRecord);if(!targetFields[F.pseudo]||!String(targetFields[F.status]||'').toLocaleLowerCase('fr').includes('accept'))return out(404,{error:'Joueur introuvable ou compte non actif.'});
-   const key=[me.id,target].sort().join('_'),rows=await all(RELATIONS),existing=rows.find(x=>fields(x)[R.key]===key);
+   const key=[me.id,target].sort().join('_'),rows=await all(RELATIONS,true),existing=rows.find(x=>fields(x)[R.key]===key);
    if(existing){const st=fields(existing)[R.status];if(st==='Acceptée')return out(409,{error:'Vous êtes déjà amis.'});if(st==='En attente')return out(200,{success:true,alreadyPending:true});if(st==='Bloquée')return out(403,{error:'Cette relation est bloquée.'});await airtable(RELATIONS+'/'+existing.id,{method:'PATCH',body:JSON.stringify({fields:{[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.updated]:now}})});}
    else await airtable(encodeURIComponent(RELATIONS),{method:'POST',body:JSON.stringify({records:[{fields:{[R.key]:key,[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.created]:now,[R.updated]:now}}]})});
    tableCache.delete(RELATIONS);
