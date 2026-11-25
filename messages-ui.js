@@ -7,6 +7,9 @@ if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
 let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0,replyTo=null;
 const cacheKey=id=>'mou_chat_cache_v1:'+id;
+const inboxCacheKey='mou_messenger_inbox_v2';
+function readInboxCache(){try{const x=JSON.parse(localStorage.getItem(inboxCacheKey)||'{}');return x&&Array.isArray(x.contacts)&&Array.isArray(x.messages)?x:null;}catch{return null;}}
+function saveInboxCache(){try{localStorage.setItem(inboxCacheKey,JSON.stringify({contacts, messages:contactsMessages, savedAt:Date.now()}));}catch(e){}}
 function saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}
 function readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
 const token=()=>localStorage.getItem('mou_player_token')||'';
@@ -17,10 +20,14 @@ async function request(path,options={}){
  const t=token();if(!t)throw Error('Connecte-toi avec ton compte joueur pour utiliser les messages.');
  const headers={Authorization:'Bearer '+t,...(options.headers||{})};
  if(options.body)headers['Content-Type']='application/json';
- const r=await fetch(API+path,{...options,headers,cache:'no-store'});
- const d=await r.json().catch(()=>({}));
- if(!r.ok)throw Error(d.error||'Erreur '+r.status);
- return d;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+ try{
+  const r=await fetch(API+path,{...options,headers,cache:'no-store',signal:options.signal||controller.signal});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw Error(d.error||'Erreur '+r.status);
+  return d;
+ }catch(error){if(error.name==='AbortError')throw Error('Le serveur met trop de temps à répondre. Réessaie dans un instant.');throw error;}
+ finally{clearTimeout(timer);}
 }
 
 function mountGuildCard(){
@@ -143,7 +150,7 @@ async function openChat(id,name){
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;const contact=contacts.find(c=>c.id===id);$('mouChatAvatar').innerHTML=contact?.photo?'<img src="'+esc(contact.photo)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
  shell.classList.add('chat-open');document.body.classList.add('mou-chat-fullscreen');renderContacts();
- messages=readChatCache(id);renderMessages();status('');
+ messages=readChatCache(id);renderMessages();status(messages.length?'':'Chargement des messages…');
  try{
   const d=await request('messages?with='+encodeURIComponent(id));if(activeId!==id)return;messages=d.messages||[];
   renderMessages();contactsMessages=contactsMessages.filter(m=>m.senderId!==id&&m.recipientId!==id).concat(messages);renderContacts();
@@ -151,8 +158,12 @@ async function openChat(id,name){
 }
 async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
- try{await refreshInbox();lastLoad=Date.now();refreshGuildGroup().catch(()=>{});}
- catch(e){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';}
+ const cached=readInboxCache();
+ if(cached){contacts=cached.contacts;contactsMessages=cached.messages;window.MOU_CONTACTS=contacts;renderContacts();}
+ // La boîte de réception s'affiche sans attendre le chargement du groupe de guilde.
+ refreshGuildGroup().catch(()=>{});
+ try{await refreshInbox();lastLoad=Date.now();}
+ catch(e){if(!cached)$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';else status('Synchronisation différée : '+e.message);}
 }
 $('mouMessageSearch').addEventListener('input',renderContacts);
 $('mouMessageContacts').addEventListener('click',e=>{
@@ -185,7 +196,7 @@ const mediaInput=$('mouChatMediaInput'),mediaStatus=$('mouChatMediaStatus');
 function mediaEnvelope(content){try{if(content.startsWith('[[MOU_MEDIA]]'))return JSON.parse(content.slice(13));}catch{}return null;}
 function renderMedia(content){
  const item=mediaEnvelope(content);if(!item)return esc(content).replace(/\n/g,'<br>');
- const media=item.type==='image'?'<img class="mou-chat-media" src="'+esc(item.url)+'" alt="Photo envoyée" loading="lazy">':item.type==='video'?'<video class="mou-chat-media" src="'+esc(item.url)+'" controls playsinline preload="metadata"></video>':'<audio class="mou-chat-media" src="'+esc(item.url)+'" controls preload="metadata"></audio>';
+ const media=item.type==='image'?'<img class="mou-chat-media" src="'+esc(item.url)+'" alt="Photo envoyée" loading="lazy">':item.type==='video'?'<video class="mou-chat-media" src="'+esc(item.url)+'" controls playsinline preload="metadata"></video>':'<audio class="mou-chat-media mou-chat-audio" src="'+esc(item.url)+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate"></audio>';
  return media+(item.caption?'<span class="mou-media-caption">'+esc(item.caption)+'</span>':'');
 }
 async function uploadChatMedia(file,kind){
@@ -219,9 +230,9 @@ $('mouChatVoice').addEventListener('click',async()=>{
   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
   voiceChunks=[];voiceRecorder=new MediaRecorder(stream);
   voiceRecorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data);};
-  voiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});const file=new File([blob],'message-vocal.webm',{type:blob.type});uploadChatMedia(file,'audio');};
+  voiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';return;}const ext=blob.type.includes('ogg')?'ogg':blob.type.includes('mp4')?'m4a':'webm';const file=new File([blob],'message-vocal.'+ext,{type:blob.type||'audio/webm'});uploadChatMedia(file,'audio');};
   voiceRecorder.start();button.textContent='■';button.setAttribute('aria-label','Arrêter l’enregistrement');mediaStatus.textContent='Enregistrement… Appuie à nouveau pour envoyer.';
- }catch(error){mediaStatus.textContent='Autorisation micro refusée ou indisponible.';}
+ }catch(error){mediaStatus.textContent=error.name==='NotAllowedError'?'Autorisation micro refusée. Autorise le micro dans les paramètres du navigateur ou de MALAWY.':error.name==='NotFoundError'?'Aucun micro détecté.':'Impossible d’activer le micro : '+(error.message||'réessaie.');}
 });
 const savedTheme=localStorage.getItem('mou_chat_theme')||'gold';shell.dataset.chatTheme=savedTheme;
 const themeBar=document.createElement('div');themeBar.className='mou-chat-tools mou-chat-theme';themeBar.setAttribute('aria-label','Thème de discussion');
@@ -233,7 +244,8 @@ const replyPreview=document.createElement('div');replyPreview.className='mou-rep
 $('mouChatMessages').addEventListener('click',async e=>{
  const profile=e.target.closest('[data-player-id]');if(profile){e.preventDefault();e.stopPropagation();openSenderProfile(profile.dataset.playerId);return;}
  const reply=e.target.closest('[data-reply]');if(reply){const m=messages.find(x=>(x.messageId||x.id)===reply.dataset.reply);if(!m)return;const content=String(m.content||'').replace(/^↪ [^\\n]+\\n\\n/,'');replyTo={name:m.senderPseudo||'Joueur',content:content.slice(0,140)};replyPreview.textContent='Réponse à '+replyTo.name+' : '+replyTo.content;replyPreview.hidden=false;$('mouChatInput').focus();return;}
- const react=e.target.closest('[data-react]');if(react){let picker=react.parentElement.querySelector('.mou-reaction-picker');if(picker){picker.remove();return;}picker=document.createElement('span');picker.className='mou-reaction-picker';picker.innerHTML=['❤️','😂','👍','😮','😢','🔥'].map(emoji=>'<button type=\"button\" data-emoji=\"'+emoji+'\" data-message=\"'+esc(react.dataset.react)+'\">'+emoji+'</button>').join('');react.parentElement.append(picker);return;}
+ const audio=e.target.closest('audio.mou-chat-audio');if(audio){e.stopPropagation();return;}
+  const react=e.target.closest('[data-react]');if(react){let picker=react.parentElement.querySelector('.mou-reaction-picker');if(picker){picker.remove();return;}picker=document.createElement('span');picker.className='mou-reaction-picker';picker.innerHTML=['❤️','😂','👍','😮','😢','🔥'].map(emoji=>'<button type=\"button\" data-emoji=\"'+emoji+'\" data-message=\"'+esc(react.dataset.react)+'\">'+emoji+'</button>').join('');react.parentElement.append(picker);return;}
  const choice=e.target.closest('[data-emoji]');if(choice){try{const result=await request('message-actions',{method:'POST',body:JSON.stringify({messageId:choice.dataset.message,emoji:choice.dataset.emoji})});choice.parentElement.innerHTML=result.removed?'':'<b>'+choice.dataset.emoji+'</b>'; }catch(error){status(error.message);}return;}
 });
 $('mouChatForm').addEventListener('submit',async e=>{

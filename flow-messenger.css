@@ -84,3 +84,8 @@
 .mou-flow-chat .mou-flow-context{z-index:130020!important}
 #mouFlowSheet{z-index:130040!important}
 #mouFlowSheet .panel{padding-bottom:calc(24px + env(safe-area-inset-bottom))!important}
+
+/* Audio controls: keep native playback independent from message gestures. */
+.mou-flow-chat .mou-chat-audio{display:block!important;width:min(100%,280px)!important;max-width:100%!important;height:42px!important;min-height:42px!important;margin:8px 0 2px!important;opacity:1!important;pointer-events:auto!important;position:relative!important;z-index:2!important}
+.mou-flow-chat .mou-chat-message-row:has(.mou-chat-audio){touch-action:pan-y!important}
+.mou-flow-chat .mou-chat-audio::-webkit-media-controls-panel{background:#d8c18a}
