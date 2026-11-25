@@ -65,10 +65,9 @@ async function syncCall(){
   const data=await api('calls?callId='+encodeURIComponent(currentCall.callId)),call=data.call;
   if(call.status==='ended'){stateText('Appel terminé.');await finish(false);return;}
   if(role==='caller'&&call.answer&&!remoteSet){await pc.setRemoteDescription(JSON.parse(call.answer));remoteSet=true;stateText('Réponse reçue. Connexion…');}
-  for(const item of call.ice||[]){if(item.senderId!==localPlayerId()&&!seenIce.has(item.candidate?.candidate)){if(remoteSet){await pc.addIceCandidate(item.candidate).catch(()=>{});seenIce.add(item.candidate?.candidate);} }}
+  for(const item of call.ice||[]){if(item.senderId===currentCall.peerId&&!seenIce.has(item.candidate?.candidate)){if(remoteSet){await pc.addIceCandidate(item.candidate).catch(()=>{});seenIce.add(item.candidate?.candidate);} }}
  }catch(e){if(e.message.includes('expiré')||e.message.includes('n’existe plus')){stateText(e.message);await finish(false);}}
 }
-function localPlayerId(){return window.MOU_PLAYER_RECORD_ID||'';}
 async function pollIncoming(){
  if(!token()||document.hidden||!document.getElementById('messages')?.classList.contains('active')||currentCall)return;
  try{const d=await api('calls?incoming=1');const call=d.incoming?.[0];if(!call||call.callId===incomingShown)return;incomingShown=call.callId;currentCall={callId:call.callId,peerId:call.callerId,type:call.type};role='callee';show('Un ami',call.type);stateText('Appel entrant…');$('mouCallAccept').hidden=false;$('mouCallDecline').hidden=false;$('mouCallHangup').hidden=true;}catch(e){console.warn('Appels entrants:',e.message);}
