@@ -94,7 +94,10 @@
     if (button) button.disabled = true;
     try {
       if (isSignup) {
-        message.textContent = 'Activation des notifications…';
+        if (!form.elements.notificationsEnabled?.checked) {
+          throw new Error('Coche « Activer les notifications sur mon téléphone » pour envoyer ta demande.');
+        }
+        message.textContent = 'Vérification des notifications…';
         const notification = await prepareSignupNotifications();
         const photo = await uploadProfilePhoto(data.get('photo'), message);
         message.textContent = 'Vérification de ton UID Free Fire…';
