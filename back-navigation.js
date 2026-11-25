@@ -96,7 +96,6 @@
     if (!top) return;
 
     ignoredClose.add(top.id);
-    openLayers.delete(top.id);
     try { top.close(); }
     catch (error) { console.warn('MALAWY back navigation:', error); }
     event.stopImmediatePropagation();
