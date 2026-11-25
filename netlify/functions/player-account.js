@@ -73,9 +73,9 @@ exports.handler=async(event)=>{
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
    const x=JSON.parse(event.body||'{}');
    if(x.action==='changeDisplayName'){
-    const name=String(x.pseudo||'').trim().replace(/\\s+/g,' ');
-    if(!/^[\\p{L}\\p{N}_. -]{3,24}$/u.test(name))return{statusCode:400,headers,body:JSON.stringify({error:'Le pseudo doit contenir 3 à 24 caractères (lettres, chiffres, espaces, point, tiret ou underscore).'})};
-    const safe=name.toLocaleLowerCase('fr').replace(/\\\\/g,'\\\\\\\\').replace(/'/g,"\\\\'");
+    const name=String(x.pseudo||'').trim().replace(/\s+/g,' ');
+    if(!/^[\p{L}\p{N}_. -]{3,24}$/u.test(name))return{statusCode:400,headers,body:JSON.stringify({error:'Le pseudo doit contenir 3 à 24 caractères (lettres, chiffres, espaces, point, tiret ou underscore).'})};
+    const safe=name.toLocaleLowerCase('fr').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const q=new URLSearchParams({filterByFormula:"LOWER({Nom affiché MALAWY})='"+safe+"'",pageSize:'100'});
     const matches=await airtable('Inscriptions?'+q.toString());
     if((matches.records||[]).some(row=>row.id!==session.id))return{statusCode:409,headers,body:JSON.stringify({error:'Ce pseudo est déjà utilisé.'})};
