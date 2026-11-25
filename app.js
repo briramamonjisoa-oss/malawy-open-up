@@ -26,7 +26,7 @@ function tab(n,remember=true){
  window.scrollTo(0,0);
 }
 function addPageBackButtons(){
- $('.page').forEach(p=>{
+ $$('.page').forEach(p=>{
   if(p.id==='home'||p.querySelector('.page-back'))return;
   const b=document.createElement('button');b.type='button';b.className='secondary page-back';b.dataset.back='true';b.textContent='← Retour';p.insertBefore(b,p.firstChild);
  });
