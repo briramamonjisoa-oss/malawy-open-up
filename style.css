@@ -1314,3 +1314,16 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
  body.mou-chat-fullscreen .mou-chat-status{flex:0 0 auto!important;background:#0b0b0b!important;padding:2px 14px 6px!important}
  body.mou-chat-fullscreen .mou-chat-media{max-width:min(78vw,420px)!important;max-height:48vh!important}
 }
+
+/* MALAWY profile settings and global accent themes */
+.mou-profile-edit{display:grid;gap:10px;margin:22px 0;padding:17px;border:1px solid rgba(216,193,138,.25);border-radius:16px;background:rgba(216,193,138,.035)}
+.mou-profile-edit h3{margin:0;color:var(--accent,var(--lime))}
+.mou-profile-edit label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.mou-profile-edit input{width:100%;padding:13px;background:#0f1420;color:white;border:1px solid #394258;border-radius:10px;font:14px Inter}
+.mou-profile-edit small{color:var(--muted);font-size:11px}
+.mou-accent-options{display:flex;gap:8px;padding:4px 0 12px}
+.mou-accent-options button{flex:1;border:1px solid var(--line);background:#151515;color:#eee;padding:10px}
+.mou-accent-options button[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:2px}
+body[data-accent=gold]{--accent:#d8c18a;--lime:#d8c18a}
+body[data-accent=blue]{--accent:#5ba5eb;--lime:#5ba5eb}
+body[data-accent=violet]{--accent:#ae7ce1;--lime:#ae7ce1}
