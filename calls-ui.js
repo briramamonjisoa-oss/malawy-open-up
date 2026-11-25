@@ -34,7 +34,7 @@ function hide(){$('mouCallOverlay').hidden=true;}
 async function media(type){if(!navigator.mediaDevices?.getUserMedia)throw Error('Micro/caméra indisponible. Ouvre le site dans un navigateur sécurisé et autorise les permissions.');return navigator.mediaDevices.getUserMedia({audio:true,video:type==='video'?{facingMode:'user'}:false});}
 function setupPeer(iceServers){
  pc=new RTCPeerConnection({iceServers:iceServers||[{urls:'stun:stun.l.google.com:19302'}]});remoteStream=new MediaStream();$('mouCallRemote').srcObject=remoteStream;
- pc.ontrack=e=>{e.streams[0]?.getTracks().forEach(t=>remoteStream.addTrack(t));$('mouCallRemote').play().catch(()=>{});};
+ pc.ontrack=e=>{const tracks=e.streams?.[0]?.getTracks?.()||[e.track].filter(Boolean);tracks.forEach(t=>{if(!remoteStream.getTrackById(t.id))remoteStream.addTrack(t);});const remote=$('mouCallRemote');if(remote){remote.srcObject=remoteStream;remote.play().catch(()=>stateText('Appel reçu. Appuie sur lecture si le son ne démarre pas.'));}};
  pc.onicecandidate=e=>{if(e.candidate&&currentCall)api('calls',{method:'POST',body:JSON.stringify({action:'candidate',callId:currentCall.callId,candidate:e.candidate.toJSON()})}).catch(err=>stateText(err.message));};
  pc.onconnectionstatechange=()=>{const s=pc?.connectionState;if(s==='connected')stateText('Appel connecté');if(s==='failed')stateText('Connexion impossible. Un relais TURN peut être nécessaire sur ce réseau.');if(s==='disconnected')stateText('Connexion interrompue…');};
  stream?.getTracks().forEach(t=>pc.addTrack(t,stream));
@@ -46,7 +46,7 @@ async function start(type){
   const started=await api('calls',{method:'POST',body:JSON.stringify({action:'start',targetId:chat.id,type})});currentCall={callId:started.callId,peerId:chat.id,type};role='caller';setupPeer(started.iceServers);
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);await api('calls',{method:'POST',body:JSON.stringify({action:'offer',callId:currentCall.callId,sdp:JSON.stringify(pc.localDescription)})});
   $('mouCallAccept').hidden=true;$('mouCallDecline').hidden=true;$('mouCallHangup').hidden=false;stateText('Appel en cours… En attente de réponse.');beginPolling();
- }catch(e){stateText(e.message);if(!currentCall){stream?.getTracks().forEach(t=>t.stop());stream=null;}}
+ }catch(e){stateText(e.message);if(currentCall)await finish(true);else{stream?.getTracks().forEach(t=>t.stop());stream=null;} }
 }
 async function acceptIncoming(){
  if(!currentCall)return;
@@ -55,7 +55,7 @@ async function acceptIncoming(){
   const offer=JSON.parse(data.call.offer);await pc.setRemoteDescription(offer);remoteSet=true;
   const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await api('calls',{method:'POST',body:JSON.stringify({action:'answer',callId:currentCall.callId,sdp:JSON.stringify(pc.localDescription)})});
   $('mouCallAccept').hidden=true;$('mouCallDecline').hidden=true;stateText('Connexion à ton ami…');beginPolling();
- }catch(e){stateText(e.message);}
+ }catch(e){stateText(e.message);await finish(true);}
 }
 async function declineIncoming(){if(currentCall)await api('calls',{method:'POST',body:JSON.stringify({action:'decline',callId:currentCall.callId})}).catch(()=>{});await finish(false);}
 function beginPolling(){clearInterval(pollTimer);pollTimer=setInterval(syncCall,1800);syncCall();}
@@ -75,7 +75,7 @@ async function pollIncoming(){
 async function finish(notify){
  clearInterval(pollTimer);pollTimer=null;
  if(notify&&currentCall)await api('calls',{method:'POST',body:JSON.stringify({action:'end',callId:currentCall.callId})}).catch(()=>{});
- pc?.close();pc=null;stream?.getTracks().forEach(t=>t.stop());stream=null;remoteStream=null;currentCall=null;role='';remoteSet=false;seenIce.clear();if($('mouCallRemote'))$('mouCallRemote').srcObject=null;if($('mouCallLocal'))$('mouCallLocal').srcObject=null;hide();
+ pc?.close();pc=null;stream?.getTracks().forEach(t=>t.stop());stream=null;remoteStream=null;currentCall=null;role='';remoteSet=false;seenIce.clear();muted=false;cameraOff=false;if($('mouCallRemote'))$('mouCallRemote').srcObject=null;if($('mouCallLocal'))$('mouCallLocal').srcObject=null;hide();
 }
 mount();setInterval(pollIncoming,5000);window.addEventListener('beforeunload',()=>{if(currentCall)api('calls',{method:'POST',body:JSON.stringify({action:'end',callId:currentCall.callId})}).catch(()=>{});});
 })();
