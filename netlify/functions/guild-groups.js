@@ -60,7 +60,7 @@ exports.handler=async event=>{
    const guild={id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0,leaderPseudo:resolved.captain.nickname||'',leaderUid:resolved.captainUid};
    if(!group)return out(200,{group:null,guild,canCreate:resolved.isLeader,role:resolved.isLeader?'leader':'member',members:[]});
    let g=publicGroup(group);
-   if(resolved.isLeader&&g.leaderUid!==resolved.player.uid){
+   if(resolved.isLeader&&(g.leaderUid!==resolved.player.uid||g.leaderPlayerId!==me.id)){
     const now=new Date().toISOString();
     await airtable(GROUPS+'/'+group.id,{method:'PATCH',body:JSON.stringify({fields:{[GF.leaderRecord]:me.id,[GF.leaderUid]:resolved.player.uid,[GF.leaderName]:resolved.player.pseudo,[GF.name]:String(resolved.clan.clanName||resolved.clan.name||g.name),[GF.officers]:'[]',[GF.updated]:now}})});
     const refreshed=await airtable(GROUPS+'/'+group.id+'?returnFieldsByFieldId=true');g=publicGroup(refreshed);

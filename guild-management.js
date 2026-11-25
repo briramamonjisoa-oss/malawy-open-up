@@ -16,10 +16,7 @@
   const grid=$('#mouProfileHub .mou-profile-grid');
   if(!grid||mounted)return;
   mounted=true;
-  const tile=document.createElement('button');
-  tile.type='button';tile.dataset.guildManagementOpen='';
-  tile.innerHTML='<span>♜</span><b>Ma guilde</b><small>Chef, officiers et membres</small><i>›</i>';
-  grid.append(tile);
+  // La tuile « Ma guilde » est créée dans le profil ; ce module lui ajoute son comportement.
   const style=document.createElement('style');style.id='mouGuildManagementStyles';
   style.textContent=`
    #mouGuildModal{position:fixed;inset:0;z-index:12500;display:flex;align-items:stretch;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom));background:rgba(0,0,0,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
@@ -89,8 +86,11 @@
   if(action==='create'&&!confirm('Créer l’espace officiel MALAWY pour cette guilde Free Fire ?'))return;
   if(action==='removeOfficer'&&!confirm('Retirer le rôle d’officier à ce joueur ?'))return;
   busy=true;const root=$('#mouGuildContent');const buttons=root?.querySelectorAll('button');buttons?.forEach(b=>b.disabled=true);
-  try{await request('POST',{action,playerRecordId});await load(false);}
-  catch(error){if(root){const feedback=document.createElement('p');feedback.className='guild-feedback guild-error';feedback.textContent=error.message;root.prepend(feedback);}}
+  try{
+   await request('POST',{action,playerRecordId});
+   busy=false;
+   await load(false);
+  }catch(error){if(root){const feedback=document.createElement('p');feedback.className='guild-feedback guild-error';feedback.textContent=error.message;root.prepend(feedback);}}
   finally{busy=false;buttons?.forEach(b=>b.disabled=false);}
  }
  const observer=new MutationObserver(mount);
