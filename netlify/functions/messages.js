@@ -76,7 +76,7 @@ exports.handler=async event=>{
   if(method!=='POST'||b.action!=='send')return out(400,{error:'Action inconnue.'});
   const target=String(b.targetId||''),content=String(b.content||'').trim();
   if(!target||target===me.id)return out(400,{error:'Destinataire invalide.'});
-  if(!content||content.length>1000)return out(400,{error:'Le message doit contenir entre 1 et 1 000 caractères.'});
+  if(!content||content.length>1300)return out(400,{error:'Le message doit contenir entre 1 et 1 300 caractères.'});
   if(!await accepted(me.id,target))return out(403,{error:'Tu dois être ami avec ce joueur pour lui envoyer un message privé.'});
   const [sender,recipient]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),airtable(PLAYERS+'/'+encodeURIComponent(target)+'?returnFieldsByFieldId=true')]);
   const senderPseudo=String(sender.fields?.[P.displayPseudo]||sender.fields?.fldaNsxza3T3krjfr||me.pseudo||'Joueur'),recipientPseudo=String(recipient.fields?.[P.displayPseudo]||recipient.fields?.fldaNsxza3T3krjfr||'Joueur');
