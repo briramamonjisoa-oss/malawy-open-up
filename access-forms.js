@@ -24,69 +24,14 @@
     showMode(button.id === 'showSignup' ? 'signup' : 'login');
   }, true);
 
-  function waitForFcmToken(timeout = 30000) {
-    return new Promise((resolve, reject) => {
-      let permissionResolved = false;
-      let tokenResolved = false;
-      let permissionGranted = false;
-      let token = '';
-      let done = false;
-      const cleanup = () => {
-        clearTimeout(timer);
-        window.removeEventListener('mou:notification-permission', onPermission);
-        window.removeEventListener('mou:fcm-token', onToken);
-      };
-      const finish = (error) => {
-        if (done) return;
-        done = true;
-        cleanup();
-        if (error) reject(error);
-        else resolve(token);
-      };
-      const completeIfReady = () => {
-        if (permissionResolved && !permissionGranted) {
-          finish(new Error('Notifications refusées. Ouvre les paramètres Android > Applications > MALAWY OPEN UP > Notifications, active-les, puis réessaie.'));
-          return;
-        }
-        if (permissionGranted && tokenResolved) finish(null);
-      };
-      const onPermission = event => {
-        permissionResolved = true;
-        permissionGranted = event.detail === true;
-        if (permissionGranted) {
-          try { window.MalawyAndroid.requestFcmToken(); }
-          catch (error) { finish(new Error('Impossible de récupérer le service de notification Android. Réessaie.')); return; }
-        }
-        completeIfReady();
-      };
-      const onToken = event => {
-        token = String(event.detail || '').trim();
-        tokenResolved = token.length >= 40;
-        completeIfReady();
-      };
-      const timer = setTimeout(() => finish(new Error(
-        'Android ne répond pas à la demande de notification. Vérifie les autorisations de MALAWY OPEN UP dans les paramètres du téléphone, puis réessaie.'
-      )), timeout);
-      window.addEventListener('mou:notification-permission', onPermission);
-      window.addEventListener('mou:fcm-token', onToken);
-      try {
-        if (!window.MalawyAndroid?.requestFcmToken) {
-          finish(new Error('Ouvre MALAWY OPEN UP depuis son application Android officielle pour activer les notifications.'));
-          return;
-        }
-        if (window.MalawyAndroid.requestNotificationPermission) {
-          window.MalawyAndroid.requestNotificationPermission();
-        } else {
-          // Compatibilité avec l’APK déjà installé : il demande l’autorisation au démarrage.
-          // On conserve son pont FCM existant sans exiger une mise à jour de l’APK.
-          permissionResolved = true;
-          permissionGranted = true;
-          window.MalawyAndroid.requestFcmToken();
-        }
-      } catch (error) {
-        finish(new Error('Impossible de demander les notifications Android. Vérifie les autorisations de l’application.'));
-      }
-    });
+  function waitForFcmToken() {
+    // Réutilise exactement le fournisseur FCM utilisé par le bouton
+    // « Activer les notifications » dans le panneau Notifications.
+    const getToken = window.MalawyNotifications?.getAndroidFcmToken;
+    if (typeof getToken !== 'function') {
+      return Promise.reject(new Error('Le service Firebase n’est pas prêt. Ferme puis rouvre MALAWY OPEN UP et réessaie.'));
+    }
+    return getToken();
   }
 
   function applicationKey() {
