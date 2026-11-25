@@ -1,4 +1,5 @@
 const {airtable,verifyPlayer}=require('./auth');
+const {queuePlayerEventNotification}=require('./notifications');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const CACHE='tblHgA9YIuR9Oqwe5';
 const GROUPS='tblOf7CoOFBKpIueo';
@@ -6,7 +7,7 @@ const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgW
 const APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];
 const approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 const CF={id:'flde1aEl0Rfmt8oEb',name:'fldqXbfYepLyAxtrD',level:'fld0uMiE1PHh3GoAg',region:'fldNGVDjZxHMbaFKM',members:'fldudC5wdD6EZsQnB',capacity:'fldEVWY1R0aInz996',online:'flde3AkNObHR0BusJ',leader:'fld4Um2XwpcgXoySZ',leaderUid:'fldh2AcVScdk5TQEh',leaderJson:'fldXAWYVwscWFxbo4',raw:'fldhImFvhTHv55oPh',synced:'fldcgxLer6bnBKmkL'};
-const GF={groupId:'fldR1XeGsryaDzlAa',guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',level:'fldClrRG6DV8rrGsg',region:'fldOI53lZNVaqEyT3',leaderRecord:'fldKcXZ2Miz5CmKm1',leaderUid:'fldK0983lKd0dFqfH',leaderName:'flddhMQ8z9yVtfzU2',officers:'fld7ca2t1SdIwGo3c',status:'fldBZBT3Vm1aexeXD',created:'fldtKzjWbRofTULEA',updated:'fldafzcYOPNNq5xGc'};
+const GF={groupId:'fldR1XeGsryaDzlAa',guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',level:'fldClrRG6DV8rrGsg',region:'fldOI53lZNVaqEyT3',leaderRecord:'fldKcXZ2Miz5CmKm1',leaderUid:'fldK0983lKd0dFqfH',leaderName:'flddhMQ8z9yVtfzU2',officers:'fld7ca2t1SdIwGo3c',status:'fldBZBT3Vm1aexeXD',created:'fldtKzjWbRofTULEA',updated:'fldafzcYOPNNq5xGc',photo:'fldjoJiutMFR6TNQ7'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<2000);return rows;}
@@ -49,16 +50,44 @@ async function resolveMe(me,force=false){
  return {record,player,basic,clan,captain,guildId,captainUid,isLeader};
 }
 async function getGroup(guildId){return (await all(GROUPS)).find(r=>String(fields(r)[GF.guildId]||'')===guildId)||null;}
-function publicGroup(r){const f=fields(r);let officers=[];try{officers=JSON.parse(f[GF.officers]||'[]')}catch{}return {id:r.id,groupId:f[GF.groupId],guildId:f[GF.guildId],name:f[GF.name],level:Number(f[GF.level])||0,region:f[GF.region]||'',leaderPlayerId:f[GF.leaderRecord],leaderUid:f[GF.leaderUid],leaderPseudo:f[GF.leaderName],officers,status:f[GF.status]||'Actif',createdAt:f[GF.created]};}
+async function notifyGuildWelcome(player,guild){
+ const key='guild-welcome:'+guild.id+':'+player.id;
+ const title='Bienvenue, chef de guilde !';
+ const message='Ton groupe '+guild.name+' a été créé automatiquement dans MALAWY OPEN UP. Le nom et les informations de ta guilde sont déjà renseignés. Ouvre « Ma guilde » pour choisir sa photo et accueillir tes membres.';
+ try{await queuePlayerEventNotification(player.id,title,message,'/#messages',key);}catch(error){console.warn('Push bienvenue guilde:',error.message);}
+ try{
+  const history=await all('Notifications');
+  if(!history.some(r=>String(fields(r)['Notification Key']||'')===key)){
+   await airtable(encodeURIComponent('Notifications'),{method:'POST',body:JSON.stringify({records:[{fields:{'Player record ID':player.id,Title:title,Message:message,URL:'/#messages','Created At':new Date().toISOString(),'Notification Key':key}}]})});
+  }
+ }catch(error){console.warn('Historique bienvenue guilde:',error.message);}
+}
+function publicGroup(r){const f=fields(r);let officers=[];try{officers=JSON.parse(f[GF.officers]||'[]')}catch{}return {id:r.id,groupId:f[GF.groupId],guildId:f[GF.guildId],name:f[GF.name],level:Number(f[GF.level])||0,region:f[GF.region]||'',leaderPlayerId:f[GF.leaderRecord],leaderUid:f[GF.leaderUid],leaderPseudo:f[GF.leaderName],officers,status:f[GF.status]||'Actif',createdAt:f[GF.created],photo:f[GF.photo]||''};}
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi avec ton compte MALAWY OPEN UP.'});
  const method=event.httpMethod||'GET',b=body(event),action=String(b.action||event.queryStringParameters?.action||'mine');
  try{
   const resolved=await resolveMe(me,action==='refresh');
   if(method==='GET'){
-   const group=await getGroup(resolved.guildId);
-   const guild={id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0,leaderPseudo:resolved.captain.nickname||'',leaderUid:resolved.captainUid};
-   if(!group)return out(200,{group:null,guild,canCreate:resolved.isLeader,role:resolved.isLeader?'leader':'member',members:[]});
+   let group=await getGroup(resolved.guildId),welcomeCreated=false;
+   let guild={id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0,leaderPseudo:resolved.captain.nickname||'',leaderUid:resolved.captainUid};
+   if(!group&&resolved.isLeader){
+    const info=await guildInfo(resolved.guildId);
+    if(!info.name)return out(502,{error:'Le nom officiel de la guilde est indisponible.'});
+    await syncGuildCache(info,resolved.player);
+    guild={...guild,name:info.name,level:info.level};
+    group=await getGroup(resolved.guildId);
+    if(!group){
+     const now=new Date().toISOString(),groupId='guild_'+resolved.guildId;
+     const created=await airtable(encodeURIComponent(GROUPS),{method:'POST',body:JSON.stringify({records:[{fields:{[GF.groupId]:groupId,[GF.guildId]:resolved.guildId,[GF.name]:info.name,[GF.level]:info.level,[GF.region]:info.region,[GF.leaderRecord]:me.id,[GF.leaderUid]:resolved.player.uid,[GF.leaderName]:resolved.player.pseudo,[GF.officers]:'[]',[GF.status]:'Actif',[GF.created]:now,[GF.updated]:now}}]})});
+     const recordId=created.records?.[0]?.id;
+     if(!recordId)throw new Error('Le groupe de guilde n’a pas pu être créé dans Airtable.');
+     group=await airtable(GROUPS+'/'+encodeURIComponent(recordId)+'?returnFieldsByFieldId=true');
+     welcomeCreated=true;
+     await notifyGuildWelcome({id:me.id,pseudo:resolved.player.pseudo},info);
+    }
+   }
+   if(!group)return out(200,{group:null,guild,canCreate:false,role:'member',members:[]});
    let g=publicGroup(group);
    if(resolved.isLeader&&(g.leaderUid!==resolved.player.uid||g.leaderPlayerId!==me.id)){
     const now=new Date().toISOString();
@@ -78,7 +107,7 @@ exports.handler=async event=>{
     return [{playerRecordId:r.id,uid,pseudo:String(p?.basicInfo?.nickname||f[PF.pseudo]||'Joueur'),role:r.id===g.leaderPlayerId?'leader':officer?'officer':'member'}];
    });
    members.sort((a,b)=>(a.role==='leader'?-1:b.role==='leader'?1:a.role==='officer'?-1:b.role==='officer'?1:a.pseudo.localeCompare(b.pseudo,'fr')));
-   return out(200,{group:g,guild,canCreate:resolved.isLeader&&g.leaderPlayerId!==me.id,role:resolved.isLeader?'leader':isOfficer?'officer':'member',members});
+   return out(200,{group:g,guild,canCreate:resolved.isLeader&&g.leaderPlayerId!==me.id,role:resolved.isLeader?'leader':isOfficer?'officer':'member',members,welcomeCreated});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(action==='create'){
@@ -103,7 +132,14 @@ exports.handler=async event=>{
   const group=await getGroup(resolved.guildId);if(!group)return out(404,{error:'Le groupe officiel de ta guilde n’existe pas encore.'});
   const gf=fields(group),officers=(()=>{try{return JSON.parse(gf[GF.officers]||'[]')}catch{return []}})();
   if(gf[GF.status]!=='Actif')return out(403,{error:'Ce groupe est actuellement suspendu.'});
-  if(!resolved.isLeader||gf[GF.leaderRecord]!==me.id)return out(403,{error:'Seul le chef actuellement vérifié par Free Fire peut gérer les officiers.'});
+  if(!resolved.isLeader||gf[GF.leaderRecord]!==me.id)return out(403,{error:'Seul le chef actuellement vérifié par Free Fire peut gérer ce groupe.'});
+  if(action==='updatePhoto'){
+   const photo=String(b.photo||'').trim();
+   if(photo&&!/^https:\/\//i.test(photo))return out(400,{error:'Photo de groupe invalide.'});
+   await airtable(GROUPS+'/'+group.id,{method:'PATCH',body:JSON.stringify({fields:{[GF.photo]:photo,[GF.updated]:new Date().toISOString()}})});
+   const updated=await airtable(GROUPS+'/'+group.id+'?returnFieldsByFieldId=true');
+   return out(200,{success:true,group:publicGroup(updated)});
+  }
   if(action==='appointOfficer'||action==='removeOfficer'){
    const targetId=String(b.playerRecordId||'').trim();if(!targetId||targetId===me.id)return out(400,{error:'Joueur cible invalide.'});
    let targetProfile=null;

@@ -49,6 +49,17 @@
    #mouGuildContent .guild-error{color:#ffb1a8;border-color:rgba(255,120,100,.3)}
    #mouGuildContent .guild-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:12px}
    #mouGuildContent .guild-toolbar button{padding:8px 10px;border:1px solid rgba(216,193,138,.24);border-radius:10px;background:transparent;color:#e1ca94;font-size:10px}
+   #mouGuildContent .guild-photo-row{display:flex;align-items:center;gap:13px;margin-bottom:12px}
+   #mouGuildContent .guild-photo{width:76px;height:76px;flex:0 0 76px;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(216,193,138,.4);border-radius:20px;background:#171613;color:#e5ce96;font-size:28px}
+   #mouGuildContent .guild-photo img{width:100%;height:100%;object-fit:cover}
+   #mouGuildContent .guild-photo-tools{display:grid;gap:6px;min-width:0}
+   #mouGuildContent .guild-photo-tools b{font-size:12px}
+   #mouGuildContent .guild-photo-tools small{color:#a9a397;font-size:10px}
+   #mouGuildContent .guild-photo-tools label{display:inline-flex;width:max-content;max-width:100%;padding:8px 10px;border:1px solid rgba(216,193,138,.3);border-radius:10px;color:#e5ce96;font-size:10px;font-weight:800;cursor:pointer}
+   #mouGuildContent .guild-photo-tools input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+   #mouGuildContent .guild-welcome{margin-bottom:14px;padding:13px;border:1px solid rgba(216,193,138,.4);border-radius:15px;background:rgba(216,193,138,.08)}
+   #mouGuildContent .guild-welcome b{display:block;color:#e5ce96;font-size:13px;margin-bottom:5px}
+   #mouGuildContent .guild-welcome p{margin:0;color:#c1b9aa;font-size:11px;line-height:1.5}
   `;
   document.head.append(style);
   const modal=document.createElement('div');modal.id='mouGuildModal';modal.hidden=true;
@@ -56,9 +67,13 @@
   document.body.append(modal);
   grid.addEventListener('click',e=>{if(e.target.closest('[data-guild-management-open]'))open();});
   modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-guild-close]'))close();const action=e.target.closest('[data-guild-action]');if(action)manage(action.dataset.guildAction,action.dataset.playerId);});
+  modal.addEventListener('change',e=>{if(e.target.id==='mouGuildPhotoFile'&&e.target.files?.[0])saveGuildPhoto(e.target.files[0],e.target);});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close();});
  }
  function open(){const modal=$('#mouGuildModal');if(!modal)return;modal.hidden=false;document.body.style.overflow='hidden';load();}
+ let welcomePending=false;
+ window.addEventListener('mou:guild-welcome',()=>{welcomePending=true;setTimeout(()=>{mount();if($('#mouGuildModal'))open();},180);});
+
  function close(){const modal=$('#mouGuildModal');if(!modal)return;modal.hidden=true;document.body.style.overflow='';}
  function roleName(role){return role==='leader'?'Chef de guilde':role==='officer'?'Officier':'Membre';}
  function render(data){
@@ -70,7 +85,9 @@
    return;
   }
   const g=data.group,members=Array.isArray(data.members)?data.members:[],officers=(g.officers||[]).length;
-  root.innerHTML='<div class="guild-hero"><span class="guild-kicker">GUILDE OFFICIELLE MALAWY</span><h3>'+esc(g.name||data.guild?.name||'Ma guilde')+'</h3><p class="guild-muted">UID '+esc(g.guildId)+' · Niveau '+esc(g.level||data.guild?.level||'—')+' · Région '+esc(g.region||'—')+'</p><span class="guild-role">'+roleName(data.role)+'</span><p class="guild-muted">Chef : '+esc(g.leaderPseudo||data.guild?.leaderPseudo||'—')+' · '+members.length+' membre(s) MALAWY · '+officers+'/4 officiers</p></div>'+
+  const photoBlock='<div class="guild-photo-row"><div class="guild-photo">'+(g.photo?'<img src="'+esc(g.photo)+'" alt="Photo de '+esc(g.name)+'">':'✦')+'</div><div class="guild-photo-tools"><b>Photo officielle du groupe</b><small>'+(data.role==='leader'?'Personnalise l’image de ta communauté':'Photo choisie par le chef de guilde')+'</small>'+(data.role==='leader'?'<label>Changer la photo<input id="mouGuildPhotoFile" type="file" accept="image/*"></label>':'')+'</div></div>';
+  const welcomeBlock=data.welcomeCreated?'<div class="guild-welcome"><b>Bienvenue, chef ! 👑</b><p>Ton groupe '+esc(g.name)+' est déjà créé dans MALAWY OPEN UP. Le nom et les informations de ta guilde sont préremplis. Tu peux maintenant choisir sa photo et accueillir tes membres.</p></div>':'';
+  root.innerHTML=welcomeBlock+photoBlock+'<div class="guild-hero"><span class="guild-kicker">GUILDE OFFICIELLE MALAWY</span><h3>'+esc(g.name||data.guild?.name||'Ma guilde')+'</h3><p class="guild-muted">UID '+esc(g.guildId)+' · Niveau '+esc(g.level||data.guild?.level||'—')+' · Région '+esc(g.region||'—')+'</p><span class="guild-role">'+roleName(data.role)+'</span><p class="guild-muted">Chef : '+esc(g.leaderPseudo||data.guild?.leaderPseudo||'—')+' · '+members.length+' membre(s) MALAWY · '+officers+'/4 officiers</p></div>'+
    '<div class="guild-toolbar"><span class="guild-muted">Membres de la guilde</span><button type="button" data-guild-action="refresh">Actualiser</button></div>'+
    '<div class="guild-section"><h3>ÉQUIPE DE GUILDE</h3>'+ (members.length?members.map(m=>'<div class="guild-member"><span class="guild-avatar">'+esc((m.pseudo||'?').slice(0,1).toUpperCase())+'</span><div class="guild-member-main"><b>'+esc(m.pseudo)+'</b><small>UID '+esc(m.uid)+'</small><span class="guild-member-role">'+roleName(m.role)+'</span></div>'+
    (data.role==='leader'&&m.role!=='leader'?(m.role==='officer'?'<button class="remove" data-guild-action="removeOfficer" data-player-id="'+esc(m.playerRecordId)+'">Retirer</button>':officers<4?'<button data-guild-action="appointOfficer" data-player-id="'+esc(m.playerRecordId)+'">Nommer officier</button>':''):'')+'</div>').join(''):'<p class="guild-feedback">Aucun membre MALAWY de cette guilde n’a encore été trouvé. Les profils Free Fire doivent être synchronisés.</p>')+'</div>'+
@@ -78,7 +95,19 @@
  }
  async function load(refresh=false){
   if(busy)return;busy=true;const root=$('#mouGuildContent');if(root)root.innerHTML='<p class="guild-feedback">Chargement de ta guilde et vérification des rôles…</p>';
-  try{const data=await request('GET',null,refresh);render(data);}catch(error){if(root)root.innerHTML='<p class="guild-feedback guild-error">'+esc(error.message)+'</p><button class="guild-action" data-guild-action="refresh">Réessayer</button>';}finally{busy=false;}
+  try{const data=await request('GET',null,refresh);if(welcomePending){data.welcomeCreated=true;welcomePending=false;}render(data);}catch(error){if(root)root.innerHTML='<p class="guild-feedback guild-error">'+esc(error.message)+'</p><button class="guild-action" data-guild-action="refresh">Réessayer</button>';}finally{busy=false;}
+ }
+ async function saveGuildPhoto(file,input){
+  if(busy)return;
+  if(!/^image\//i.test(file.type)||file.size>8*1024*1024){alert('Choisis une image de 8 Mo maximum.');input.value='';return;}
+  if(typeof window.MOU_UPLOAD_PHOTO!=='function'){alert('Le service photo est indisponible.');input.value='';return;}
+  busy=true;
+  try{
+   const url=await window.MOU_UPLOAD_PHOTO(file);
+   const result=await request('POST',{action:'updatePhoto',photo:url});
+   if(lastData)render({...lastData,group:result.group||{...lastData.group,photo:url},welcomeCreated:false});
+  }catch(error){alert(error.message||'Impossible de modifier la photo du groupe.');}
+  finally{busy=false;input.value='';}
  }
  async function manage(action,playerRecordId){
   if(busy)return;

@@ -524,6 +524,7 @@
       loadHistory();
       registerAndroidPush();
     });
+    window.addEventListener('mou:guild-welcome', () => { setTimeout(() => loadHistory({ silent: true, syncSubscription: false }), 350); });
     window.addEventListener('mou:admin-auth', createAdminUI);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && playerToken()) loadHistory({ silent: true, syncSubscription: false });

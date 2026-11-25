@@ -55,15 +55,18 @@ function renderGuildCard(data){
  card.hidden=false;
  const title=card.querySelector('.mou-guild-card-title'),desc=card.querySelector('.mou-guild-card-desc'),button=card.querySelector('.mou-guild-card-action');
  if(data.group){
+  const mark=card.querySelector('.mou-guild-card-mark');
+  mark.innerHTML=data.group.photo?'<img src="'+esc(data.group.photo)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:13px">':'✦';
   title.textContent=data.group.name||'Groupe de guilde';
-  desc.textContent=data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde. Discute avec les membres.';
+  desc.textContent=data.welcomeCreated?'Bienvenue, chef ! Ton groupe a été créé automatiquement. Le nom est déjà renseigné : personnalise simplement sa photo dans Profil → Ma guilde.':data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde. Discute avec les membres.';
   button.hidden=false;button.disabled=false;button.textContent='Ouvrir le groupe';button.onclick=()=>openGuildChat(data.group.guildId,data.group.name);
+  if(data.welcomeCreated)window.dispatchEvent(new CustomEvent('mou:guild-welcome',{detail:{name:data.group.name}}));
  }else{
   const name=data.guild?.name||'ta guilde';
-  title.textContent='Crée le groupe de '+name;
-  desc.textContent='L’API Free Fire confirme que tu es le Chef. Le nom officiel de ta guilde sera utilisé automatiquement.';
-  button.hidden=false;button.textContent='Créer le groupe';button.disabled=false;
-  button.onclick=createGuildGroup;
+  title.textContent='Guilde Free Fire : '+name;
+  desc.textContent='Ton groupe sera préparé automatiquement dès que les informations officielles de Free Fire seront disponibles.';
+  button.hidden=false;button.textContent='Actualiser';button.disabled=false;
+  button.onclick=refreshGuildGroup;
  }
 }
 async function openGuildChat(guildId,name){
