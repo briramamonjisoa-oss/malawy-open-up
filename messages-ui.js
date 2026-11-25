@@ -20,7 +20,7 @@ async function request(path,options={}){
  const t=token();if(!t)throw Error('Connecte-toi avec ton compte joueur pour utiliser les messages.');
  const headers={Authorization:'Bearer '+t,...(options.headers||{})};
  if(options.body)headers['Content-Type']='application/json';
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
  try{
   const r=await fetch(API+path,{...options,headers,cache:'no-store',signal:options.signal||controller.signal});
   const d=await r.json().catch(()=>({}));
