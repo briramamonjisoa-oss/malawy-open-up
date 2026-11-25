@@ -5,6 +5,38 @@ const CLOUDINARY_CLOUD_NAME='owc0mtlg';
 const CLOUDINARY_UPLOAD_PRESET='malawy_photos';
 // L'API vit sur le Worker Cloudflare, pas nécessairement sur l'origine de la page.
 const API_ORIGIN='https://malawy-open-up.briramamonjisoa.workers.dev';
+
+/* MALAWY photo viewer — shared gold/glass lightbox */
+(function initMalawyPhotoViewer(){
+ const selector='.feed-image,.feed-avatar img,.mou-home-avatar img,.mou-profile-avatar img,#profileAvatar img,.community-avatar img,.player-avatar img,.mou-friend-avatar img,#mouChatAvatar img,.mini-avatar img,.public-player-card img,.community-player-card img';
+ const style=document.createElement('style');
+ style.textContent=`
+ #mouPhotoLightbox{position:fixed;inset:0;z-index:100500;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.91);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+ #mouPhotoLightbox.is-open{opacity:1;visibility:visible}
+ #mouPhotoLightbox .mou-photo-frame{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:min(94vw,900px);max-height:92vh}
+ #mouPhotoLightbox .mou-photo-image{display:block;max-width:92vw;max-height:82vh;width:auto;height:auto;object-fit:contain;border:1px solid rgba(220,195,137,.68);border-radius:20px;box-shadow:0 0 0 5px rgba(220,195,137,.07),0 18px 70px rgba(0,0,0,.8),0 0 34px rgba(220,195,137,.13);background:#090909}
+ #mouPhotoLightbox .mou-photo-caption{max-width:88vw;color:#e3d1a2;font:600 12px/1.4 system-ui,sans-serif;letter-spacing:.12em;text-align:center;text-transform:uppercase}
+ #mouPhotoLightbox .mou-photo-close{position:absolute;top:-13px;right:-13px;z-index:2;display:grid;width:42px;height:42px;place-items:center;border:1px solid rgba(220,195,137,.65);border-radius:50%;background:linear-gradient(145deg,#282319,#090909);color:#f2dfad;font-size:25px;box-shadow:0 6px 22px #000;cursor:pointer}
+ body.mou-photo-view-open{overflow:hidden}
+ @media(max-width:480px){#mouPhotoLightbox{padding:14px}#mouPhotoLightbox .mou-photo-image{max-width:94vw;max-height:80vh;border-radius:15px}#mouPhotoLightbox .mou-photo-close{top:-10px;right:-7px}}
+ `;
+ document.head.appendChild(style);
+ const layer=document.createElement('div');layer.id='mouPhotoLightbox';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.setAttribute('aria-label','Photo en grand format');
+ layer.innerHTML='<div class="mou-photo-frame"><button type="button" class="mou-photo-close" aria-label="Fermer">×</button><img class="mou-photo-image" alt=""><div class="mou-photo-caption"></div></div>';
+ document.body.appendChild(layer);
+ const image=layer.querySelector('.mou-photo-image'),caption=layer.querySelector('.mou-photo-caption');
+ const close=()=>{layer.classList.remove('is-open');document.body.classList.remove('mou-photo-view-open');image.removeAttribute('src');};
+ const open=source=>{if(!source||!/^https?:\\/\\//i.test(source))return;image.src=source;caption.textContent='MALAWY OPEN UP';layer.classList.add('is-open');document.body.classList.add('mou-photo-view-open');};
+ layer.addEventListener('click',e=>{if(e.target===layer||e.target.closest('.mou-photo-close'))close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('is-open'))close();});
+ document.addEventListener('click',e=>{
+  const img=e.target.closest(selector);
+  if(!img||!img.getAttribute('src'))return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  open(img.currentSrc||img.src);
+ },true);
+})();
+
 const state={players:[],guildInfo:null,matches:[],teams:[],tournamentGroups:[],token:sessionStorage.getItem('mou_admin_token')||'',playerToken:localStorage.getItem('mou_player_token')||'',admin:false,player:null};
 document.body.classList.add('access-locked');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
