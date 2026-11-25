@@ -11,9 +11,8 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 let pageHistory=[];
 let currentPage='home';
 const validPages=['home','community','register','profile','players','messages','matches','ranking','admin'];
-function getSavedPage(){const saved=localStorage.getItem('mou_last_page')||'community';if(!validPages.includes(saved))return 'community';if(saved==='admin'&&!state.token)return 'community';return saved==='home'?'community':saved;}
+function getSavedPage(){const saved=localStorage.getItem('mou_last_page')||'home';if(!validPages.includes(saved))return 'home';if(saved==='admin'&&!state.token)return 'home';return saved;}
 function tab(n,remember=true){
- if(n==='home')n='community';
  if(!document.getElementById(n))return;
  if(n==='profile'&&!state.playerToken){$('#playerProfile').hidden=true;$('#playerLoginForm').hidden=false;}
  if(remember&&n!==currentPage){pageHistory.push(currentPage);history.pushState({mouPage:n},'','#'+n);}
