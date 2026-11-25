@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v135';
+const CACHE = 'malawy-v136';
 
 const ASSETS = [
   '/',
@@ -15,6 +15,7 @@ const ASSETS = [
   '/admin-access.js',
   '/admin-dashboard.js',
   '/navigation-fix.js',
+  '/back-navigation.js',
   '/tournaments-ui.js',
   '/battle-royale-scoring.js',
   '/connection-refresh.js',
@@ -72,7 +73,7 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
-  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/stories-presence-ui.js','/navbar-v2.js','/messages-ui.js','/friends-ui.js','/profile-hub.js','/calls-ui.js','/flow-messenger.js'].includes(path)) {
+  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/back-navigation.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/stories-presence-ui.js','/navbar-v2.js','/messages-ui.js','/friends-ui.js','/profile-hub.js','/calls-ui.js','/flow-messenger.js'].includes(path)) {
     const cachedResponse=caches.match(event.request,{ignoreSearch:true});
     const networkResponse=fetch(event.request).then(response=>{
       if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
