@@ -241,21 +241,37 @@ voiceButton.addEventListener('click',async()=>{
   const audioTrack=voiceStream?.getAudioTracks?.()[0];
   if(!audioTrack||audioTrack.readyState!=='live')throw new Error('Microphone Android indisponible. Ferme les autres applications utilisant le micro puis réessaie.');
   voiceTarget={id:activeId,groupId:activeGroupId};
-  const types=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'];
-  const mimeType=types.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
-  voiceRecorder=new MediaRecorder(voiceStream,mimeType?{mimeType}:undefined);voiceChunks=[];
-  voiceRecorder.ondataavailable=event=>{if(event.data?.size)voiceChunks.push(event.data);};
-  voiceRecorder.onerror=()=>{mediaStatus.textContent='Erreur pendant l’enregistrement vocal.';};
-  voiceRecorder.onstop=()=>{
-   const blob=new Blob(voiceChunks,{type:voiceRecorder?.mimeType||'audio/webm'});
-   voiceStream?.getTracks().forEach(track=>track.stop());voiceStream=null;
-   voiceButton.textContent='🎙';voiceButton.disabled=false;voiceButton.title='Enregistrer un message vocal';
-   if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';return;}
-   const ext=blob.type.includes('ogg')?'ogg':blob.type.includes('mp4')?'m4a':'webm';
-   uploadChatMedia(new File([blob],'message-vocal.'+ext,{type:blob.type||'audio/webm'}),'audio',voiceTarget);
-   voiceRecorder=null;voiceChunks=[];voiceTarget=null;
-  };
-  voiceRecorder.start(250);voiceButton.textContent='■';voiceButton.title='Arrêter et envoyer';mediaStatus.textContent='Enregistrement vocal… Appuie sur ■ pour envoyer.';
+  // Huawei/Android WebView may advertise Opus support but fail when the
+  // recorder actually starts. Try the Android-friendly MP4/AAC container first,
+  // then the supported WebM/Opus and Ogg variants, and finally the default.
+  const candidates=['audio/mp4','audio/webm;codecs=opus','audio/ogg;codecs=opus'];
+  const mimeTypes=candidates.filter(type=>{try{return MediaRecorder.isTypeSupported?.(type);}catch{return false;}});
+  mimeTypes.push('');
+  let started=false,lastRecorderError=null;
+  for(const mimeType of mimeTypes){
+   try{
+    const recorder=new MediaRecorder(voiceStream,mimeType?{mimeType}:undefined);
+    const chunks=[];
+    recorder.ondataavailable=event=>{if(event.data?.size)chunks.push(event.data);};
+    recorder.onerror=()=>{mediaStatus.textContent='Erreur pendant l’enregistrement vocal.';};
+    recorder.onstop=()=>{
+     const blob=new Blob(chunks,{type:recorder.mimeType||mimeType||'audio/mp4'});
+     voiceStream?.getTracks().forEach(track=>track.stop());voiceStream=null;
+     voiceButton.textContent='🎙';voiceButton.disabled=false;voiceButton.title='Enregistrer un message vocal';
+     if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';voiceRecorder=null;voiceChunks=[];voiceTarget=null;return;}
+     const ext=blob.type.includes('ogg')?'ogg':blob.type.includes('webm')?'webm':'m4a';
+     uploadChatMedia(new File([blob],'message-vocal.'+ext,{type:blob.type||'audio/mp4'}),'audio',voiceTarget);
+     voiceRecorder=null;voiceChunks=[];voiceTarget=null;
+    };
+    recorder.start(250);
+    voiceRecorder=recorder;voiceChunks=chunks;started=true;break;
+   }catch(startError){
+    lastRecorderError=startError;
+    console.warn('MALAWY voice: recorder start failed for',mimeType||'browser default',startError.name,startError.message);
+   }
+  }
+  if(!started)throw lastRecorderError||new Error('Aucun format audio compatible ne démarre sur cet appareil.');
+  voiceButton.textContent='■';voiceButton.title='Arrêter et envoyer';mediaStatus.textContent='Enregistrement vocal… Appuie sur ■ pour envoyer.';
   voiceLimit=setTimeout(stopVoiceRecording,60000);
  }catch(error){
   voiceStream?.getTracks().forEach(track=>track.stop());voiceStream=null;voiceRecorder=null;voiceButton.disabled=false;
