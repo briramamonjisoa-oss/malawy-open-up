@@ -79,7 +79,13 @@ export default {
     const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, PATCH, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Access-Control-Max-Age":"86400"};
     if (request.method === "OPTIONS") return new Response(null, {status:204, headers:corsHeaders});
 
-    // Stable public APK download endpoint. Redirects every app version to the current signed release.\n    if (url.pathname === "/download/android/latest") {\n      if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });\n      return new Response(null, { status: 302, headers: { "Location": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.27-notifications/app-release.apk", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });\n    }\n\n    // Safe diagnostic: reports presence only, never returns secret values.
+    // Stable public APK download endpoint. Redirects every app version to the current signed release.
+    if (url.pathname === "/download/android/latest") {
+      if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+      return new Response(null, { status: 302, headers: { "Location": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.27-notifications/app-release.apk", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+    }
+
+    // Safe diagnostic: reports presence only, never returns secret values.
     if (url.pathname === "/__health") {
       return json({
         worker: "malawy-open-up",
