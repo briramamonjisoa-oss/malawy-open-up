@@ -1,14 +1,6 @@
 package mg.malawy.openup;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.IntentFilter;
-import android.app.DownloadManager;
-import android.database.Cursor;
-import android.os.Environment;
-import android.provider.Settings;
-import android.widget.Toast;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Color;
@@ -48,19 +40,8 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private static final String HOME = "https://malawy-open-up.briramamonjisoa.workers.dev";
     private static final String VERSION_URL = HOME + "/app-version.json";
-    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.29-direct-download/app-release.apk";
+    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-release.apk";
     private boolean updateDialogVisible = false;
-    private long updateDownloadId = -1L;
-    private Uri pendingInstallUri = null;
-    private boolean downloadReceiverRegistered = false;
-    private final BroadcastReceiver updateDownloadReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
-                long completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
-                if (completedId == updateDownloadId) handleUpdateDownloadComplete(completedId);
-            }
-        }
-    };
     private static final int FILE_CHOOSER_REQUEST = 501;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 502;
     private static final int MICROPHONE_PERMISSION_REQUEST = 503;
@@ -100,7 +81,15 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void openUpdatePage() {
-            runOnUiThread(() -> downloadUpdate());
+            runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(APK_URL));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception error) {
+                    android.util.Log.e("MALAWY_UPDATE", "Cannot open APK download", error);
+                }
+            });
         }
 
         @JavascriptInterface
@@ -291,94 +280,14 @@ public class MainActivity extends Activity {
 
     private void downloadUpdate() {
         try {
-            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            if (manager == null) throw new IllegalStateException("Gestionnaire de téléchargement indisponible");
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(APK_URL));
-            request.setTitle("MALAWY OPEN UP — mise à jour");
-            request.setDescription("Téléchargement de la nouvelle version dans MALAWY OPEN UP");
-            request.setMimeType("application/vnd.android.package-archive");
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setAllowedOverMetered(true);
-            request.setAllowedOverRoaming(true);
-            request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "malawy-open-up-update.apk");
-            updateDownloadId = manager.enqueue(request);
-            getPreferences(MODE_PRIVATE).edit().putLong("malawy_update_download_id", updateDownloadId).apply();
-            Toast.makeText(this, "Téléchargement de la mise à jour lancé…", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(APK_URL));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } catch (Exception error) {
-            android.util.Log.e("MALAWY_UPDATE", "Cannot start in-app APK download", error);
             new AlertDialog.Builder(this).setTitle("Téléchargement impossible")
-                .setMessage("Impossible de démarrer le téléchargement. Vérifie ta connexion Internet puis réessaie.")
+                .setMessage("Ouvre le lien de mise à jour depuis ton navigateur : " + APK_URL)
                 .setPositiveButton("OK", null).show();
         }
-    }
-
-    private void handleUpdateDownloadComplete(long completedId) {
-        DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        if (manager == null) return;
-        DownloadManager.Query query = new DownloadManager.Query().setFilterById(completedId);
-        try (Cursor cursor = manager.query(query)) {
-            if (cursor == null || !cursor.moveToFirst()) return;
-            int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
-            if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                Uri apkUri = manager.getUriForDownloadedFile(completedId);
-                if (apkUri == null) {
-                    showUpdateDownloadError("Le fichier téléchargé est introuvable. Relance le téléchargement.");
-                    return;
-                }
-                pendingInstallUri = apkUri;
-                installDownloadedUpdate();
-            } else if (status == DownloadManager.STATUS_FAILED) {
-                int reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON));
-                android.util.Log.e("MALAWY_UPDATE", "APK download failed, reason=" + reason);
-                showUpdateDownloadError("Le téléchargement a échoué. Vérifie ta connexion et réessaie.");
-            }
-        } catch (Exception error) {
-            android.util.Log.e("MALAWY_UPDATE", "Cannot verify downloaded APK", error);
-            showUpdateDownloadError("Impossible de vérifier le fichier téléchargé.");
-        }
-    }
-
-    private void installDownloadedUpdate() {
-        if (pendingInstallUri == null) return;
-        if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
-            try {
-                Intent settings = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:" + getPackageName()));
-                startActivityForResult(settings, 504);
-            } catch (Exception error) {
-                showUpdateDownloadError("Autorise l'installation des mises à jour pour MALAWY OPEN UP dans les paramètres Android.");
-            }
-            return;
-        }
-        try {
-            Intent install = new Intent(Intent.ACTION_VIEW);
-            install.setDataAndType(pendingInstallUri, "application/vnd.android.package-archive");
-            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(install);
-        } catch (Exception error) {
-            android.util.Log.e("MALAWY_UPDATE", "Cannot launch APK installer", error);
-            showUpdateDownloadError("Android n'a pas pu ouvrir le programme d'installation.");
-        }
-    }
-
-    private void showUpdateDownloadError(String message) {
-        runOnUiThread(() -> new AlertDialog.Builder(this)
-            .setTitle("Mise à jour MALAWY OPEN UP")
-            .setMessage(message)
-            .setPositiveButton("Réessayer", (dialog, which) -> downloadUpdate())
-            .setNegativeButton("Fermer", null)
-            .show());
-    }
-
-    private void registerUpdateDownloadReceiver() {
-        if (downloadReceiverRegistered) return;
-        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(updateDownloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(updateDownloadReceiver, filter);
-        }
-        downloadReceiverRegistered = true;
     }
 
     private boolean hasValidatedInternet() {
@@ -462,8 +371,6 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(android.graphics.Color.rgb(13,20,40));
         getWindow().setNavigationBarColor(android.graphics.Color.rgb(13,20,40));
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        registerUpdateDownloadReceiver();
-        updateDownloadId = getPreferences(MODE_PRIVATE).getLong("malawy_update_download_id", -1L);
 
         webView = new WebView(this);
         webView.setBackgroundColor(android.graphics.Color.rgb(5,5,6));
@@ -561,14 +468,6 @@ public class MainActivity extends Activity {
             boolean granted = Build.VERSION.SDK_INT < 33 ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
             dispatchNotificationPermissionResult(granted);
-            return;
-        }
-        if (requestCode == 504) {
-            if (Build.VERSION.SDK_INT < 26 || getPackageManager().canRequestPackageInstalls()) {
-                installDownloadedUpdate();
-            } else {
-                showUpdateDownloadError("L'autorisation d'installation n'a pas été accordée.");
-            }
             return;
         }
         if (requestCode == MICROPHONE_PERMISSION_REQUEST) {
@@ -680,10 +579,6 @@ public class MainActivity extends Activity {
 
     @Override protected void onDestroy() {
         unregisterNetworkCallback();
-        if (downloadReceiverRegistered) {
-            try { unregisterReceiver(updateDownloadReceiver); } catch (Exception ignored) { }
-            downloadReceiverRegistered = false;
-        }
         if (webView != null) {
             if (pendingWebPermissionRequest != null) { try { pendingWebPermissionRequest.deny(); } catch (Exception ignored) { } pendingWebPermissionRequest = null; }
             webView.removeJavascriptInterface("MalawyAndroid");
