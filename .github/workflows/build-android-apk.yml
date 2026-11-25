@@ -72,8 +72,8 @@ jobs:
       - name: Publish APK release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-v1.0.27-notifications
-          name: MALAWY OPEN UP Android v1.0.27 — notifications et navigation
+          tag_name: android-v1.0.28-download-fix
+          name: MALAWY OPEN UP Android v1.0.28 — notifications et navigation
           files: android/app/build/outputs/apk/release/app-release.apk
           generate_release_notes: true
         env:
@@ -82,6 +82,6 @@ jobs:
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MALAWY-OPEN-UP-APK-v1.0.27
+          name: MALAWY-OPEN-UP-APK-v1.0.28
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
