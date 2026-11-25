@@ -103,7 +103,7 @@ exports.handler=async event=>{
   const group=await getGroup(resolved.guildId);if(!group)return out(404,{error:'Le groupe officiel de ta guilde n’existe pas encore.'});
   const gf=fields(group),officers=(()=>{try{return JSON.parse(gf[GF.officers]||'[]')}catch{return []}})();
   if(gf[GF.status]!=='Actif')return out(403,{error:'Ce groupe est actuellement suspendu.'});
-  if(gf[GF.leaderRecord]!==me.id)return out(403,{error:'Seul le chef actuel de la guilde peut gérer les officiers.'});
+  if(!resolved.isLeader||gf[GF.leaderRecord]!==me.id)return out(403,{error:'Seul le chef actuellement vérifié par Free Fire peut gérer les officiers.'});
   if(action==='appointOfficer'||action==='removeOfficer'){
    const targetId=String(b.playerRecordId||'').trim();if(!targetId||targetId===me.id)return out(400,{error:'Joueur cible invalide.'});
    let targetProfile=null;
@@ -112,6 +112,7 @@ exports.handler=async event=>{
     const targetClan=targetProfile.profile.clanBasicInfo||{};
     if(String(targetClan.clanId||'')!==resolved.guildId)return out(403,{error:'Un officier doit appartenir à la même guilde.'});
    }
+   if(action==='removeOfficer'&&!officers.some(x=>x.playerRecordId===targetId))return out(404,{error:'Ce joueur n’est pas officier de cette guilde.'});
    let next=officers.filter(x=>x.playerRecordId!==targetId);
    if(action==='appointOfficer'){
     if(officers.some(x=>x.playerRecordId===targetId))return out(200,{success:true,officers});
