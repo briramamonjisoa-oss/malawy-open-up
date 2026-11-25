@@ -33,7 +33,26 @@ exports.handler=async event=>{
   const created=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields:{'Pseudo Free Fire':pseudo,'ID Free Fire':uid,Photo:photo,'PIN hash':salt+'$'+hashPin(pin,salt),'Statut inscription':'Accepté','Profil Free Fire JSON':JSON.stringify(profile),'Profil Free Fire synchronisé le':new Date().toISOString()}}]})});
   const player=created.records?.[0];if(!player?.id)throw new Error('Le compte n’a pas pu être enregistré.');
   const endpoint=isFcm?'https://fcm.googleapis.com/device/'+fcmToken:subscription.endpoint;
-  try { await airtable(encodeURIComponent('Push subscriptions'),{method:'POST',body:JSON.stringify({records:[{fields:{Endpoint:endpoint,P256dh:isFcm?'FCM':subscription.keys.p256dh,Auth:isFcm?'FCM':subscription.keys.auth,'Player record ID':player.id,Pseudo:pseudo,UID:uid,Active:true,'Created At':new Date().toISOString()}}]})}); } catch(pushError) { try { await airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(player.id),{method:'DELETE'}); } catch(rollbackError) { console.error('Rollback compte incomplet:',rollbackError.message); } throw new Error('Impossible d’enregistrer tes notifications. Réessaie.'); }
+  const subscriptionFields={Endpoint:endpoint,P256dh:isFcm?'FCM':subscription.keys.p256dh,Auth:isFcm?'FCM':subscription.keys.auth,'Player record ID':player.id,Pseudo:pseudo,UID:uid,Active:true,'Created At':new Date().toISOString()};
+  try {
+   let existing=[],offset;
+   do {
+    const query=new URLSearchParams({pageSize:'100'});
+    if(offset)query.set('offset',offset);
+    const rows=await airtable(encodeURIComponent('Push subscriptions')+'?'+query.toString());
+    existing.push(...(rows.records||[]));offset=rows.offset;
+   } while(offset);
+   const match=existing.find(row=>String(row.fields?.Endpoint||'').trim()===endpoint);
+   if(match) {
+    await airtable(encodeURIComponent('Push subscriptions')+'/'+encodeURIComponent(match.id),{method:'PATCH',body:JSON.stringify({fields:subscriptionFields})});
+   } else {
+    await airtable(encodeURIComponent('Push subscriptions'),{method:'POST',body:JSON.stringify({records:[{fields:subscriptionFields}]})});
+   }
+  } catch(pushError) {
+   try { await airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(player.id),{method:'DELETE'}); }
+   catch(rollbackError) { console.error('Rollback compte incomplet:',rollbackError.message); }
+   throw new Error('Impossible d’enregistrer tes notifications. Réessaie.');
+  }
   const token=sign({role:'player',pinAuth:1,id:player.id,exp:Date.now()+10*365*24*60*60*1000});
   try{await queuePlayerEventNotification(player.id,'Profil vérifié !','Ton profil Free Fire a été vérifié avec succès. Bienvenue sur MALAWY OPEN UP ! Tu peux maintenant accéder à ton compte.','/#profile','player-verified:'+player.id);}catch(error){console.error('Notification de bienvenue non envoyée:',error.message);}
   return response(200,{success:true,token,player:{id:player.id,pseudo,uid,photo},message:'Profil vérifié avec succès. Bienvenue sur MALAWY OPEN UP !'});
