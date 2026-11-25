@@ -29,7 +29,7 @@
       <div class="mou-friends-tabs" role="tablist" aria-label="Gestion des amis">
         <button type="button" class="is-active" data-friend-view="friends" role="tab" aria-selected="true">Amis</button>
         <button type="button" data-friend-view="requests" role="tab" aria-selected="false">Demandes <i id="mouRequestsBadge">0</i></button>
-        <button type="button" data-friend-view="search" role="tab" aria-selected="false">Découvrir</button>
+        <button type="button" data-friend-view="suggestions" role="tab" aria-selected="false">Suggestions</button>\n        <button type="button" data-friend-view="search" role="tab" aria-selected="false">Rechercher</button>
       </div>
       <div class="mou-friends-content">
         <section class="mou-friend-pane" data-pane="friends">
@@ -40,7 +40,7 @@
           <div class="mou-friends-section-title"><b>Demandes reçues</b><small>À confirmer</small></div>
           <div id="mouFriendIncoming" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Chargement…</p></div>
         </section>
-        <section class="mou-friend-pane" data-pane="search" hidden>
+        <section class="mou-friend-pane" data-pane="suggestions" hidden>\n          <div class="mou-friends-section-title"><b>Joueurs à découvrir</b><small>Selon tes amis en commun</small></div>\n          <div id="mouFriendSuggestions" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Chargement des suggestions…</p></div>\n        </section>\n        <section class="mou-friend-pane" data-pane="search" hidden>
           <div class="mou-friends-section-title"><b>Découvrir des joueurs</b><small>Recherche par pseudo</small></div>
           <label class="mou-friend-search"><span aria-hidden="true">⌕</span><input id="mouFriendSearch" type="search" minlength="2" placeholder="Rechercher un joueur…" autocomplete="off"></label>
           <div id="mouFriendSearchResults" class="mou-friends-list" aria-live="polite"><p class="mou-friend-empty">Saisis au moins 2 lettres pour commencer.</p></div>
@@ -63,7 +63,7 @@
       #mouFriends .mou-friends-stats>div{display:flex;align-items:baseline;gap:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:rgba(255,255,255,.035)}
       #mouFriends .mou-friends-stats b{color:#e4cd94;font-size:19px;font-variant-numeric:tabular-nums}
       #mouFriends .mou-friends-stats span{color:#a9a193;font-size:11px}
-      #mouFriends .mou-friends-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:5px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.24)}
+      #mouFriends .mou-friends-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:5px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(0,0,0,.24)}
       #mouFriends .mou-friends-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:38px;padding:7px 4px;border:1px solid transparent;border-radius:10px;background:transparent;color:#a9a193;font-family:inherit;font-size:11px;font-weight:600;line-height:1.2;white-space:nowrap}
       #mouFriends .mou-friends-tabs button.is-active{border-color:rgba(216,193,138,.25);background:linear-gradient(135deg,rgba(216,193,138,.18),rgba(216,193,138,.07));color:#f1dfb7}
       #mouFriends .mou-friends-tabs i{display:inline-grid;min-width:17px;height:17px;place-items:center;border-radius:20px;background:rgba(216,193,138,.17);font-size:9px;font-style:normal}
@@ -101,7 +101,7 @@
         button.setAttribute('aria-selected', String(active));
       });
       section.querySelectorAll('[data-pane]').forEach(pane => { pane.hidden = pane.dataset.pane !== activeFilter; });
-      if (activeFilter === 'search') document.getElementById('mouFriendSearch').focus();
+      if (activeFilter === 'search') document.getElementById('mouFriendSearch').focus();\n      if (activeFilter === 'suggestions') loadSuggestions();
     });
     document.getElementById('mouFriendSearch').addEventListener('input', event => {
       clearTimeout(timer);
@@ -134,6 +134,18 @@
       document.getElementById('mouFriendIncoming').innerHTML = incoming.map(x => row(x.pseudo, 'Demande reçue', '<button data-friend-accept="' + esc(x.id) + '">Accepter</button><button data-friend-refuse="' + esc(x.id) + '">Refuser</button>')).join('') || empty('Aucune nouvelle demande pour le moment.');
       document.getElementById('mouFriendAccepted').innerHTML = accepted.map(x => row(x.pseudo, 'Ami MALAWY OPEN UP', '<button data-friend-remove="' + esc(x.id) + '">Retirer</button>')).join('') || empty('Ta liste est vide. Passe dans « Découvrir » pour rechercher des joueurs.');
     } catch (error) { if (message) message.textContent = error.message; }
+  }
+  async function loadSuggestions() {
+    const target = document.getElementById('mouFriendSuggestions');
+    if (!target || !token()) return;
+    target.innerHTML = empty('Recherche de joueurs compatibles…');
+    try {
+      const data = await request('?action=suggestions');
+      target.innerHTML = (data.players || []).map(p => {
+        const action = '<button data-friend-add="' + esc(p.id) + '">Ajouter</button>';
+        return row(p.pseudo, p.reason || 'Joueur à découvrir', action);
+      }).join('') || empty('Pas encore de suggestion. Invite des joueurs à rejoindre MALAWY OPEN UP !');
+    } catch (error) { target.innerHTML = empty(error.message); }
   }
   async function search(q) {
     const target = document.getElementById('mouFriendSearchResults');

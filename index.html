@@ -94,7 +94,11 @@
 <button data-tab="ranking" class="tab">Classement</button>
 </nav>
 
-<section id="home" class="page" aria-label="Accueil"></section>
+<section id="home" class="page mou-home-feed" aria-label="Accueil">
+ <header class="mou-home-heading"><span class="mou-community-kicker">MALAWY OPEN UP · POUR TOI</span><h2>Découvre la communauté</h2><p>Rencontre des joueurs et découvre leurs publications</p></header>
+ <section class="mou-home-suggestions"><div class="mou-home-section-title"><div><span class="mou-community-kicker">NOUVELLES RENCONTRES</span><h3>Joueurs suggérés</h3></div><button type="button" data-tab="players">Voir tous ↗</button></div><div id="homeSuggestedPlayers" class="mou-home-suggestion-rail"><p class="mou-friend-empty">Chargement des suggestions…</p></div></section>
+ <section class="mou-home-public"><div class="mou-home-section-title"><div><span class="mou-community-kicker">FIL PUBLIC</span><h3>Publications de la communauté</h3></div></div><div id="homePublicPosts"><p class="muted">Chargement des publications…</p></div></section>
+</section>
 
 <section id="messages" class="page mou-messages-page">
  <header class="mou-messages-heading"><div><span class="mou-community-kicker">MALAWY SOCIAL · PRIVÉ</span><h2>Messages</h2><p>Discute avec tes amis de la communauté</p></div><span class="mou-messages-lock">🔒 PRIVÉ</span></header>
@@ -109,7 +113,7 @@
 
 <section id="community" class="page mou-community-page">
  <header class="mou-community-top">
-  <div><span class="mou-community-kicker">MALAWY OPEN UP · ESPORT</span><h2>Communauté</h2><p>La communauté des joueurs, des guildes et des compétiteurs</p></div>
+  <div><span class="mou-community-kicker">MALAWY OPEN UP · ESPORT</span><h2>Social</h2><p>Les publications de tes amis et tes propres partages</p></div>
   <div class="mou-community-top-actions"><button type="button" data-tab="messages" aria-label="Messages" title="Messages"><svg viewBox="0 0 24 24"><path d="m21 3-8.5 18-3.2-7.3L2 10.5 21 3Z"/><path d="m9.3 13.7 5-5"/></svg></button><button type="button" aria-label="Favoris" title="Favoris"><svg viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.1-8.8 10.2-8.8 10.2S3.2 13.8 3.2 8.7a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button></div>
  </header>
  <section class="mou-stories" aria-label="Stories">
@@ -124,10 +128,10 @@
   <button type="button" data-tab="profile" aria-label="Profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c0-4 2.8-6 7-6s7 2 7 6"/></svg><span>Profil</span></button>
  </nav>
  <div class="mou-community-feed-wrap">
-  <div class="mou-feed-section-title"><div><span class="mou-community-kicker">MALAWY SOCIAL</span><h3>Le fil communautaire</h3></div><button type="button" data-tab="players">Explorer les joueurs <span>↗</span></button></div>
+  <div class="mou-feed-section-title"><div><span class="mou-community-kicker">TON CERCLE</span><h3>Publications des amis</h3></div><button type="button" data-tab="players">Explorer les joueurs <span>↗</span></button></div>
   <div id="communityFeed" class="panel community-feed">
- <div class="feed-heading"><div><span class="eyebrow">MALAWY COMMUNITY</span><h3>LE FIL DE LA COMMUNAUTÉ</h3></div><span id="feedCount" class="muted">Chargement…</span></div>
- <button type="button" id="feedOpenComposer" class="feed-compose-trigger"><span>＋</span> Partager avec la communauté…</button>
+ <div class="feed-heading"><div><span class="eyebrow">MALAWY COMMUNITY</span><h3>LE FIL DE LA COMMUNAUTÉ</h3></div><span id="feedCount" class="muted">Amis</span></div>
+ <button type="button" id="feedOpenComposer" class="feed-compose-trigger"><span>＋</span> Partager avec mes amis…</button>
  <div id="feedPosts"><p class="muted">Chargement des publications…</p></div>
 </div>
 <div id="feedComposer" class="feed-modal" hidden role="dialog" aria-modal="true">
@@ -349,15 +353,15 @@
 </nav>
 
 <script src="/navigation-fix.js?v=meniscus-1"></script>
-<script src="/app.js?v=community-landing-v3"></script>
+<script src="/app.js?v=community-home-split-v1"></script>
 <script src="/ui-controls.js"></script>
 <script src="/access-forms.js?v=uid-pin-2026-1"></script>
 <script src="/admin-access.js"></script>
 <script src="/admin-dashboard.js?v=20261115-2"></script>
 <script src="/tournaments-ui.js?black-velvet-glass-20261116-confirm"></script>
 
-<script src="/community-feed.js?v=interactions-overlay-v6"></script>
-<script src="/friends-ui.js?v=3"></script>
+<script src="/community-feed.js?v=community-home-friends-v1"></script>
+<script src="/friends-ui.js?v=friend-suggestions-20261125-1"></script>
 <script src="/messages-ui.js?v=messenger-glass-20261125-1"></script>
 <script src="/stories-presence-ui.js?v=11"></script>
 <script src="/profile-hub.js?v=3"></script>
