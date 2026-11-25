@@ -5,7 +5,16 @@ const F={pseudo:'fldaNsxza3T3krjfr',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeS
 const R={key:'fldv1Zlsgkl0YQDHR',from:'fldV969gNKryDledy',fromName:'fldZnm4SNGHBE04cz',to:'fldbn9UWoDNNZPpS6',toName:'fldsPztDNdzkcBdh6',status:'fldV1k5nClaf3CT9M',created:'fldXjv0WpwBUiBFW9',updated:'fldh9cgvKYYYfHnGh'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
-async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
+const tableCache = new Map();
+const tableInflight = new Map();
+async function all(table){
+ const cached=tableCache.get(table);
+ if(cached&&Date.now()-cached.time<45000)return cached.rows;
+ if(tableInflight.has(table))return tableInflight.get(table);
+ const task=(async()=>{let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);tableCache.set(table,{time:Date.now(),rows});return rows;})();
+ tableInflight.set(table,task);
+ try{return await task;}finally{tableInflight.delete(table);}
+}
 const fields=r=>r.fields||{};
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi avec ton compte joueur.'});
@@ -66,5 +75,5 @@ exports.handler=async event=>{
    return out(200,{success:true});
   }
   return out(400,{error:'Action inconnue.'});
- }catch(e){return out(500,{error:e.message||'Erreur serveur.'});}
+ }catch(e){const status=e.status===429?429:500;return out(status,{error:status===429?'Le service est momentanément très sollicité. Réessaie dans quelques secondes.':e.message||'Erreur serveur.'});}
 };
