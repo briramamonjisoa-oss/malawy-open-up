@@ -48,7 +48,7 @@
     const style = document.createElement('style');
     style.id = 'mouProfileHubStyles';
     style.textContent = `
-      #playerProfile{display:block!important;min-width:0;overflow:visible;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+      #playerProfile{display:block!important;min-width:0;overflow:visible;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}\n      #playerProfile [data-mou-profile-hidden=\"1\"]{display:none!important}
       #mouProfileHub{width:100%;min-width:0;display:grid;gap:15px;color:#f3eee5}
       #mouProfileHub *{box-sizing:border-box;min-width:0}
       #mouProfileHub .mou-profile-identity{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid rgba(216,193,138,.25);border-radius:22px;background:radial-gradient(circle at 100% 0,rgba(216,193,138,.13),transparent 55%),linear-gradient(145deg,#171613,#08090b)}
@@ -119,13 +119,13 @@
         if(marker.parentNode) marker.parentNode.insertBefore(node,marker.nextSibling);
       });
     }
-    function hideLegacyNodes(){ managedNodes.forEach(node=>{node.hidden=true;}); }
+    function hideLegacyNodes(){ managedNodes.forEach(node=>{node.hidden=true;node.setAttribute('data-mou-profile-hidden','1');}); }
     function open(key){
       const section=sections[key]; if(!section)return;
       restoreNodes();
       hideLegacyNodes();
       content.replaceChildren();
-      section.nodes.forEach(node=>{if(node){node.hidden=false;content.appendChild(node);}});
+      section.nodes.forEach(node=>{if(node){node.hidden=false;node.removeAttribute('data-mou-profile-hidden');content.appendChild(node);}});
       if(key==='presence'&&presence){presence.hidden=false;}
       title.textContent=section.title;
       modal.hidden=false;
