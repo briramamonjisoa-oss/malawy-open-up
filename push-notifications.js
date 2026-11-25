@@ -133,7 +133,15 @@
       <div class="mou-notice-actions">
         <button type="button" id="mouEnablePush" class="primary">Activer les notifications</button>
         <button type="button" id="mouRefreshNotifications" class="secondary">Actualiser</button>
+        <button type="button" id="mouMarkAllRead" class="secondary">Tout marquer comme lu</button>
       </div>
+      <nav class="mou-activity-filters" aria-label="Filtrer les activités">
+        <button type="button" data-activity-filter="all" aria-pressed="true">Toutes</button>
+        <button type="button" data-activity-filter="unread" aria-pressed="false">Non lues</button>
+        <button type="button" data-activity-filter="messages" aria-pressed="false">Messages</button>
+        <button type="button" data-activity-filter="friends" aria-pressed="false">Amis</button>
+        <button type="button" data-activity-filter="guilds" aria-pressed="false">Guildes</button>
+      </nav>
       <p id="mouPushStatus" class="mou-notice-muted">Connecte-toi pour consulter tes notifications.</p>
       <div id="mouNotificationList"></div>
     `;
