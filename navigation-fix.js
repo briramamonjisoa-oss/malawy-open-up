@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const allowed = ['home','community','register','profile','players','matches','ranking','admin'];
+  const allowed = ['home','community','register','profile','players','messages','matches','ranking','admin'];
   const savedRaw = localStorage.getItem('mou_last_page') || 'home';
   const saved = savedRaw;
   let current = allowed.includes(saved) && (saved !== 'admin' || sessionStorage.getItem('mou_admin_token')) ? saved : 'home';
