@@ -82,7 +82,7 @@ export default {
     // Stable public APK download endpoint. Redirects every app version to the current signed release.
     if (url.pathname === "/download/android/latest") {
       if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
-      return new Response(null, { status: 302, headers: { "Location": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.28-download-fix/app-release.apk", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+      return new Response(null, { status: 302, headers: { "Location": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.31-original-updater/app-release.apk", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
     }
 
     // Safe diagnostic: reports presence only, never returns secret values.
