@@ -510,7 +510,6 @@
   function init() {
     styles();
     createPlayerUI();
-    createPendingApprovalOptIn();
     createAdminUI();
     if (playerToken()) {
       loadHistory();

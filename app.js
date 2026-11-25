@@ -341,7 +341,7 @@ $('#playerSignupForm').addEventListener('submit',async e=>{
   state.playerToken=out.token;localStorage.setItem('mou_player_token',out.token);
   if(push.fcmToken)localStorage.setItem('mou_fcm_saved_token',push.fcmToken);
   msg.textContent='Profil vérifié ! Bienvenue sur MALAWY OPEN UP.';
-  e.target.reset();await loadPlayerProfile();
+  e.target.reset();await loadPlayerProfile();window.dispatchEvent(new Event('mou:player-auth'));
   if(state.player){$('#accessGate').hidden=true;document.body.classList.remove('access-locked');$('#playerSignupForm').hidden=true;$('#playerProfile').hidden=false;tab('profile');}
  }catch(err){msg.textContent=err.message||'Une erreur est survenue.';}finally{button.disabled=false;}
 });
