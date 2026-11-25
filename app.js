@@ -106,13 +106,13 @@ async function loadAll(){
  state.adminLoadErrors=errors;
  if(state.admin){try{renderAdmin();}catch(error){console.error('Erreur affichage panneau admin:',error);const list=document.getElementById('adminPlayers');if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';}}
  try{render();}catch(error){console.error('Erreur affichage public:',error);}
- refreshPlayerRanksInBackground();
+ setTimeout(refreshPlayerRanksInBackground,12000);
 }
 let playerRankSyncBusy=false,lastPlayerRankSync=0;
 async function refreshPlayerRanksInBackground(){
  if(playerRankSyncBusy||!navigator.onLine||Date.now()-lastPlayerRankSync<300000)return;
  playerRankSyncBusy=true;lastPlayerRankSync=Date.now();
- try{const r=await fetch(API_ORIGIN+'/.netlify/functions/players?sync=1',{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});if(r.ok)await loadAll();}
+ try{const r=await fetch(API_ORIGIN+'/.netlify/functions/players?sync=1',{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});if(r.ok){const players=await r.json();if(Array.isArray(players)){state.players=players;try{render();}catch(error){console.warn('Rendu après synchronisation Free Fire:',error.message);}}}}
  catch(error){console.warn('Synchronisation Free Fire en arrière-plan:',error.message);}
  finally{playerRankSyncBusy=false;}
 }
