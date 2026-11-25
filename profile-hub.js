@@ -91,6 +91,27 @@
       #mouProfileHub .mou-profile-modal-content .item{max-width:100%;overflow-wrap:anywhere}
       @media(max-width:360px){#mouProfileHub .mou-profile-grid{grid-template-columns:1fr}#mouProfileHub .mou-profile-grid button{min-height:68px}}
     `;
+
+    style.textContent += `
+      /* Profile Hub — preserve the approved compact black-and-gold layout */
+      #mouProfileHub{gap:15px!important}
+      #mouProfileHub .mou-profile-identity{min-height:132px;padding:20px 18px!important;border-radius:24px!important;background:radial-gradient(ellipse at 100% 0,rgba(216,193,138,.16),transparent 52%),linear-gradient(145deg,#211f19 0%,#101011 68%,#090a0c 100%)!important;border-color:rgba(216,193,138,.3)!important}
+      #mouProfileHub .mou-profile-avatar{width:82px;height:82px;flex-basis:82px;border-radius:22px!important;overflow:hidden}
+      #mouProfileHub .mou-profile-avatar img{width:100%;height:100%;object-fit:cover}
+      #mouProfileHub .mou-profile-identity h2{font-size:clamp(20px,5vw,25px)!important;font-weight:800;letter-spacing:.01em}
+      #mouProfileHub .mou-profile-identity p{margin-top:7px!important;font-size:12px!important}
+      #mouProfileHub .mou-profile-score{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+      #mouProfileHub .mou-profile-score article{min-height:90px;align-content:center;padding:12px 6px!important;border-radius:17px!important;background:#09090a!important;border-color:rgba(255,255,255,.1)!important}
+      #mouProfileHub .mou-profile-score strong{font-size:28px!important}
+      #mouProfileHub .mou-profile-score span{font-size:12px!important}
+      #mouProfileHub .mou-profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+      #mouProfileHub .mou-profile-grid button{min-height:94px!important;padding:13px!important;border-radius:19px!important;background:linear-gradient(145deg,rgba(31,29,24,.96),rgba(11,12,14,.99))!important;border-color:rgba(216,193,138,.2)!important}
+      #mouProfileHub .mou-profile-grid button>span{width:40px;height:40px;border-radius:13px!important}
+      #mouProfileHub .mou-profile-grid b{font-size:13px!important}
+      #mouProfileHub .mou-profile-grid small{font-size:10px!important}
+      #mouProfileHub .mou-profile-account{min-height:68px;border-radius:17px!important;background:rgba(255,255,255,.025)!important}
+      @media(max-width:360px){#mouProfileHub .mou-profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}#mouProfileHub .mou-profile-grid button{min-height:90px!important;padding:9px!important;column-gap:6px!important}#mouProfileHub .mou-profile-grid b{font-size:11px!important}#mouProfileHub .mou-profile-grid small{font-size:9px!important}}
+    `;
     document.head.appendChild(style);
 
     const scoreHost = $('#mouProfileScore', shell);
