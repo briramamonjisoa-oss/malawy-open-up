@@ -38,16 +38,20 @@ function install(){
  document.body.appendChild(nav);
  const bar=nav,bead=nav.querySelector('.mou-meniscus-bead'),glow=nav.querySelector('.mou-meniscus-glow'),path=nav.querySelector('path'),beadPath=bead.querySelector('path'),els=[...tabs.children];
  let current=0,x=0,target=0,dragging=false,raf=0;
- const center=i=>els[i].offsetLeft+els[i].offsetWidth/2;
+ const center=i=>{const a=els[i].getBoundingClientRect(),b=bar.getBoundingClientRect();return a.left-b.left+a.width/2;};
  function draw(){const w=bar.clientWidth,h=72,cx=Math.max(37,Math.min(w-37,x)),r=25,y=3,a=Math.sqrt(r*r-9),s=11;const d='M24 0 H'+(cx-a-s)+' C'+(cx-a-s*.45)+' 0 '+(cx-a-1)+' 1 '+(cx-a)+' 3 A'+r+' '+r+' 0 0 0 '+(cx+a)+' 3 C'+(cx+a+1)+' 1 '+(cx+a+s*.45)+' 0 '+(cx+a+s)+' 0 H'+(w-24)+' Q'+w+' 0 '+w+' 24 V48 Q'+w+' 72 '+(w-24)+' 72 H24 Q0 72 0 48 V24 Q0 0 24 0 Z';path.setAttribute('d',d);bead.style.transform='translateX('+(cx-21)+'px)';glow.style.transform='translateX('+cx+'px)';}
  function activate(i){current=Math.max(0,Math.min(ITEMS.length-1,i));const item=ITEMS[current];els.forEach((el,k)=>{el.classList.toggle('active',k===current);el.setAttribute('aria-selected',String(k===current));});bar.style.setProperty('--nav-accent',item.color);beadPath.setAttribute('d',item.icon);target=center(current);if(!dragging)animate();}
  function animate(){if(raf)return;const step=()=>{const d=target-x;if(dragging||Math.abs(d)<.25){x=target;draw();raf=0;return;}x+=d*.22;draw();raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);}
  function sync(){const active=document.querySelector('main .page.active');let id=active?.id||'home';if(id==='messages')id='community';if(id==='matches'||id==='ranking')id='register';if(id==='admin')id='profile';const i=Math.max(0,ITEMS.findIndex(x=>x.id===id));if(i!==current||Math.abs(target-center(i))>.5)activate(i);}
- nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){activate(ITEMS.findIndex(x=>x.id===b.dataset.tab));}});
+ nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){const i=ITEMS.findIndex(x=>x.id===b.dataset.tab);if(i>=0)activate(i);requestAnimationFrame(()=>requestAnimationFrame(sync));}});
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){requestAnimationFrame(()=>requestAnimationFrame(sync));}},true);
  bead.addEventListener('pointerdown',e=>{dragging=true;bead.setPointerCapture(e.pointerId);});
  bead.addEventListener('pointermove',e=>{if(!dragging)return;const rect=bar.getBoundingClientRect();x=target=Math.max(center(0),Math.min(center(ITEMS.length-1),e.clientX-rect.left));let n=0,best=Infinity;ITEMS.forEach((_,i)=>{const d=Math.abs(center(i)-x);if(d<best){best=d;n=i;}});activate(n);dragging=true;draw();});
  const end=()=>{if(!dragging)return;dragging=false;target=center(current);animate();};bead.addEventListener('pointerup',end);bead.addEventListener('pointercancel',end);
- new MutationObserver(sync).observe(document.querySelector('main'),{subtree:true,attributes:true,attributeFilter:['class']});
+ const pageRoot=document.querySelector('main');
+ if(pageRoot)new MutationObserver(sync).observe(pageRoot,{subtree:true,attributes:true,attributeFilter:['class']});
+ window.addEventListener('hashchange',()=>requestAnimationFrame(sync));
+ window.addEventListener('popstate',()=>requestAnimationFrame(sync));
  new ResizeObserver(()=>{target=x=center(current);draw();}).observe(bar);
  activate(0);x=target=center(0);draw();sync();
 }
