@@ -11,8 +11,10 @@ exports.handler=async event=>{
   const playerRecord=player?await airtable(PLAYERS+'/'+encodeURIComponent(player.id)):{};
   const playerFields=playerRecord.fields||{},playerPseudo=String(playerFields['Pseudo Free Fire']||'Joueur').slice(0,32),playerPhoto=String(playerFields.Photo||'');
   if(method==='GET'){
-   const [posts,reactions,comments]=await Promise.all([all(POSTS),all(REACTIONS),all(COMMENTS)]);
-   const visible=posts.filter(x=>x.fields?.[F.p.status]==='Publié');
+   const [posts,reactions,comments,relations]=await Promise.all([all(POSTS),all(REACTIONS),all(COMMENTS),player?all('tblQoAGcQhii58Hwe'):Promise.resolve([])]);
+   const accepted=new Set(relations.filter(r=>r.fields?.fldV1k5nClaf3CT9M==='Acceptée').flatMap(r=>[r.fields?.fldV969gNKryDledy,r.fields?.fldbn9UWoDNNZPpS6]).filter(id=>id&&id!==player?.id));
+   const scope=event.queryStringParameters?.scope||'all';
+   const visible=posts.filter(x=>{const author=x.fields?.[F.p.author]||'';return x.fields?.[F.p.status]==='Publié'&&(scope==='public'?author!==player?.id&&!accepted.has(author):scope==='friends'?author===player?.id||accepted.has(author):true);});
    return out(200,{viewerId:player?.id||'',posts:visible.sort((a,b)=>(b.fields[F.p.created]||'').localeCompare(a.fields[F.p.created]||'')).map(x=>{const f=x.fields||{};return{id:x.id,authorId:f[F.p.author]||'',canDelete:Boolean(admin||(player&&f[F.p.author]===player.id)),pseudo:f[F.p.pseudo]||'Joueur',photo:f[F.p.photo]||'',content:f[F.p.content]||'',image:f[F.p.image]||'',created:f[F.p.created]||'',reactions:reactions.filter(r=>r.fields?.[F.r.post]===x.id).map(r=>({type:r.fields[F.r.type],mine:Boolean(player&&r.fields[F.r.author]===player.id)})),comments:comments.filter(c=>c.fields?.[F.c.post]===x.id).map(c=>({id:c.id,text:c.fields[F.c.text]||'',parent:c.fields[F.c.parent]||'',pseudo:c.fields[F.c.pseudo]||'Joueur',photo:c.fields[F.c.photo]||'',created:c.fields[F.c.created]||''}))};})});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
