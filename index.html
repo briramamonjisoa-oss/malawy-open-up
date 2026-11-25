@@ -10,6 +10,22 @@
 <meta name="apple-mobile-web-app-title" content="MALAWY OPEN UP">
 
 <link rel="manifest" href="/manifest.webmanifest">
+<style id="mouStartupSplashStyles">
+#mouStartupSplash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(ellipse at 50% 44%,rgba(216,193,138,.10),transparent 42%),#030303;color:#f3ead4;opacity:1;visibility:visible;transition:opacity .24s ease,visibility .24s ease;font-family:Arial,sans-serif}
+#mouStartupSplash.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#mouStartupSplash .mou-loader-mark{position:relative;width:86px;height:86px;display:grid;place-items:center;border:1px solid rgba(216,193,138,.55);border-radius:23px;background:linear-gradient(145deg,#171511,#050505);box-shadow:0 0 34px rgba(216,193,138,.13),inset 0 1px rgba(255,255,255,.08)}
+#mouStartupSplash .mou-loader-letter{font-size:55px;line-height:1;font-weight:900;letter-spacing:-.08em;color:#e2ca91;text-shadow:0 0 22px rgba(216,193,138,.24)}
+#mouStartupSplash .mou-loader-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:#e2ca91;box-shadow:0 0 12px rgba(226,202,145,.8);animation:mouLoaderPulse 1s ease-in-out infinite}
+#mouStartupSplash .dot-top{top:-5px;left:calc(50% - 4px)}
+#mouStartupSplash .dot-right{right:-5px;top:calc(50% - 4px);animation-delay:.2s}
+#mouStartupSplash .dot-bottom{bottom:-5px;left:calc(50% - 4px);animation-delay:.4s}
+#mouStartupSplash .dot-left{left:-5px;top:calc(50% - 4px);animation-delay:.6s}
+#mouStartupSplash .mou-loader-name{font-size:12px;font-weight:800;letter-spacing:.22em;color:#e2ca91}
+#mouStartupSplash .mou-loader-status{font-size:11px;letter-spacing:.08em;color:#928875}
+@keyframes mouLoaderPulse{0%,100%{opacity:.35;transform:scale(.72)}50%{opacity:1;transform:scale(1.22)}}
+@media(prefers-reduced-motion:reduce){#mouStartupSplash .mou-loader-dot{animation:none}}
+</style>
+<link rel="preconnect" href="https://malawy-open-up.briramamonjisoa.workers.dev" crossorigin>
 <link rel="stylesheet" href="/style.css?v=mobile-scroll-hotfix-20261125-1">
 
 <title>MALAWY OPEN UP — Free Fire</title>
@@ -18,6 +34,12 @@
 </head>
 
 <body>
+<div id="mouStartupSplash" role="status" aria-live="polite" aria-label="Ouverture de MALAWY OPEN UP">
+ <div class="mou-loader-mark"><span class="mou-loader-letter">M</span><i class="mou-loader-dot dot-top"></i><i class="mou-loader-dot dot-right"></i><i class="mou-loader-dot dot-bottom"></i><i class="mou-loader-dot dot-left"></i></div>
+ <div class="mou-loader-name">MALAWY OPEN UP</div><div class="mou-loader-status">PRÉPARATION DE L’ARÈNE…</div>
+</div>
+<script>(function(){var splash=document.getElementById('mouStartupSplash');function hide(){if(splash)splash.classList.add('is-hidden');}window.addEventListener('mou:app-ready',function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});},{once:true});window.addEventListener('load',function(){setTimeout(hide,9000);},{once:true});})();</script>
+
 <div id="accessGate" class="access-gate mou-auth-gate">
  <div class="mou-auth-stage">
   <div class="mou-auth-orb" aria-hidden="true"></div>
@@ -354,27 +376,27 @@
 <button data-tab="admin">⌘<small>Admin</small></button>
 </nav>
 
-<script src="/navigation-fix.js?v=meniscus-1"></script>
-<script src="/app.js?v=ff-name-locked-20261125-4"></script>
-<script src="/ui-controls.js"></script>
-<script src="/access-forms.js?v=uid-pin-2026-1"></script>
-<script src="/admin-access.js"></script>
-<script src="/admin-dashboard.js?v=20261115-2"></script>
-<script src="/tournaments-ui.js?black-velvet-glass-20261116-confirm"></script>
+<script defer src="/navigation-fix.js?v=meniscus-1"></script>
+<script defer src="/app.js?v=ff-name-locked-20261125-4"></script>
+<script defer src="/ui-controls.js"></script>
+<script defer src="/access-forms.js?v=uid-pin-2026-1"></script>
+<script defer src="/admin-access.js"></script>
+<script defer src="/admin-dashboard.js?v=20261115-2"></script>
+<script defer src="/tournaments-ui.js?black-velvet-glass-20261116-confirm"></script>
 
-<script src="/community-feed.js?v=friend-persistence-performance-1"></script>
-<script src="/friends-ui.js?v=global-player-directory-20261125-2"></script>
-<script src="/messages-ui.js?v=voice-button-removed-20261125-4"></script>
+<script defer src="/community-feed.js?v=friend-persistence-performance-1"></script>
+<script defer src="/friends-ui.js?v=global-player-directory-20261125-2"></script>
+<script defer src="/messages-ui.js?v=voice-button-removed-20261125-4"></script>
 <script>(function(){var p=document.getElementById("messages"),s=p&&p.querySelector(".mou-messages-shell");if(p)p.classList.add("mou-flow-chat");if(s)s.classList.add("mou-flow-chat");})();</script>
-<script src="/calls-ui.js?v=webrtc-friends-20261125-1"></script>
-<script src="/flow-messenger.js?v=flow-audio-gestures-20261125-1"></script>
-<script src="/stories-presence-ui.js?v=11"></script>
-<script src="/profile-hub.js?v=no-inline-logout-20261125-3"></script>
-<script src="/navbar-v2.js?v=meniscus-5"></script>
-<script src="/push-notifications.js?v=messenger-instant-20261125-1"></script>
-<script src="/battle-royale-scoring.js?v=1"></script>
-<script src="/connection-refresh.js?v=4"></script>
-<script src="/update-gate.js?v=12"></script>
+<script defer src="/calls-ui.js?v=webrtc-friends-20261125-1"></script>
+<script defer src="/flow-messenger.js?v=flow-audio-gestures-20261125-1"></script>
+<script defer src="/stories-presence-ui.js?v=11"></script>
+<script defer src="/profile-hub.js?v=no-inline-logout-20261125-3"></script>
+<script defer src="/navbar-v2.js?v=meniscus-5"></script>
+<script defer src="/push-notifications.js?v=messenger-instant-20261125-1"></script>
+<script defer src="/battle-royale-scoring.js?v=1"></script>
+<script defer src="/connection-refresh.js?v=4"></script>
+<script defer src="/update-gate.js?v=12"></script>
 
 <!-- Legacy APK update gate: inline fallback for v1.0.5 WebView -->
 <script>
