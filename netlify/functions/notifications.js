@@ -272,6 +272,7 @@ async function processScheduledNotifications(env) {
 }
 
 exports.queuePlayerApproval = queuePlayerApproval;
+exports.queuePlayerEventNotification = queuePlayerEventNotification;
 exports.processScheduledNotifications = processScheduledNotifications;
 
 exports.handler = async event => {
