@@ -56,7 +56,7 @@ exports.handler=async event=>{
   }
   if(method==='POST'&&b.action==='sendGroup'){
    const groupId=String(b.groupId||''),content=String(b.content||'').trim();
-   if(!content||content.length>1000)return out(400,{error:'Le message doit contenir entre 1 et 1 000 caractères.'});
+   if(!content||content.length>3000)return out(400,{error:'Le message doit contenir entre 1 et 3 000 caractères.'});
    const membership=await verifyGuildMember(me.id,groupId);
    if(!membership)return out(403,{error:'Tu dois appartenir à cette guilde et son groupe officiel doit être actif.'});
    const id='msg_'+crypto.randomUUID(),created=new Date().toISOString(),key='group:'+groupId;
