@@ -91,19 +91,6 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void requestNotificationPermission() {
-            runOnUiThread(() -> {
-                if (Build.VERSION.SDK_INT < 33 ||
-                    ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                    dispatchNotificationPermission(true);
-                } else {
-                    ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
-                }
-            });
-        }
-
-        @JavascriptInterface
         public void requestFcmToken() {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
                 if (!task.isSuccessful() || webView == null) return;
@@ -430,19 +417,13 @@ public class MainActivity extends Activity {
             webView.restoreState(savedInstanceState);
         }
 
-        requestNotificationPermissionIfNeeded();
+        requestNotificationPermission();
         handleNotificationIntent(getIntent());
         if (hasValidatedInternet()) checkForUpdate();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == NOTIFICATION_PERMISSION_REQUEST) {
-            boolean granted = Build.VERSION.SDK_INT < 33 ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
-            dispatchNotificationPermission(granted);
-            return;
-        }
         if (requestCode == MICROPHONE_PERMISSION_REQUEST) {
             PermissionRequest request = pendingWebPermissionRequest;
             pendingWebPermissionRequest = null;
@@ -458,15 +439,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void dispatchNotificationPermission(boolean granted) {
-        if (webView == null || offlineScreenVisible) return;
-        webView.evaluateJavascript(
-            "window.dispatchEvent(new CustomEvent('mou:notification-permission',{detail:" + granted + "}));",
-            null
-        );
-    }
-
-    private void requestNotificationPermissionIfNeeded() {
+    private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
