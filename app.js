@@ -106,7 +106,7 @@ async function loadAll(){
  state.adminLoadErrors=errors;
  if(state.admin){try{renderAdmin();}catch(error){console.error('Erreur affichage panneau admin:',error);const list=document.getElementById('adminPlayers');if(list)list.innerHTML='<p class="message">Erreur affichage joueurs : '+esc(error.message||'erreur inconnue')+'</p>';}}
  try{render();}catch(error){console.error('Erreur affichage public:',error);}
- refreshPlayerRanksInBackground();
+ setTimeout(refreshPlayerRanksInBackground,12000);
 }
 let playerRankSyncBusy=false,lastPlayerRankSync=0;
 async function refreshPlayerRanksInBackground(){
