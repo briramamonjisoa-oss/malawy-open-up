@@ -2,7 +2,7 @@ const {airtable,verifyPlayer}=require('./auth');
 const {queuePlayerEventNotification}=require('./notifications');
 const PLAYERS='tblz0rJpaQBpafBN2';
 const RELATIONS='tblQoAGcQhii58Hwe';
-const F={pseudo:'fldaNsxza3T3krjfr',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeSrLJZVOC',lastSeen:'fldnilxQoLEsLNiH2'};
+const F={pseudo:'fldaNsxza3T3krjfr',status:'fldmc3ktn1we8phLq',photo:'flds2WZeeSrLJZVOC',lastSeen:'fldnilxQoLEsLNiH2',circleSeen:'fld6FLW3XcwyuqgRo'};
 const R={key:'fldv1Zlsgkl0YQDHR',from:'fldV969gNKryDledy',fromName:'fldZnm4SNGHBE04cz',to:'fldbn9UWoDNNZPpS6',toName:'fldsPztDNdzkcBdh6',status:'fldV1k5nClaf3CT9M',created:'fldXjv0WpwBUiBFW9',updated:'fldh9cgvKYYYfHnGh'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
@@ -52,11 +52,16 @@ exports.handler=async event=>{
    const mineRelations=rows.filter(x=>fields(x)[R.from]===me.id||fields(x)[R.to]===me.id);
    const acceptedIds=mineRelations.filter(x=>fields(x)[R.status]==='Acceptée').map(x=>fields(x)[R.from]===me.id?fields(x)[R.to]:fields(x)[R.from]);
    const playerRows=acceptedIds.length?await all(PLAYERS):[];
-   const presence=new Map(playerRows.filter(p=>acceptedIds.includes(p.id)).map(p=>{const stamp=fields(p)[F.lastSeen]||'';const age=stamp?Date.now()-Date.parse(stamp):Infinity;return[p.id,{online:Number.isFinite(age)&&age>=-60000&&age<90000,lastSeen:stamp||null}];}));
-   return out(200,{relations:mineRelations.map(x=>{const f=fields(x),outgoing=f[R.from]===me.id,otherId=outgoing?f[R.to]:f[R.from],p=presence.get(otherId)||{online:false,lastSeen:null};return{id:x.id,otherId,pseudo:outgoing?f[R.toName]:f[R.fromName],status:f[R.status],direction:outgoing?'sent':'received',created:f[R.created]||'',online:f[R.status]==='Acceptée'?p.online:false,lastSeen:f[R.status]==='Acceptée'?p.lastSeen:null};})});
+   const presence=new Map(playerRows.filter(p=>acceptedIds.includes(p.id)).map(p=>{const stamp=fields(p)[F.lastSeen]||'';const age=stamp?Date.now()-Date.parse(stamp):Infinity;const circleStamp=fields(p)[F.circleSeen]||'';const circleAge=circleStamp?Date.now()-Date.parse(circleStamp):Infinity;return[p.id,{online:Number.isFinite(age)&&age>=-60000&&age<90000,lastSeen:stamp||null,circleOnline:Number.isFinite(circleAge)&&circleAge>=-60000&&circleAge<90000,circleLastSeen:circleStamp||null}];}));
+   return out(200,{relations:mineRelations.map(x=>{const f=fields(x),outgoing=f[R.from]===me.id,otherId=outgoing?f[R.to]:f[R.from],p=presence.get(otherId)||{online:false,lastSeen:null,circleOnline:false,circleLastSeen:null};return{id:x.id,otherId,pseudo:outgoing?f[R.toName]:f[R.fromName],status:f[R.status],direction:outgoing?'sent':'received',created:f[R.created]||'',online:f[R.status]==='Acceptée'?p.online:false,lastSeen:f[R.status]==='Acceptée'?p.lastSeen:null,circleOnline:f[R.status]==='Acceptée'?p.circleOnline:false,circleLastSeen:f[R.status]==='Acceptée'?p.circleLastSeen:null};})});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
   const action=String(b.action||'');
+  if(action==='circle-presence'){
+   await airtable('Inscriptions/'+encodeURIComponent(me.id),{method:'PATCH',body:JSON.stringify({fields:{[F.circleSeen]:now}})});
+   tableCache.delete(PLAYERS);
+   return out(200,{success:true,circleOnline:true,lastSeen:now});
+  }
   if(action==='presence'){
    await airtable('Inscriptions/'+encodeURIComponent(me.id),{method:'PATCH',body:JSON.stringify({fields:{[F.lastSeen]:now}})});
    tableCache.delete(PLAYERS);
