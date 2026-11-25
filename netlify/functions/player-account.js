@@ -36,12 +36,13 @@ exports.handler=async(event)=>{
  if(event.httpMethod==='OPTIONS')return{statusCode:200,headers,body:''};
  try{
   if(event.httpMethod==='POST'){
-   const {pseudo,playerId,pin,photo}=JSON.parse(event.body||'{}');
-   if(!pseudo||!playerId||!/^[0-9]{4,8}$/.test(String(pin||'')))return{statusCode:400,headers,body:JSON.stringify({error:'Saisis ton pseudo, ton UID et un PIN de 4 à 8 chiffres.'})};
+   const {playerId,uid,pin}=JSON.parse(event.body||'{}');
+   const loginUid=String(playerId||uid||'').trim();
+   if(!/^[0-9]{5,40}$/.test(loginUid)||!/^[0-9]{4,8}$/.test(String(pin||'')))return{statusCode:400,headers,body:JSON.stringify({error:'Saisis ton UID Free Fire et ton PIN de 4 à 8 chiffres.'})};
    let records=[],offset;
    do{const q=new URLSearchParams({pageSize:'100'});if(offset)q.set('offset',offset);const d=await airtable('Inscriptions?'+q);records.push(...(d.records||[]));offset=d.offset;}while(offset);
-   const matches=records.filter(r=>String(r.fields['Pseudo Free Fire']||'').trim().toLowerCase()===String(pseudo).trim().toLowerCase()&&String(r.fields['ID Free Fire']||'').trim()===String(playerId).trim());
-   if(matches.length!==1)return{statusCode:401,headers,body:JSON.stringify({error:'Pseudo ou UID incorrect.'})};
+   const matches=records.filter(r=>String(r.fields['ID Free Fire']||'').trim()===loginUid);
+   if(matches.length!==1)return{statusCode:401,headers,body:JSON.stringify({error:'UID Free Fire introuvable ou associé à plusieurs comptes. Vérifie ton UID.'})};
    const r=matches[0],fields=r.fields||{},status=fields['Statut inscription']||'En attente';
    if(!isApproved(status))return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription doit être acceptée par un administrateur avant de te connecter.'})};
    let pinStored=fields['PIN hash']||'';
