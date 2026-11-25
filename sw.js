@@ -1,10 +1,11 @@
-const CACHE = 'malawy-v120';
+const CACHE = 'malawy-v121';
 
 const ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
   '/style.css',
+  '/flow-messenger.css',
   '/app.js',
   '/messages-ui.js',
   '/calls-ui.js',
