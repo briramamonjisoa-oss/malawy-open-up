@@ -371,10 +371,10 @@
     document.documentElement.style.overflow='hidden';
   }
   function check(){
-    var ua=navigator.userAgent||'';
-    if(!/Android/i.test(ua)) return;
     var bridge=window.MalawyAndroid;
-    var installed=bridge&&typeof bridge.getVersionCode==='function'?Number(bridge.getVersionCode()):0;
+    // Le contrôle obligatoire ne concerne que l'APK natif, jamais Chrome/PWA.
+    if(!bridge||typeof bridge.getVersionCode!=='function') return;
+    var installed=Number(bridge.getVersionCode());
     fetch('/app-version.json?legacy='+Date.now(),{cache:'no-store'})
       .then(function(r){if(!r.ok)throw new Error('version '+r.status);return r.json();})
       .then(function(v){
