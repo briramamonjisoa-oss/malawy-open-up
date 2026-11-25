@@ -104,7 +104,19 @@
       history: {title:'Historique des matchs', nodes:[history]},
       photo: {title:'Photo de profil', nodes:[photoLabel,savePhoto,photoMsg]}
     };
-    Object.values(sections).forEach(s=>s.nodes.forEach(n=>{if(n)n.hidden=true;}));
+    const anchors = new Map();
+    Object.values(sections).forEach(s=>s.nodes.forEach(n=>{
+      if(n && !anchors.has(n)){
+        const marker=document.createComment('profile-panel-anchor');
+        n.parentNode?.insertBefore(marker,n);
+        anchors.set(n,marker);
+      }
+    }));
+    function restoreNodes(){
+      anchors.forEach((marker,node)=>{
+        if(marker.parentNode) marker.parentNode.insertBefore(node,marker.nextSibling);
+      });
+    }
     function open(key){
       const section=sections[key]; if(!section)return;
       content.replaceChildren();
@@ -118,7 +130,8 @@
     function close(){
       modal.hidden=true;document.body.style.overflow='';
       content.replaceChildren();
-      Object.values(sections).forEach(s=>s.nodes.forEach(n=>{if(n)n.hidden=true;}));
+      restoreNodes();
+      Object.values(sections).forEach(s=>s.nodes.forEach(n=>{if(n)n.hidden=false;}));
     }
     shell.addEventListener('click',e=>{
       const button=e.target.closest('[data-profile-open]');
