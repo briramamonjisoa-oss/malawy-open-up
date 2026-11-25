@@ -36,6 +36,15 @@ async function createBatch(table, records) {
   }
 }
 
+async function updateBatch(table, records) {
+  for (let i = 0; i < records.length; i += 10) {
+    await airtable(encodeURIComponent(table), {
+      method: 'PATCH',
+      body: JSON.stringify({ records: records.slice(i, i + 10) })
+    });
+  }
+}
+
 async function updateRecord(table, id, fields) {
   return airtable(encodeURIComponent(table) + '/' + encodeURIComponent(id), {
     method: 'PATCH',
@@ -331,6 +340,16 @@ exports.handler = async event => {
       const session = verifyPlayer(event);
       if (!session) return response(401, { error: 'Session joueur requise.' });
       const x = JSON.parse(event.body || '{}');
+      if (x.action === 'read-all') {
+        const records = await all(HISTORY);
+        const unread = records.filter(record =>
+          clean(record.fields?.['Player record ID']) === session.id &&
+          !clean(record.fields?.['Read At'])
+        );
+        const readAt = new Date().toISOString();
+        await updateBatch(HISTORY, unread.map(record => ({ id: record.id, fields: { 'Read At': readAt } })));
+        return response(200, { success: true, updated: unread.length });
+      }
       if (!x.id) return response(400, { error: 'Notification manquante.' });
       const record = await airtable(encodeURIComponent(HISTORY) + '/' + encodeURIComponent(x.id));
       if (clean(record.fields?.['Player record ID']) !== session.id) return response(403, { error: 'Accès refusé.' });

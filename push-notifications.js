@@ -7,6 +7,7 @@
   let historyItems = [];
   let historyLoading = false;
   let badgeRefreshTimer = null;
+  let activeActivityFilter = 'all';
 
   function playerToken() { return localStorage.getItem('mou_player_token') || ''; }
   function adminToken() { return sessionStorage.getItem('mou_admin_token') || ''; }
@@ -36,7 +37,11 @@
       .mou-notice-head,.mou-notice-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .mou-notice-head{padding-bottom:14px;border-bottom:1px solid rgba(216,193,138,.2)}
       .mou-notice-panel h3{margin:0;color:#f3eee3;font-size:19px;letter-spacing:.12em;font-weight:750}
-      .mou-notice-actions{flex-wrap:wrap;margin:16px 0}
+       .mou-notice-actions{flex-wrap:wrap;margin:16px 0}
+      .mou-activity-filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:thin}
+      .mou-activity-filters button{white-space:nowrap;padding:8px 11px;font-size:12px}
+      .mou-activity-filters button[aria-pressed=true]{background:rgba(216,193,138,.18);border-color:#d8c18a;color:#f3dfb3}
+      #mouMarkAllRead{font-size:12px;padding:8px 11px}
       .mou-notice-panel button,.mou-notice-admin button{cursor:pointer;font-family:inherit;transition:background .18s,border-color .18s,transform .18s}
       .mou-notice-panel button{border:1px solid rgba(216,193,138,.34);border-radius:11px;background:rgba(255,255,255,.025);color:#e9dfc9;padding:10px 14px;font-size:13px}
       .mou-notice-panel button:active{transform:scale(.98)}
@@ -144,6 +149,32 @@
       if (event.key === 'Escape' && !panel.hidden) setNotificationPanelOpen(false);
     });
     $('#mouRefreshNotifications').addEventListener('click', loadHistory);
+    panel.querySelectorAll('[data-activity-filter]').forEach(filterButton => {
+      filterButton.addEventListener('click', () => {
+        activeActivityFilter = filterButton.dataset.activityFilter;
+        panel.querySelectorAll('[data-activity-filter]').forEach(button => {
+          button.setAttribute('aria-pressed', String(button === filterButton));
+        });
+        renderHistoryList();
+      });
+    });
+    $('#mouMarkAllRead').addEventListener('click', async () => {
+      const markButton = $('#mouMarkAllRead');
+      const status = $('#mouPushStatus');
+      if (!historyItems.some(item => !item.readAt)) return;
+      markButton.disabled = true;
+      try {
+        const result = await request('', { method: 'PATCH', body: JSON.stringify({ action: 'read-all' }) });
+        status.textContent = result.updated
+          ? result.updated + ' notification(s) marquée(s) comme lue(s).'
+          : 'Aucune notification non lue.';
+        await loadHistory({ silent: true, syncSubscription: false });
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        markButton.disabled = false;
+      }
+    });
     $('#mouEnablePush').addEventListener('click', enablePush);
   }
 
@@ -202,6 +233,49 @@
     localStorage.setItem('mou_push_saved_endpoint', endpoint);
   }
 
+  function notificationCategory(item) {
+    const title = String(item.title || '').toLocaleLowerCase('fr');
+    if (title.includes('guilde') || title.includes('clan')) return 'guilds';
+    if (title.includes('ami') || title.includes('friend')) return 'friends';
+    if (title.includes('message')) return 'messages';
+    return 'other';
+  }
+
+  function renderHistoryList() {
+    const list = $('#mouNotificationList');
+    if (!list) return;
+    const visibleItems = historyItems.filter(item => {
+      if (activeActivityFilter === 'unread') return !item.readAt;
+      if (['messages', 'friends', 'guilds'].includes(activeActivityFilter)) {
+        return notificationCategory(item) === activeActivityFilter;
+      }
+      return true;
+    });
+    list.innerHTML = visibleItems.map(item => `
+      <article class="mou-notice-item ${item.readAt ? '' : 'unread'}">
+        <b>${escapeHtml(item.title)}</b>
+        <p>${escapeHtml(item.message)}</p>
+        <small>${item.createdAt ? escapeHtml(new Date(item.createdAt).toLocaleString('fr-FR')) : ''}</small>
+        ${item.readAt ? '' : `<div><button type="button" class="secondary" data-notice-read="${escapeHtml(item.id)}">Marquer comme lu</button></div>`}
+      </article>
+    `).join('') || '<p class="mou-notice-muted">Aucune activité dans cette catégorie.</p>';
+    list.querySelectorAll('[data-notice-read]').forEach(button => {
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          await request('', { method: 'PATCH', body: JSON.stringify({ id: button.dataset.noticeRead }) });
+          await loadHistory({ silent: true, syncSubscription: false });
+        } catch (error) {
+          const status = $('#mouPushStatus');
+          if (status) status.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+    });
+    const markAll = $('#mouMarkAllRead');
+    if (markAll) markAll.disabled = !historyItems.some(item => !item.readAt);
+  }
+
   async function loadHistory(options = {}) {
     if (historyLoading) return;
     historyLoading = true;
@@ -212,6 +286,7 @@
       status.textContent = 'Connecte-toi à ton compte joueur pour recevoir et consulter tes notifications.';
       list.innerHTML = '';
       historyItems = [];
+      renderHistoryList();
       updateBadge();
       historyLoading = false;
       return;
@@ -228,26 +303,7 @@
             ? 'Notifications activées sur cet appareil.'
             : 'Active les notifications pour recevoir les rappels même lorsque l’application est fermée.');
       }
-      list.innerHTML = historyItems.map(item => `
-        <article class="mou-notice-item ${item.readAt ? '' : 'unread'}">
-          <b>${escapeHtml(item.title)}</b>
-          <p>${escapeHtml(item.message)}</p>
-          <small>${item.createdAt ? escapeHtml(new Date(item.createdAt).toLocaleString('fr-FR')) : ''}</small>
-          ${item.readAt ? '' : `<div><button type="button" class="secondary" data-notice-read="${escapeHtml(item.id)}">Marquer comme lu</button></div>`}
-        </article>
-      `).join('') || '<p class="mou-notice-muted">Aucune notification pour le moment.</p>';
-      list.querySelectorAll('[data-notice-read]').forEach(button => {
-        button.addEventListener('click', async () => {
-          button.disabled = true;
-          try {
-            await request('', { method: 'PATCH', body: JSON.stringify({ id: button.dataset.noticeRead }) });
-            await loadHistory();
-          } catch (error) {
-            status.textContent = error.message;
-            button.disabled = false;
-          }
-        });
-      });
+      renderHistoryList();
       updateBadge();
     } catch (error) {
       if (!options.silent) status.textContent = error.message;
