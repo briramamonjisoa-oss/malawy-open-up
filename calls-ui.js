@@ -70,7 +70,7 @@ async function syncCall(){
 }
 async function pollIncoming(){
  if(!token()||document.hidden||!document.getElementById('messages')?.classList.contains('active')||currentCall)return;
- try{const d=await api('calls?incoming=1');const call=d.incoming?.[0];if(!call||call.callId===incomingShown)return;incomingShown=call.callId;currentCall={callId:call.callId,peerId:call.callerId,type:call.type};role='callee';show('Un ami',call.type);stateText('Appel entrant…');$('mouCallAccept').hidden=false;$('mouCallDecline').hidden=false;$('mouCallHangup').hidden=true;}catch(e){console.warn('Appels entrants:',e.message);}
+ try{const d=await api('calls?incoming=1');const call=d.incoming?.[0];if(!call||call.callId===incomingShown)return;incomingShown=call.callId;currentCall={callId:call.callId,peerId:call.callerId,type:call.type};role='callee';const peer=(window.MOU_CONTACTS||[]).find(x=>x.id===call.callerId);currentCall.name=peer?.pseudo||'Un ami';show(currentCall.name,call.type);stateText('Appel entrant…');$('mouCallAccept').hidden=false;$('mouCallDecline').hidden=false;$('mouCallHangup').hidden=true;}catch(e){console.warn('Appels entrants:',e.message);}
 }
 async function finish(notify){
  clearInterval(pollTimer);pollTimer=null;
