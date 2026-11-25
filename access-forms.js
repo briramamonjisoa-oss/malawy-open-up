@@ -64,6 +64,7 @@
         }
         endpoint = API + '/.netlify/functions/register';
       } else {
+        delete payload.pseudo;
         endpoint = API + '/.netlify/functions/player-account';
       }
 
@@ -93,5 +94,18 @@
     }
   }, true);
 
-  showMode('signup');
+  showMode('login');
+
+  const adminToggle = $('#mouAdminToggle');
+  const adminPanel = $('#mouAdminPanel');
+  adminToggle?.addEventListener('click', () => {
+    if (!adminPanel) return;
+    adminPanel.hidden = !adminPanel.hidden;
+    adminToggle.setAttribute('aria-expanded', String(!adminPanel.hidden));
+  });
+  $('#mouTogglePin')?.addEventListener('click', () => {
+    const pin = $('#mouLoginPin');
+    if (!pin) return;
+    pin.type = pin.type === 'password' ? 'text' : 'password';
+  });
 })();
