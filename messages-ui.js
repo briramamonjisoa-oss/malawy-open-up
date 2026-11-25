@@ -201,7 +201,7 @@ function renderMedia(content){
 }
 async function uploadChatMedia(file,kind){
  if(!file)return;
- const max=kind==='video'?12*1024*1024:8*1024*1024;
+ const max=kind==='video'||kind==='audio'?15*1024*1024:8*1024*1024;
  if(file.size>max){mediaStatus.textContent='Fichier trop volumineux (limite '+(max/1024/1024)+' Mo).';return;}
  if(!activeId&&!activeGroupId){mediaStatus.textContent='Ouvre une conversation avant d’envoyer un fichier.';return;}
  mediaStatus.textContent='Envoi du média…';
@@ -224,15 +224,34 @@ mediaInput.addEventListener('change',()=>{const file=mediaInput.files?.[0];if(fi
 let voiceRecorder=null,voiceChunks=[];
 $('mouChatVoice').addEventListener('click',async()=>{
  const button=$('mouChatVoice');
- if(voiceRecorder&&voiceRecorder.state==='recording'){voiceRecorder.stop();button.textContent='🎙';button.setAttribute('aria-label','Enregistrer un message vocal');return;}
+ if(voiceRecorder&&voiceRecorder.state==='recording'){
+  button.disabled=true;button.textContent='…';mediaStatus.textContent='Finalisation du vocal…';
+  voiceRecorder.stop();return;
+ }
+ if(!activeId&&!activeGroupId){mediaStatus.textContent='Ouvre une conversation avant d’enregistrer un vocal.';return;}
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){mediaStatus.textContent='Enregistrement vocal non pris en charge sur cet appareil.';return;}
  try{
-  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-  voiceChunks=[];voiceRecorder=new MediaRecorder(stream);
-  voiceRecorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data);};
-  voiceRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||'audio/webm'});if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';return;}const ext=blob.type.includes('ogg')?'ogg':blob.type.includes('mp4')?'m4a':'webm';const file=new File([blob],'message-vocal.'+ext,{type:blob.type||'audio/webm'});uploadChatMedia(file,'audio');};
-  voiceRecorder.start();button.textContent='■';button.setAttribute('aria-label','Arrêter l’enregistrement');mediaStatus.textContent='Enregistrement… Appuie à nouveau pour envoyer.';
- }catch(error){mediaStatus.textContent=error.name==='NotAllowedError'?'Autorisation micro refusée. Autorise le micro dans les paramètres du navigateur ou de MALAWY.':error.name==='NotFoundError'?'Aucun micro détecté.':'Impossible d’activer le micro : '+(error.message||'réessaie.');}
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  voiceChunks=[];
+  const candidates=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'];
+  const mimeType=candidates.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
+  const recorder=mimeType?new MediaRecorder(stream,{mimeType}):new MediaRecorder(stream);
+  voiceRecorder=recorder;
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size)voiceChunks.push(e.data);};
+  recorder.onerror=e=>{stream.getTracks().forEach(t=>t.stop());button.disabled=false;button.textContent='🎙';voiceRecorder=null;mediaStatus.textContent='Erreur pendant l’enregistrement vocal : '+(e.error?.message||'réessaie.');};
+  recorder.onstop=async()=>{
+   stream.getTracks().forEach(t=>t.stop());
+   const actualType=recorder.mimeType||voiceChunks.find(x=>x.type)?.type||'audio/webm';
+   const blob=new Blob(voiceChunks,{type:actualType});
+   voiceRecorder=null;button.disabled=false;button.textContent='🎙';button.setAttribute('aria-label','Enregistrer un message vocal');
+   if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';return;}
+   const ext=actualType.includes('ogg')?'ogg':actualType.includes('mp4')?'m4a':'webm';
+   const file=new File([blob],'message-vocal.'+ext,{type:actualType});
+   mediaStatus.textContent='Envoi du message vocal…';
+   await uploadChatMedia(file,'audio');
+  };
+  recorder.start(500);button.textContent='■';button.setAttribute('aria-label','Arrêter et envoyer le vocal');mediaStatus.textContent='Enregistrement en cours… Appuie sur ■ pour envoyer.';
+ }catch(error){button.disabled=false;button.textContent='🎙';mediaStatus.textContent=error.name==='NotAllowedError'?'Autorisation micro refusée. Autorise le micro dans les paramètres du téléphone.':error.name==='NotFoundError'?'Aucun micro détecté.':'Impossible d’activer le micro : '+(error.message||'réessaie.');}
 });
 const savedTheme=localStorage.getItem('mou_chat_theme')||'gold';shell.dataset.chatTheme=savedTheme;
 const themeBar=document.createElement('div');themeBar.className='mou-chat-tools mou-chat-theme';themeBar.setAttribute('aria-label','Thème de discussion');
