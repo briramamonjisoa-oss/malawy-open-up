@@ -19,6 +19,65 @@ async function request(path,options={}){
  if(!r.ok)throw Error(d.error||'Erreur '+r.status);
  return d;
 }
+
+function mountGuildCard(){
+ if($('mouGuildMessengerCard'))return $('mouGuildMessengerCard');
+ const card=document.createElement('section');card.id='mouGuildMessengerCard';card.hidden=true;
+ card.innerHTML='<div class="mou-guild-card-mark">✦</div><div class="mou-guild-card-copy"><span class="mou-guild-card-kicker">MALAWY · GUILDE OFFICIELLE</span><b class="mou-guild-card-title"></b><p class="mou-guild-card-desc"></p></div><button type="button" class="mou-guild-card-action" hidden></button>';
+ const style=document.createElement('style');style.id='mouGuildMessengerStyles';style.textContent=`
+ #mouGuildMessengerCard{box-sizing:border-box;display:flex;align-items:center;gap:13px;margin:0 0 15px;padding:15px;border:1px solid rgba(216,193,138,.28);border-radius:18px;background:radial-gradient(ellipse at 0 0,rgba(216,193,138,.14),transparent 55%),linear-gradient(145deg,#1b1915,#090a0c);color:#f3eee4;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+ #mouGuildMessengerCard[hidden]{display:none}
+ #mouGuildMessengerCard .mou-guild-card-mark{display:grid;flex:0 0 42px;width:42px;height:42px;place-items:center;border:1px solid rgba(216,193,138,.38);border-radius:14px;background:rgba(216,193,138,.1);color:#e5ce96;font-size:22px}
+ #mouGuildMessengerCard .mou-guild-card-copy{flex:1;min-width:0}
+ #mouGuildMessengerCard .mou-guild-card-kicker{display:block;color:#d8c18a;font-size:9px;font-weight:800;letter-spacing:.14em}
+ #mouGuildMessengerCard .mou-guild-card-title{display:block;margin:5px 0;color:#f5efe4;font-size:15px;overflow-wrap:anywhere}
+ #mouGuildMessengerCard .mou-guild-card-desc{margin:0;color:#aaa294;font-size:11px;line-height:1.45}
+ #mouGuildMessengerCard .mou-guild-card-action{flex:0 0 auto;max-width:138px;padding:10px 12px;border:1px solid rgba(216,193,138,.48);border-radius:11px;background:linear-gradient(120deg,#bda66f,#e5d3a6);color:#15120b;font-size:10px;font-weight:900}
+ #mouGuildMessengerCard .mou-guild-card-action:disabled{opacity:.55}
+ @media(max-width:480px){#mouGuildMessengerCard{align-items:flex-start;flex-wrap:wrap}#mouGuildMessengerCard .mou-guild-card-action{margin-left:55px;max-width:none}}
+ `;if(!document.getElementById(style.id))document.head.appendChild(style);
+ shell.parentElement.insertBefore(card,shell);return card;
+}
+let guildGroupState=null,guildCardTask=null;
+function renderGuildCard(data){
+ const card=mountGuildCard();guildGroupState=data||null;
+ if(!data||(!data.group&&!data.canCreate)){card.hidden=true;return;}
+ card.hidden=false;
+ const title=card.querySelector('.mou-guild-card-title'),desc=card.querySelector('.mou-guild-card-desc'),button=card.querySelector('.mou-guild-card-action');
+ if(data.group){
+  title.textContent=data.group.name||'Groupe de guilde';
+  desc.textContent=data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde.';
+  button.hidden=true;button.onclick=null;
+ }else{
+  const name=data.guild?.name||'ta guilde';
+  title.textContent='Crée le groupe de '+name;
+  desc.textContent='L’API Free Fire confirme que tu es le Chef. Le nom officiel de ta guilde sera utilisé automatiquement.';
+  button.hidden=false;button.textContent='Créer le groupe';button.disabled=false;
+  button.onclick=createGuildGroup;
+ }
+}
+async function refreshGuildGroup(){
+ if(!token())return;
+ if(guildCardTask)return guildCardTask;
+ guildCardTask=request('guild-groups').then(renderGuildCard).catch(error=>{
+  console.warn('Groupe de guilde:',error.message);
+  renderGuildCard(null);
+ }).finally(()=>{guildCardTask=null;});
+ return guildCardTask;
+}
+async function createGuildGroup(){
+ const button=$('mouGuildMessengerCard')?.querySelector('.mou-guild-card-action');if(!button||button.disabled)return;
+ button.disabled=true;button.textContent='Création…';
+ try{
+  const result=await request('guild-groups',{method:'POST',body:JSON.stringify({action:'create'})});
+  renderGuildCard({group:result.group,role:'leader',canCreate:false});
+  status(result.alreadyExists?'Ton groupe de guilde existe déjà.':'Groupe officiel créé avec succès !');
+ }catch(error){
+  status(error.message||'Impossible de créer le groupe.');
+  button.disabled=false;button.textContent='Réessayer';
+ }
+}
+
 function status(msg){const el=$('mouChatStatus');if(el)el.textContent=msg||'';}
 function latestFor(id){return contactsMessages.filter(m=>m.senderId===id||m.recipientId===id).sort((a,b)=>String(b.created).localeCompare(String(a.created)))[0];}
 let contactsMessages=[];
@@ -56,7 +115,7 @@ async function openChat(id,name){
 }
 async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
- try{await refreshInbox();lastLoad=Date.now();}
+ try{await Promise.all([refreshInbox(),refreshGuildGroup()]);lastLoad=Date.now();}
  catch(e){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';}
 }
 $('mouMessageSearch').addEventListener('input',renderContacts);
@@ -96,6 +155,6 @@ const observePage=()=>{
 };
 new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilter:['class']});
 observePage();startPolling();
-window.addEventListener('mou:player-auth',()=>{if(page().classList.contains('active'))load();});
+window.addEventListener('mou:player-auth',()=>{if(page().classList.contains('active'))load();else refreshGuildGroup();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&page().classList.contains('active'))pollInbox();});
 })();
