@@ -1143,3 +1143,48 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
  .mou-chat-form{padding:10px}
  .mou-chat-form input{height:45px}
 }
+
+
+/* MALAWY OPEN UP — 2026 player authentication */
+.mou-auth-gate{position:fixed;inset:0;z-index:200;display:grid;place-items:center;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px;background:radial-gradient(70% 45% at 50% 25%,rgba(179,145,69,.13),transparent 72%),#030303;color:#f4f0e8}
+.mou-auth-stage{position:relative;display:grid;place-items:center;width:100%;padding:28px 0 8px}
+.mou-auth-orb{position:absolute;z-index:2;top:0;width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff0bd 0,#e3c77f 24%,#9d7732 72%,#39280d 100%);box-shadow:0 0 30px rgba(214,181,103,.38),inset -7px -9px 15px rgba(0,0,0,.35);animation:mouAuthFloat 4s ease-in-out infinite}
+.mou-auth-orb:after{content:"";position:absolute;top:-4px;right:-6px;width:8px;height:8px;border-radius:50%;background:#fff2c8;box-shadow:0 0 9px #e6c77e}
+@keyframes mouAuthFloat{50%{transform:translateY(-5px)}}
+.mou-auth-card{position:relative;width:min(100%,440px);margin-top:30px;padding:42px 28px 26px;border:1px solid rgba(216,193,138,.24);border-radius:30px;background:linear-gradient(180deg,rgba(43,37,25,.68),rgba(12,12,11,.97) 42%,#080808);box-shadow:0 0 65px rgba(183,145,63,.09),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);text-align:center;overflow:hidden}
+.mou-auth-card:before{content:"";position:absolute;inset:0 0 auto;height:38%;background:linear-gradient(180deg,rgba(216,193,138,.09),transparent);pointer-events:none}
+.mou-auth-brandmark{position:relative;display:grid;place-items:center;width:66px;height:66px;margin:0 auto 18px;border:1px solid rgba(216,193,138,.65);border-radius:17px;background:#090909;color:#ddc68e;font-size:39px;font-weight:900;box-shadow:0 8px 30px #0008}
+.mou-auth-kicker{position:relative;color:#d8c18a;font-size:9px;font-weight:800;letter-spacing:.2em}
+.mou-auth-card h1{position:relative;margin:13px 0 5px;font-size:clamp(27px,8vw,36px);line-height:1.12;letter-spacing:.015em;color:#f5f1e8}
+.mou-auth-card h1 span{color:#d8c18a}
+.mou-auth-subtitle{position:relative;margin:0 0 24px;color:#a49d90;font-size:13px}
+.mou-auth-form{position:relative;display:flex;flex-direction:column;gap:14px;margin:0;padding:8px 0 0;text-align:left}
+.mou-auth-form[hidden]{display:none!important}
+.mou-auth-field{display:flex;flex-direction:column;gap:7px;color:#d8c18a;font-size:9px;font-weight:800;letter-spacing:.13em}
+.mou-auth-field input,.mou-auth-field select{width:100%;min-width:0;min-height:58px;padding:15px 17px;border:1px solid rgba(255,255,255,.1);border-radius:15px;outline:none;background:rgba(255,255,255,.045);color:#f4f0e8;font:500 14px Inter,system-ui,sans-serif;letter-spacing:normal;transition:border-color .2s,box-shadow .2s}
+.mou-auth-field input::placeholder{color:#77736b}
+.mou-auth-field input:focus,.mou-auth-field select:focus{border-color:rgba(216,193,138,.65);box-shadow:0 0 0 3px rgba(216,193,138,.1)}
+.mou-auth-field select option{background:#111;color:#fff}
+.mou-auth-password{position:relative;display:block}
+.mou-auth-password input{padding-right:58px}
+.mou-auth-eye{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:11px;background:transparent;color:#c7b98f;font-size:19px;cursor:pointer}
+.mou-auth-options{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#9e988c;font-size:10px}
+.mou-auth-options label{display:flex;align-items:center;gap:8px}
+.mou-auth-options input{accent-color:#d8c18a;width:16px;height:16px}
+.mou-auth-submit{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;margin-top:4px;border:0;border-radius:999px;background:linear-gradient(100deg,#d8c18a,#a98442 55%,#e6d39f);color:#100e09;font-size:15px;font-weight:900;box-shadow:0 9px 28px rgba(177,139,65,.25)}
+.mou-auth-submit:disabled{opacity:.6}
+.mou-auth-message{min-height:16px;margin:0;text-align:center;font-size:11px;overflow-wrap:anywhere}
+.mou-auth-create{margin:9px 0 0;text-align:center;color:#999184;font-size:12px}
+.mou-auth-create button,.mou-auth-admin>button{padding:0;border:0;background:transparent;color:#e2cf9d;font:700 inherit;cursor:pointer;text-decoration:none}
+.mou-auth-create button{font-size:12px}
+.mou-auth-admin{position:relative;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);text-align:center}
+.mou-auth-admin>button{color:#777166;font-size:10px}
+.mou-auth-admin #mouAdminPanel{margin-top:12px;text-align:left}
+.mou-auth-admin #mouAdminPanel[hidden]{display:none!important}
+.mou-auth-admin .form{display:flex;flex-direction:column;gap:12px}
+.mou-auth-admin .form label{display:flex;flex-direction:column;gap:7px}
+.mou-auth-admin .form input{width:100%;padding:13px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:#111;color:#fff}
+.mou-auth-admin .form button{min-height:46px;border-radius:12px}
+.mou-auth-card .access-note{color:#9c9485;font-size:10px;line-height:1.5}
+@media(max-width:390px){.mou-auth-gate{padding:12px}.mou-auth-stage{padding-top:24px}.mou-auth-card{padding:38px 19px 22px;border-radius:25px}.mou-auth-orb{width:54px;height:54px}.mou-auth-field input,.mou-auth-field select{min-height:54px}}
+@media(prefers-reduced-motion:reduce){.mou-auth-orb{animation:none}}
