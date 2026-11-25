@@ -101,7 +101,8 @@
         button.setAttribute('aria-selected', String(active));
       });
       section.querySelectorAll('[data-pane]').forEach(pane => { pane.hidden = pane.dataset.pane !== activeFilter; });
-      if (activeFilter === 'search') document.getElementById('mouFriendSearch').focus();\n      if (activeFilter === 'suggestions') loadSuggestions();
+      if (activeFilter === 'search') document.getElementById('mouFriendSearch').focus();
+      if (activeFilter === 'suggestions') loadSuggestions();
     });
     document.getElementById('mouFriendSearch').addEventListener('input', event => {
       clearTimeout(timer);
