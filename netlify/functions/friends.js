@@ -7,9 +7,10 @@ const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/j
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 const tableCache = new Map();
 const tableInflight = new Map();
-async function all(table){
+async function all(table,force=false){
  const cached=tableCache.get(table);
- if(cached&&Date.now()-cached.time<45000)return cached.rows;
+ const ttl=table===RELATIONS?2500:30000;
+ if(!force&&cached&&Date.now()-cached.time<ttl)return cached.rows;
  if(tableInflight.has(table))return tableInflight.get(table);
  const task=(async()=>{let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);tableCache.set(table,{time:Date.now(),rows});return rows;})();
  tableInflight.set(table,task);
@@ -46,7 +47,7 @@ exports.handler=async event=>{
     const players=rows.filter(x=>x.id!==me.id&&String(fields(x)[F.status]||'').toLocaleLowerCase('fr').includes('accept')&&String(fields(x)[F.pseudo]||'').toLocaleLowerCase('fr').includes(q)).slice(0,20).map(x=>({id:x.id,pseudo:fields(x)[F.pseudo]||'Joueur',photo:fields(x)[F.photo]||'',relation:relations.find(r=>{const f=fields(r);return f[R.key]===[me.id,x.id].sort().join('_')})?.fields?.[R.status]||'Aucune'}));
     return out(200,{players});
    }
-   const rows=await all(RELATIONS);
+   const rows=await all(RELATIONS,event.queryStringParameters?.fresh==='1');
    return out(200,{relations:rows.filter(x=>fields(x)[R.from]===me.id||fields(x)[R.to]===me.id).map(x=>{const f=fields(x),outgoing=f[R.from]===me.id;return{id:x.id,otherId:outgoing?f[R.to]:f[R.from],pseudo:outgoing?f[R.toName]:f[R.fromName],status:f[R.status],direction:outgoing?'sent':'received',created:f[R.created]||''};})});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
@@ -56,15 +57,17 @@ exports.handler=async event=>{
    const targetRecord=await airtable('Inscriptions/'+encodeURIComponent(target)+'?returnFieldsByFieldId=true');
    const targetFields=fields(targetRecord);if(!targetFields[F.pseudo]||!String(targetFields[F.status]||'').toLocaleLowerCase('fr').includes('accept'))return out(404,{error:'Joueur introuvable ou compte non actif.'});
    const key=[me.id,target].sort().join('_'),rows=await all(RELATIONS),existing=rows.find(x=>fields(x)[R.key]===key);
-   if(existing){const st=fields(existing)[R.status];if(st==='Acceptée')return out(409,{error:'Vous êtes déjà amis.'});if(st==='En attente')return out(409,{error:'Une demande existe déjà.'});if(st==='Bloquée')return out(403,{error:'Cette relation est bloquée.'});await airtable(RELATIONS+'/'+existing.id,{method:'PATCH',body:JSON.stringify({fields:{[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.updated]:now}})});}
+   if(existing){const st=fields(existing)[R.status];if(st==='Acceptée')return out(409,{error:'Vous êtes déjà amis.'});if(st==='En attente')return out(200,{success:true,alreadyPending:true});if(st==='Bloquée')return out(403,{error:'Cette relation est bloquée.'});await airtable(RELATIONS+'/'+existing.id,{method:'PATCH',body:JSON.stringify({fields:{[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.updated]:now}})});}
    else await airtable(encodeURIComponent(RELATIONS),{method:'POST',body:JSON.stringify({records:[{fields:{[R.key]:key,[R.from]:me.id,[R.fromName]:myPseudo,[R.to]:target,[R.toName]:String(targetFields[F.pseudo]),[R.status]:'En attente',[R.created]:now,[R.updated]:now}}]})});
-   return out(201,{success:true});
+   tableCache.delete(RELATIONS);
+   return out(201,{success:true,status:'En attente'});
   }
   if(action==='respond'){
    const id=String(b.relationId||''),decision=String(b.decision||'');if(!id||!['Acceptée','Refusée'].includes(decision))return out(400,{error:'Réponse invalide.'});
    const rec=await airtable(encodeURIComponent(RELATIONS)+'/'+encodeURIComponent(id)+'?returnFieldsByFieldId=true'),f=fields(rec);
    if(f[R.to]!==me.id||f[R.status]!=='En attente')return out(403,{error:'Cette demande ne peut pas être traitée.'});
    await airtable(encodeURIComponent(RELATIONS)+'/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({fields:{[R.status]:decision,[R.updated]:now}})});
+   tableCache.delete(RELATIONS);
    return out(200,{success:true});
   }
   if(action==='remove'){
@@ -72,6 +75,7 @@ exports.handler=async event=>{
    const rec=await airtable(encodeURIComponent(RELATIONS)+'/'+encodeURIComponent(id)+'?returnFieldsByFieldId=true'),f=fields(rec);
    if(f[R.from]!==me.id&&f[R.to]!==me.id)return out(403,{error:'Action non autorisée.'});
    await airtable(encodeURIComponent(RELATIONS)+'/'+encodeURIComponent(id),{method:'DELETE'});
+   tableCache.delete(RELATIONS);
    return out(200,{success:true});
   }
   return out(400,{error:'Action inconnue.'});
