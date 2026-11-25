@@ -432,12 +432,26 @@ async function refreshConnectedFreeFireProfile(){
 setInterval(refreshConnectedFreeFireProfile,300000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshConnectedFreeFireProfile()});
 
-// Restore session before revealing the access gate.
-(async function restorePlayerSession(){
+// Restauration rapide : l'interface s'ouvre immédiatement, le profil se synchronise en arrière-plan.
+(function restorePlayerSession(){
+ const destination=getSavedPage();
  try{
-  if(!state.playerToken){document.body.classList.add('access-locked');$('#accessGate').hidden=false;return;}
-  await loadPlayerProfile();
-  if(state.player){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;const destination=getSavedPage();tab(destination==='admin'&&!state.admin?'home':destination,false);}
- }catch(error){console.error('Session restoration failed:',error);if(state.playerToken){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;if(!state.player){$('#playerProfile').hidden=true;if(getSavedPage()==='profile')tab('home',false);}console.warn('Session MALAWY conservée : échec temporaire de synchronisation du profil. Aucun nouvel identifiant n’est nécessaire.');}else{document.body.classList.add('access-locked');$('#accessGate').hidden=false;}}
- finally{document.documentElement.classList.remove('mou-session-checking');}
+  if(!state.playerToken){
+   document.body.classList.add('access-locked');
+   $('#accessGate').hidden=false;
+  }else{
+   document.body.classList.remove('access-locked');
+   $('#accessGate').hidden=true;
+   $('#playerLoginForm').hidden=true;
+   // Évite une page profil vide pendant la récupération des données.
+   if(destination==='profile')tab('home',false);
+   loadPlayerProfile().then(()=>{
+    if(state.player&&destination==='profile')tab('profile',false);
+   }).catch(error=>console.warn('Synchronisation du profil en arrière-plan :',error.message));
+  }
+ }catch(error){console.error('Préparation de la session MALAWY :',error);}
+ finally{
+  document.documentElement.classList.remove('mou-session-checking');
+  window.dispatchEvent(new Event('mou:app-ready'));
+ }
 })();
