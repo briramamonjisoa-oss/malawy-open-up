@@ -202,17 +202,50 @@ const toolsBar=document.createElement('div');toolsBar.className='mou-chat-tools'
 toolsBar.innerHTML='<button type="button" id="mouChatAttach" aria-label="Joindre une photo ou vidéo" title="Photo / vidéo">＋</button><span id="mouChatMediaStatus" class="mou-chat-status" aria-live="polite"></span><input id="mouChatMediaInput" type="file" accept="image/*,video/*" hidden>';
 chatForm.parentElement.insertBefore(toolsBar,chatForm);
 const mediaInput=$('mouChatMediaInput'),mediaStatus=$('mouChatMediaStatus');
+const voiceButton=document.createElement('button');voiceButton.type='button';voiceButton.id='mouChatVoice';voiceButton.textContent='🎙';voiceButton.title='Enregistrer un message vocal';voiceButton.setAttribute('aria-label','Enregistrer un message vocal');toolsBar.insertBefore(voiceButton,mediaStatus);
+let voiceRecorder=null,voiceStream=null,voiceChunks=[],voiceTarget=null,voiceLimit=null;
+function stopVoiceRecording(){if(voiceRecorder&&voiceRecorder.state!=='inactive')voiceRecorder.stop();clearTimeout(voiceLimit);voiceLimit=null;}
+voiceButton.addEventListener('click',async()=>{
+ if(voiceRecorder&&voiceRecorder.state==='recording'){stopVoiceRecording();return;}
+ if(!activeId&&!activeGroupId){mediaStatus.textContent='Ouvre une conversation avant d’enregistrer un vocal.';return;}
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){mediaStatus.textContent='L’enregistrement vocal n’est pas pris en charge sur cet appareil.';return;}
+ voiceButton.disabled=true;
+ try{
+  voiceStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  voiceTarget={id:activeId,groupId:activeGroupId};
+  const types=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'];
+  const mimeType=types.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
+  voiceRecorder=new MediaRecorder(voiceStream,mimeType?{mimeType}:undefined);voiceChunks=[];
+  voiceRecorder.ondataavailable=event=>{if(event.data?.size)voiceChunks.push(event.data);};
+  voiceRecorder.onerror=()=>{mediaStatus.textContent='Erreur pendant l’enregistrement vocal.';};
+  voiceRecorder.onstop=()=>{
+   const blob=new Blob(voiceChunks,{type:voiceRecorder?.mimeType||'audio/webm'});
+   voiceStream?.getTracks().forEach(track=>track.stop());voiceStream=null;
+   voiceButton.textContent='🎙';voiceButton.disabled=false;voiceButton.title='Enregistrer un message vocal';
+   if(!blob.size){mediaStatus.textContent='Aucun son enregistré. Réessaie.';return;}
+   const ext=blob.type.includes('ogg')?'ogg':blob.type.includes('mp4')?'m4a':'webm';
+   uploadChatMedia(new File([blob],'message-vocal.'+ext,{type:blob.type||'audio/webm'}),'audio',voiceTarget);
+   voiceRecorder=null;voiceChunks=[];voiceTarget=null;
+  };
+  voiceRecorder.start(250);voiceButton.textContent='■';voiceButton.title='Arrêter et envoyer';mediaStatus.textContent='Enregistrement vocal… Appuie sur ■ pour envoyer.';
+  voiceLimit=setTimeout(stopVoiceRecording,60000);
+ }catch(error){
+  voiceStream?.getTracks().forEach(track=>track.stop());voiceStream=null;voiceRecorder=null;voiceButton.disabled=false;
+  mediaStatus.textContent=error.name==='NotAllowedError'?'Autorise le micro dans les paramètres Android ou du navigateur.':error.name==='NotFoundError'?'Aucun microphone détecté.':'Impossible de démarrer le vocal : '+error.message;
+ }
+});
 function mediaEnvelope(content){try{if(content.startsWith('[[MOU_MEDIA]]'))return JSON.parse(content.slice(13));}catch{}return null;}
 function renderMedia(content){
  const item=mediaEnvelope(content);if(!item)return esc(content).replace(/\n/g,'<br>');
  const media=item.type==='image'?'<img class="mou-chat-media" src="'+esc(item.url)+'" alt="Photo envoyée" loading="lazy">':item.type==='video'?'<video class="mou-chat-media" src="'+esc(item.url)+'" controls playsinline preload="metadata"></video>':'<audio class="mou-chat-media mou-chat-audio" src="'+esc(item.url)+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate"></audio>';
  return media+(item.caption?'<span class="mou-media-caption">'+esc(item.caption)+'</span>':'');
 }
-async function uploadChatMedia(file,kind){
+async function uploadChatMedia(file,kind,destination){
  if(!file)return;
  const max=kind==='video'||kind==='audio'?15*1024*1024:8*1024*1024;
  if(file.size>max){mediaStatus.textContent='Fichier trop volumineux (limite '+(max/1024/1024)+' Mo).';return;}
- if(!activeId&&!activeGroupId){mediaStatus.textContent='Ouvre une conversation avant d’envoyer un fichier.';return;}
+ const targetId=destination?.id??activeId,targetGroup=destination?.groupId??activeGroupId;
+ if(!targetId&&!targetGroup){mediaStatus.textContent='Ouvre une conversation avant d’envoyer un fichier.';return;}
  mediaStatus.textContent='Envoi du média…';
  try{
   const resource=kind==='image'?'image':'video';
@@ -220,12 +253,11 @@ async function uploadChatMedia(file,kind){
   const response=await fetch('https://api.cloudinary.com/v1_1/owc0mtlg/'+resource+'/upload',{method:'POST',body:form});
   const data=await response.json();if(!response.ok||!data.secure_url)throw new Error(data.error?.message||'Échec du téléversement.');
   const payload='[[MOU_MEDIA]]'+JSON.stringify({type:kind,url:data.secure_url,name:file.name||'',caption:''});
-  const targetId=activeId,targetGroup=activeGroupId;
   if(targetGroup)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content:payload})});
   else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId,content:payload})});
   const d=await request(targetGroup?'messages?group='+encodeURIComponent(targetGroup):'messages?with='+encodeURIComponent(targetId));
-  messages=d.messages||[];renderMessages();
-  mediaStatus.textContent='Média envoyé.';
+  if((targetGroup&&activeGroupId===targetGroup)||(!targetGroup&&activeId===targetId)){messages=d.messages||[];renderMessages();}
+  mediaStatus.textContent=kind==='audio'?'Message vocal envoyé.':'Média envoyé.';
  }catch(error){mediaStatus.textContent=error.message;}
 }
 $('mouChatAttach').addEventListener('click',()=>mediaInput.click());
