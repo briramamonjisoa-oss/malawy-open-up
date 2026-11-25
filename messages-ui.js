@@ -5,7 +5,10 @@ const $=id=>document.getElementById(id);
 const shell=$('messages')?.querySelector('.mou-messages-shell');
 if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
-let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;\nconst cacheKey=id=>'mou_chat_cache_v1:'+id;\nfunction saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}\nfunction readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
+let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;
+const cacheKey=id=>'mou_chat_cache_v1:'+id;
+function saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}
+function readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const page=()=>document.getElementById('messages');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -103,6 +106,7 @@ function renderContacts(){
 }
 function renderMessages(){
  const box=$('mouChatMessages');
+ if(activeId&&messages.length)saveChatCache(activeId,messages);
  box.innerHTML=messages.length?messages.map(m=>'<div class="mou-chat-bubble '+(m.mine?'mine':'')+'">'+(activeGroupId?'<b class="mou-group-sender">'+esc(m.senderPseudo||'Joueur')+'</b>':'')+renderMedia(m.content)+'<time>'+esc(new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time></div>').join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
  box.scrollTop=box.scrollHeight;
 }
@@ -123,12 +127,12 @@ async function openChat(id,name){
  messages=readChatCache(id);renderMessages();status('');
  try{
   const d=await request('messages?with='+encodeURIComponent(id));if(activeId!==id)return;messages=d.messages||[];
-  renderMessages();await refreshInbox();
+  renderMessages();contactsMessages=contactsMessages.filter(m=>m.senderId!==id&&m.recipientId!==id).concat(messages);renderContacts();
  }catch(e){if(!messages.length)$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
 }
 async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
- try{await Promise.all([refreshInbox(),refreshGuildGroup()]);lastLoad=Date.now();}
+ try{await refreshInbox();lastLoad=Date.now();refreshGuildGroup().catch(()=>{});}
  catch(e){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';}
 }
 $('mouMessageSearch').addEventListener('input',renderContacts);
@@ -181,7 +185,7 @@ async function uploadChatMedia(file,kind){
   if(targetGroup)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content:payload})});
   else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId,content:payload})});
   const d=await request(targetGroup?'messages?group='+encodeURIComponent(targetGroup):'messages?with='+encodeURIComponent(targetId));
-  messages=d.messages||[];renderMessages();if(!targetGroup)await refreshInbox();
+  messages=d.messages||[];renderMessages();
   mediaStatus.textContent='Média envoyé.';
  }catch(error){mediaStatus.textContent=error.message;}
 }
@@ -211,7 +215,7 @@ $('mouChatForm').addEventListener('submit',async e=>{
  const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;
  const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content,created:new Date().toISOString(),mine:true,pending:true};
  messages.push(optimistic);input.value='';renderMessages();status('');button.disabled=false;
- if(!targetGroup)refreshInbox().catch(()=>{});
+ 
  try{
   const result=targetGroup
    ?await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content})})
@@ -219,7 +223,7 @@ $('mouChatForm').addEventListener('submit',async e=>{
   const saved=result.message||null;
   if(saved){const index=messages.findIndex(x=>x.id===optimistic.id);if(index>=0)messages[index]=saved;}
   renderMessages();status('');
-  if(!targetGroup)refreshInbox().catch(()=>{});
+  
  }catch(err){
   messages=messages.filter(x=>x.id!==optimistic.id);renderMessages();status(err.message);input.value=content;
  }finally{input.focus();}
@@ -235,7 +239,7 @@ async function pollInbox(){
 }
 function startPolling(){
  if(poll)clearInterval(poll);
- poll=setInterval(pollInbox,5000);
+ poll=setInterval(pollInbox,15000);
 }
 let wasActive=false;
 const observePage=()=>{
@@ -248,5 +252,5 @@ new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilte
 observePage();startPolling();
 window.addEventListener('mou:player-auth',()=>{if(page().classList.contains('active'))load();else refreshGuildGroup();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&page().classList.contains('active'))pollInbox();});
-refreshGuildGroup();
+// Le contrôle de guilde est lancé après le chargement léger de la boîte de réception.
 })();

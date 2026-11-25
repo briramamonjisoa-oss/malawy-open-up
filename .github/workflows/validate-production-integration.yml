@@ -18,6 +18,11 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check app.js
+          node --check messages-ui.js
+          node --check friends-ui.js
+          node --check netlify/functions/messages.js
+          node --check netlify/functions/friends.js
+          node --check netlify/functions/guild-groups.js
           node --check access-forms.js
           node --check push-notifications.js
           node --check battle-royale-scoring.js

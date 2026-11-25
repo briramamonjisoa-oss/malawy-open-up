@@ -17,6 +17,8 @@ async function all(table,force=false){
  tableInflight.set(table,task);
  try{return await task;}finally{tableInflight.delete(table);}
 }
+async function find(table,formula){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
+async function byRecordIds(table,ids){if(!ids.length)return [];const clauses=ids.map(id=>`RECORD_ID()="${String(id).replace(/"/g,'\\"')}"`);return find(table,`OR(${clauses.join(',')})`);}
 const fields=r=>r.fields||{};
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi avec ton compte joueur.'});
@@ -48,10 +50,10 @@ exports.handler=async event=>{
     const players=rows.filter(x=>x.id!==me.id&&String(fields(x)[F.status]||'').toLocaleLowerCase('fr').includes('accept')&&(String(fields(x)[F.pseudo]||'').toLocaleLowerCase('fr').includes(q)||String(fields(x)[F.uid]||'').includes(q))).slice(0,20).map(x=>({id:x.id,pseudo:fields(x)[F.pseudo]||'Joueur',uid:fields(x)[F.uid]||'',photo:fields(x)[F.photo]||'',relation:relations.find(r=>{const f=fields(r);return f[R.key]===[me.id,x.id].sort().join('_')})?.fields?.[R.status]||'Aucune'}));
     return out(200,{players});
    }
-   const rows=await all(RELATIONS,event.queryStringParameters?.fresh==='1');
+   const rows=await find(RELATIONS,`OR({Joueur demandeur ID}="${me.id}",{Joueur destinataire ID}="${me.id}")`);
    const mineRelations=rows.filter(x=>fields(x)[R.from]===me.id||fields(x)[R.to]===me.id);
    const acceptedIds=mineRelations.filter(x=>fields(x)[R.status]==='Acceptée').map(x=>fields(x)[R.from]===me.id?fields(x)[R.to]:fields(x)[R.from]);
-   const playerRows=acceptedIds.length?await all(PLAYERS):[];
+   const playerRows=acceptedIds.length?await byRecordIds(PLAYERS,acceptedIds):[];
    const presence=new Map(playerRows.filter(p=>acceptedIds.includes(p.id)).map(p=>{const stamp=fields(p)[F.lastSeen]||'';const age=stamp?Date.now()-Date.parse(stamp):Infinity;const circleStamp=fields(p)[F.circleSeen]||'';const circleAge=circleStamp?Date.now()-Date.parse(circleStamp):Infinity;return[p.id,{photo:fields(p)[F.photo]||'',online:Number.isFinite(age)&&age>=-60000&&age<90000,lastSeen:stamp||null,circleOnline:Number.isFinite(circleAge)&&circleAge>=-60000&&circleAge<90000,circleLastSeen:circleStamp||null}];}));
    return out(200,{relations:mineRelations.map(x=>{const f=fields(x),outgoing=f[R.from]===me.id,otherId=outgoing?f[R.to]:f[R.from],p=presence.get(otherId)||{online:false,lastSeen:null,circleOnline:false,circleLastSeen:null};return{id:x.id,otherId,pseudo:outgoing?f[R.toName]:f[R.fromName],status:f[R.status],direction:outgoing?'sent':'received',created:f[R.created]||'',online:f[R.status]==='Acceptée'?p.online:false,lastSeen:f[R.status]==='Acceptée'?p.lastSeen:null,circleOnline:f[R.status]==='Acceptée'?p.circleOnline:false,circleLastSeen:f[R.status]==='Acceptée'?p.circleLastSeen:null,photo:f[R.status]==='Acceptée'?p.photo:''};})});
   }
