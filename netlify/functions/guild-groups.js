@@ -57,7 +57,8 @@ exports.handler=async event=>{
   const resolved=await resolveMe(me,action==='refresh');
   if(method==='GET'){
    const group=await getGroup(resolved.guildId);
-   if(!group)return out(200,{group:null,guild:{id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0},canCreate:resolved.isLeader});
+   const guild={id:resolved.guildId,name:resolved.clan.clanName||resolved.clan.name||'',level:Number(resolved.clan.clanLevel)||0,leaderPseudo:resolved.captain.nickname||'',leaderUid:resolved.captainUid};
+   if(!group)return out(200,{group:null,guild,canCreate:resolved.isLeader,role:resolved.isLeader?'leader':'member',members:[]});
    let g=publicGroup(group);
    if(resolved.isLeader&&g.leaderUid!==resolved.player.uid){
     const now=new Date().toISOString();
@@ -65,7 +66,19 @@ exports.handler=async event=>{
     const refreshed=await airtable(GROUPS+'/'+group.id+'?returnFieldsByFieldId=true');g=publicGroup(refreshed);
    }
    const isOfficer=g.officers.some(x=>x.playerRecordId===me.id);
-   return out(200,{group:g,canCreate:resolved.isLeader&&g.leaderPlayerId!==me.id,role:resolved.isLeader?'leader':isOfficer?'officer':'member'});
+   const roster=await all(PLAYERS);
+   const members=roster.flatMap(r=>{
+    const f=fields(r);
+    if(!approved(f[PF.status]))return [];
+    let p=null;try{p=JSON.parse(f[PF.profile]||'null')}catch{}
+    if(String(p?.clanBasicInfo?.clanId||'')!==resolved.guildId)return [];
+    const uid=String(f[PF.uid]||p?.basicInfo?.accountId||'');
+    if(!uid)return [];
+    const officer=g.officers.find(x=>x.playerRecordId===r.id);
+    return [{playerRecordId:r.id,uid,pseudo:String(p?.basicInfo?.nickname||f[PF.pseudo]||'Joueur'),role:r.id===g.leaderPlayerId?'leader':officer?'officer':'member'}];
+   });
+   members.sort((a,b)=>(a.role==='leader'?-1:b.role==='leader'?1:a.role==='officer'?-1:b.role==='officer'?1:a.pseudo.localeCompare(b.pseudo,'fr')));
+   return out(200,{group:g,guild,canCreate:resolved.isLeader&&g.leaderPlayerId!==me.id,role:resolved.isLeader?'leader':isOfficer?'officer':'member',members});
   }
   if(method!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(action==='create'){

@@ -35,6 +35,7 @@
         <button type="button" data-profile-open="presence"><span>◉</span><b>Présence</b><small>Confidentialité et joueurs en ligne</small><i>›</i></button>
         <button type="button" data-profile-open="history"><span>⌁</span><b>Historique</b><small>Matchs et résultats</small><i>›</i></button>
         <button type="button" data-profile-open="photo"><span>◎</span><b>Photo de profil</b><small>Modifier mon image</small><i>›</i></button>
+        <button type="button" data-guild-management-open><span>♜</span><b>Ma guilde</b><small>Chef, officiers et membres</small><i>›</i></button>
       </div>
       <div class="mou-profile-modal" id="mouProfileModal" hidden>
         <div class="mou-profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="mouProfileModalTitle">
