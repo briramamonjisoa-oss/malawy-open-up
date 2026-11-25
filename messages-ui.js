@@ -118,7 +118,7 @@ async function openChat(id,name){
  activeId=id;activeGroupId='';activeName=name;
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
- $('mouChatName').textContent=name;$('mouChatAvatar').textContent=name.slice(0,1).toUpperCase();
+ $('mouChatName').textContent=name;const contact=contacts.find(c=>c.id===id);$('mouChatAvatar').innerHTML=contact?.photo?'<img src="'+esc(contact.photo)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
  shell.classList.add('chat-open');renderContacts();
  messages=readChatCache(id);renderMessages();status('');
  try{
