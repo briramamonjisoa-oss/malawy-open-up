@@ -251,10 +251,11 @@ function freeFireRankCard(rankCode,points,mode='br'){
 async function loadPlayerProfile(options={}){
  if(!state.playerToken)return;
  try{
-  const r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store'});
+  const controller=new AbortController(),profileTimeout=setTimeout(()=>controller.abort(),8000);
+  let r;try{r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store',signal:controller.signal});}finally{clearTimeout(profileTimeout);}
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
-  try{const gr=await fetch(API_ORIGIN+'/.netlify/functions/guild-info',{cache:'no-store'});const gd=await gr.json();if(gr.ok&&gd.id)state.guildInfo=gd;}catch(e){console.warn('Guilde Free Fire non actualisée:',e.message);}
-  state.player=p;// La vérification silencieuse du profil ne doit pas déclencher une navigation.$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
+  state.player=p;
+  fetch(API_ORIGIN+'/.netlify/functions/guild-info?fast=1',{cache:'no-store'}).then(gr=>gr.json()).then(gd=>{if(gd?.id){state.guildInfo=gd;try{render();}catch(e){}}}).catch(e=>console.warn('Guilde Free Fire non actualisée:',e.message));// La vérification silencieuse du profil ne doit pas déclencher une navigation.$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
   $('#profilePseudo').textContent=p.pseudo;$('#profileDisplayName').value=p.pseudo;$('#profileUid').textContent='UID : '+p.playerId;$('#profileStatus').textContent='Statut : '+p.status;
   $('#profilePoints').textContent=p.points;$('#profileWins').textContent=p.wins;$('#profileLosses').textContent=p.losses;
   const ff=p.freeFireProfile||{},bi=ff.basicInfo||{},clan=state.guildInfo&&String(state.guildInfo.id)==='3076348376'?{...ff.clanBasicInfo,clanName:state.guildInfo.name,clanLevel:state.guildInfo.level,memberNum:state.guildInfo.members,capacity:state.guildInfo.capacity}:ff.clanBasicInfo||{},pet=ff.petInfo||{};
@@ -444,6 +445,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCon
   if(!state.playerToken){document.body.classList.add('access-locked');$('#accessGate').hidden=false;return;}
   await loadPlayerProfile();
   if(state.player){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;const destination=getSavedPage();tab(destination==='admin'&&!state.admin?'home':destination,false);}
- }catch(error){console.error('Session restoration failed:',error);}
+ }catch(error){console.error('Session restoration failed:',error);if(error.name==='AbortError'||error instanceof TypeError){document.body.classList.remove('access-locked');$('#accessGate').hidden=true;console.warn('MALAWY démarre en mode réseau dégradé; les données protégées se synchroniseront ensuite.');}}
  finally{document.documentElement.classList.remove('mou-session-checking');}
 })();
