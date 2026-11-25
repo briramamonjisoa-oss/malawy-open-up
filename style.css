@@ -1356,3 +1356,49 @@ body[data-accent=violet]{--accent:#ae7ce1;--lime:#ae7ce1}
 .mou-sender-profile-modal .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
 .mou-sender-profile-modal .stats span{padding:10px 4px;border:1px solid rgba(216,193,138,.2);border-radius:12px;font-size:10px;color:#bdb5a6}
 .mou-sender-profile-modal .stats b{display:block;color:#e5d3a6;font-size:17px;margin-bottom:4px}
+
+/* MOBILE HOTFIX — restore document scrolling and persistent app header */
+@media (max-width: 760px) {
+  html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+  body {
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+    padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body:not(.access-locked):not(.admin-modal-active):not(.requests-inbox-open) {
+    overflow: visible !important;
+  }
+  body > header.top {
+    display: flex !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10030 !important;
+    width: 100% !important;
+    min-height: 66px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  body.mou-community-active main {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  body.mou-community-active #community.page.active {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
