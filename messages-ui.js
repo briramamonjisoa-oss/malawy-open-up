@@ -47,7 +47,7 @@ function renderGuildCard(data){
  if(data.group){
   title.textContent=data.group.name||'Groupe de guilde';
   desc.textContent=data.role==='leader'?'Ton groupe officiel est prêt. Tu es le Chef et tu peux gérer les officiers.':data.role==='officer'?'Groupe officiel de ta guilde · Tu es officier.':'Groupe officiel de ta guilde. Discute avec les membres.';
-  button.hidden=false;button.disabled=false;button.textContent='Ouvrir le groupe';button.onclick=()=>openGuildChat(data.group.id,data.group.name);
+  button.hidden=false;button.disabled=false;button.textContent='Ouvrir le groupe';button.onclick=()=>openGuildChat(data.group.guildId,data.group.name);
  }else{
   const name=data.guild?.name||'ta guilde';
   title.textContent='Crée le groupe de '+name;
