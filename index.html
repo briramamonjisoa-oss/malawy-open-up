@@ -16,40 +16,49 @@
 </head>
 
 <body>
-<div id="accessGate" class="access-gate">
- <div class="access-card">
-  <div class="eyebrow">MALAWY OPEN UP · ESPACE JOUEUR</div>
-  <div class="access-logo">M</div>
-  <h1>ACCÈDE À <em>L'ARÈNE.</em></h1>
-  <p>Connecte-toi avec les informations de ton inscription validée.</p>
-  <div class="access-switch"><button type="button" id="showSignup" class="primary">Créer mon accès</button><button type="button" id="showLogin" class="secondary">Déjà inscrit ? Connexion</button></div>
-  <form id="playerSignupForm" class="form access-form">
-   <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" placeholder="Ton pseudo"></label>
-   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" placeholder="Ton UID"></label>
-   <label>Mode de combat<select name="mode" required><option value="">Choisir</option><option>1 VS 1</option><option>2 VS 1</option></select></label>
-   <label>Photo de profil<input name="photo" type="file" accept="image/*"></label>
-   <label>Code PIN personnel<input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="4 à 8 chiffres"></label>
-   <button class="primary" type="submit">Envoyer ma demande</button><p id="signupMsg" class="message" aria-live="polite"></p>
-   <p class="access-note">Ton accès sera activé après validation par l'administration.</p>
-  </form>
-  <form id="playerLoginForm" class="form access-form" hidden>
-   <label>Pseudo Free Fire<input name="pseudo" required maxlength="32" autocomplete="username" placeholder="Ton pseudo"></label>
-   <label>UID Free Fire<input name="playerId" required maxlength="40" inputmode="numeric" placeholder="Ton UID"></label>
-   <label>Code PIN personnel<input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="current-password" placeholder="4 à 8 chiffres"></label>
-   <button class="primary" type="submit">Valider et entrer</button><p id="gateMsg" class="message" aria-live="polite"></p>
-  </form>
-  <div class="access-admin">
-   <p>Tu es administrateur ?</p>
-   <form id="gateAdminForm" class="form">
-    <label>Code administrateur<input name="code" type="password" required autocomplete="current-password" placeholder="Ton code admin"></label>
-    <button class="secondary" type="submit">Accéder au panneau admin</button>
-    <p id="gateAdminMsg" class="message" aria-live="polite"></p>
-   </form>
-  </div>
-  <p class="access-note">Ton inscription doit d'abord être acceptée par l'administration.</p>
- </div>
-</div>
+<div id="accessGate" class="access-gate mou-auth-gate">
+ <main class="mou-auth-stage">
+  <div class="mou-auth-orb" aria-hidden="true"></div>
+  <section class="mou-auth-card" id="mouAuthCard">
+   <div class="mou-auth-brandmark" aria-hidden="true">M</div>
+   <p class="mou-auth-kicker">MALAWY OPEN UP · ESPORT COMMUNITY</p>
+   <h1 id="mouAuthTitle">MALAWY <span>OPEN UP</span></h1>
+   <p class="mou-auth-subtitle" id="mouAuthSubtitle">Content de te revoir. Rejoins l’arène.</p>
 
+   <form id="playerLoginForm" class="form access-form mou-auth-form" autocomplete="on">
+    <label class="mou-auth-field"><span>UID FREE FIRE</span><input name="playerId" required maxlength="40" inputmode="numeric" pattern="[0-9]+" autocomplete="username" placeholder="Entre ton UID Free Fire"></label>
+    <label class="mou-auth-field"><span>CODE PIN PERSONNEL</span><span class="mou-auth-password"><input name="pin" id="mouLoginPin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" autocomplete="current-password" placeholder="Ton code PIN"><button type="button" class="mou-auth-eye" id="mouTogglePin" aria-label="Afficher le code PIN">◉</button></span></label>
+    <div class="mou-auth-options"><label><input type="checkbox" name="remember" checked> Rester connecté</label><span>PIN de 4 à 8 chiffres</span></div>
+    <button class="primary mou-auth-submit" type="submit">Se connecter <span aria-hidden="true">↗</span></button>
+    <p id="gateMsg" class="message mou-auth-message" aria-live="polite"></p>
+    <p class="mou-auth-create">Nouveau joueur ? <button type="button" id="showSignup">Créer un compte</button></p>
+   </form>
+
+   <form id="playerSignupForm" class="form access-form mou-auth-form" hidden>
+    <label class="mou-auth-field"><span>PSEUDO FREE FIRE</span><input name="pseudo" required maxlength="32" autocomplete="nickname" placeholder="Ton pseudo dans le jeu"></label>
+    <label class="mou-auth-field"><span>UID FREE FIRE</span><input name="playerId" required maxlength="40" inputmode="numeric" pattern="[0-9]+" placeholder="Ton UID Free Fire"></label>
+    <label class="mou-auth-field"><span>MODE DE COMBAT</span><select name="mode" required><option value="">Choisir un mode</option><option>1 VS 1</option><option>2 VS 1</option></select></label>
+    <label class="mou-auth-field"><span>PHOTO DE PROFIL (FACULTATIF)</span><input name="photo" type="file" accept="image/*"></label>
+    <label class="mou-auth-field"><span>CHOISIS TON CODE PIN</span><input name="pin" type="password" required minlength="4" maxlength="8" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="4 à 8 chiffres"></label>
+    <button class="primary mou-auth-submit" type="submit">Envoyer ma demande <span aria-hidden="true">↗</span></button>
+    <p id="signupMsg" class="message mou-auth-message" aria-live="polite"></p>
+    <p class="mou-auth-create">Déjà un compte ? <button type="button" id="showLogin">Retour à la connexion</button></p>
+    <p class="access-note">Ton accès sera activé après validation par l’administration.</p>
+   </form>
+
+   <div class="mou-auth-admin">
+    <button type="button" id="mouAdminToggle">Accès administrateur</button>
+    <div id="mouAdminPanel" hidden>
+     <form id="gateAdminForm" class="form">
+      <label class="mou-auth-field"><span>CODE ADMINISTRATEUR</span><input name="code" type="password" required autocomplete="current-password" placeholder="Ton code admin"></label>
+      <button class="secondary" type="submit">Ouvrir le panneau admin</button>
+      <p id="gateAdminMsg" class="message" aria-live="polite"></p>
+     </form>
+    </div>
+   </div>
+  </section>
+ </main>
+</div>
 <header class="top">
 <a class="brand" href="#home" aria-label="MALAWY OPEN UP accueil">
 <span class="logo">M</span>
