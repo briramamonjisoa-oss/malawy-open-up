@@ -26,7 +26,7 @@ const API_ORIGIN='https://malawy-open-up.briramamonjisoa.workers.dev';
  document.body.appendChild(layer);
  const image=layer.querySelector('.mou-photo-image'),caption=layer.querySelector('.mou-photo-caption');
  const close=()=>{layer.classList.remove('is-open');document.body.classList.remove('mou-photo-view-open');image.removeAttribute('src');};
- const open=source=>{if(!source||!/^https?:\\/\\//i.test(source))return;image.src=source;caption.textContent='MALAWY OPEN UP';layer.classList.add('is-open');document.body.classList.add('mou-photo-view-open');};
+ const open=source=>{if(!source||!(source.startsWith('https://')||source.startsWith('http://')))return;image.src=source;caption.textContent='MALAWY OPEN UP';layer.classList.add('is-open');document.body.classList.add('mou-photo-view-open');};
  layer.addEventListener('click',e=>{if(e.target===layer||e.target.closest('.mou-photo-close'))close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('is-open'))close();});
  document.addEventListener('click',e=>{
