@@ -1,4 +1,4 @@
-const CACHE = 'malawy-v132';
+const CACHE = 'malawy-v133';
 
 const ASSETS = [
   '/',
@@ -58,27 +58,31 @@ self.addEventListener('fetch', event => {
 
   const path = new URL(event.request.url).pathname;
   if(event.request.mode==='navigate'){
-    event.respondWith(
-      fetch(event.request).then(response=>{
-        if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
-        return response;
-      }).catch(async()=>{
-        const splash=await caches.match('/offline.html');
-        return splash||await caches.match('/index.html')||Response.error();
-      })
-    );
+    const refresh=fetch(event.request).then(response=>{
+      if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('/index.html',copy));}
+      return response;
+    }).catch(()=>null);
+    event.respondWith((async()=>{
+      const cached=await caches.match('/index.html')||await caches.match(event.request);
+      if(cached){event.waitUntil(refresh.then(()=>undefined));return cached;}
+      const fresh=await refresh;
+      if(fresh)return fresh;
+      const offline=await caches.match('/offline.html');
+      return offline||Response.error();
+    })());
     return;
   }
-  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/stories-presence-ui.js','/navbar-v2.js'].includes(path)) {
-    event.respondWith(
-      fetch(event.request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        }
-        return response;
-      }).catch(() => caches.match(event.request,{ignoreSearch:true}))
-    );
+  if (['/','/index.html','/app.js','/access-forms.js','/admin-access.js','/navigation-fix.js','/access-switch.js','/tournaments-ui.js','/connection-refresh.js','/style.css','/update-gate.js','/app-version.json','/community-feed.js','/stories-presence-ui.js','/navbar-v2.js','/messages-ui.js','/friends-ui.js','/profile-hub.js','/calls-ui.js','/flow-messenger.js'].includes(path)) {
+    const cachedResponse=caches.match(event.request,{ignoreSearch:true});
+    const networkResponse=fetch(event.request).then(response=>{
+      if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
+      return response;
+    }).catch(()=>null);
+    event.respondWith((async()=>{
+      const cached=await cachedResponse;
+      if(cached){event.waitUntil(networkResponse.then(()=>undefined));return cached;}
+      return await networkResponse||Response.error();
+    })());
     return;
   }
 
