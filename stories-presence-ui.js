@@ -41,6 +41,33 @@ function storyStyles(){if(document.getElementById('mouStoryStyles'))return;const
 .mou-story-msg{font-size:12px;color:#a99a75;margin:14px 0}.mou-story-create-actions{display:flex;gap:10px;margin-top:18px}.mou-story-create-actions button{min-height:46px;border-radius:14px;font-size:13px;font-weight:650}.mou-story-cancel{background:#141414;border:1px solid #444;color:#bbb}.mou-story-publish{background:linear-gradient(135deg,#d8c18a,#8c7544);border:1px solid #e4d09a;color:#090909}.mou-story-publish:disabled{opacity:.55}
 .mou-story-ring.mou-story-timer{border:0;padding:3px;background:conic-gradient(#d8c18a calc(var(--story-progress,1)*1turn),rgba(216,193,138,.16) 0);box-shadow:0 0 12px rgba(216,193,138,.12)}
 .mou-story-avatar{width:100%;height:100%;display:grid;place-items:center;border-radius:50%;background:#090909;border:2px solid #080808;color:#d8c18a;overflow:hidden;font-size:20px}.mou-story-avatar img{width:100%;height:100%;object-fit:cover;border:0}.mou-story-avatar{position:relative}.mou-story-avatar img{object-fit:cover}.mou-story-video-mark{position:absolute;right:1px;bottom:1px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:#090909;color:#d8c18a;font-size:9px;border:1px solid #d8c18a}
+
+/* MALAWY OPEN UP — immersive Black Velvet / Gold / Violet story viewer */
+.mou-story-viewer{position:fixed;inset:0;z-index:18000;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(2,2,4,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.mou-story-viewer-inner{position:relative;isolation:isolate;width:min(100%,520px);height:100dvh;max-height:100dvh;margin:0;overflow:hidden;border:1px solid rgba(216,193,138,.55);border-radius:0;background:#050506;box-shadow:0 0 34px rgba(216,193,138,.12),0 0 70px rgba(142,54,220,.12);display:block}
+.mou-story-viewer-inner:before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.68) 0%,rgba(0,0,0,.12) 22%,transparent 52%,rgba(0,0,0,.18) 70%,rgba(0,0,0,.88) 100%)}
+.mou-story-viewer-inner:after{content:"MALAWY OPEN UP  ·  FREE FIRE COMMUNITY";position:absolute;z-index:4;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom));text-align:center;color:rgba(216,193,138,.8);font-size:9px;font-weight:800;letter-spacing:.24em;text-shadow:0 0 16px rgba(216,193,138,.28);pointer-events:none}
+.mou-story-progress-list{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;z-index:5;display:flex;gap:4px}
+.mou-story-progress{display:block;flex:1;height:3px;overflow:hidden;border-radius:8px;background:rgba(255,255,255,.26);box-shadow:0 1px 4px #000}
+.mou-story-progress i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#d8c18a,#f7e5b2 58%,#b45bff);box-shadow:0 0 10px rgba(216,193,138,.7)}
+.mou-story-head{position:absolute;top:calc(26px + env(safe-area-inset-top));left:14px;right:14px;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;color:#fff}
+.mou-story-owner{display:flex;align-items:center;gap:11px;min-width:0;padding:0;border:0;background:none;color:#fff;text-align:left;font:inherit;cursor:pointer}
+.mou-story-owner-avatar{position:relative;flex:none;width:46px;height:46px;display:grid;place-items:center;overflow:visible;border:2px solid #e0c783;border-radius:50%;background:#111;color:#e0c783;box-shadow:0 0 0 3px rgba(216,193,138,.12),0 0 18px rgba(216,193,138,.25);font-weight:800}
+.mou-story-owner-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.mou-story-owner-avatar:after{content:"M";position:absolute;right:-4px;bottom:-3px;width:17px;height:17px;display:grid;place-items:center;border:1px solid #e0c783;border-radius:50%;background:#090909;color:#e0c783;font-size:10px;font-weight:900}
+.mou-story-owner-meta{min-width:0}.mou-story-owner-meta b{display:block;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;font-size:15px;font-weight:800;text-shadow:0 2px 10px #000}
+.mou-story-owner-meta small{display:block;margin-top:3px;color:#e1d7c2;font-size:11px;text-shadow:0 1px 8px #000}
+.mou-story-close{position:relative;top:auto;right:auto;z-index:7;flex:none;width:40px;height:40px;display:grid;place-items:center;border:1px solid rgba(216,193,138,.58);border-radius:14px;background:rgba(7,7,8,.58);color:#f3e6c4;font-size:25px;line-height:1;box-shadow:0 0 18px rgba(0,0,0,.35)}
+.mou-story-media{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;min-height:0;background:radial-gradient(ellipse at 50% 40%,#19151d 0%,#050506 75%)}
+.mou-story-media img,.mou-story-media video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;background:#050506}
+.mou-story-caption{position:absolute;left:18px;right:18px;bottom:calc(42px + env(safe-area-inset-bottom));z-index:5;margin:0;padding:12px 15px;border:1px solid rgba(216,193,138,.28);border-radius:15px;background:linear-gradient(110deg,rgba(8,8,9,.76),rgba(35,20,46,.38));color:#fff;font-size:15px;font-weight:650;line-height:1.4;text-shadow:0 2px 8px #000;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.mou-story-caption[hidden]{display:none}
+.mou-story-hit{position:absolute;top:90px;bottom:55px;z-index:3;width:28%;padding:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mou-story-prev{left:0}.mou-story-next{right:0}
+.mou-story-hit:disabled{opacity:0;pointer-events:none}
+@media(min-width:600px){.mou-story-viewer{padding:18px}.mou-story-viewer-inner{height:min(94dvh,900px);max-height:900px;border-radius:26px}.mou-story-viewer-inner:after{bottom:12px}.mou-story-progress-list{top:14px}.mou-story-head{top:30px}.mou-story-caption{bottom:40px}}
+@media(max-height:560px) and (orientation:landscape){.mou-story-viewer-inner{width:min(100vw,900px);height:100dvh}.mou-story-owner-avatar{width:38px;height:38px}.mou-story-caption{bottom:28px;padding:8px 12px}}
+
 `;document.head.appendChild(s);}
 function viewer(group,index){
  let current=Math.max(0,Math.min(index,group.length-1));
