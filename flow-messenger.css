@@ -42,3 +42,12 @@
 @keyframes mouFlowIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:760px){body.mou-chat-fullscreen .mou-flow-chat .mou-messages-shell{position:fixed!important;inset:0!important;z-index:100!important;width:100vw!important;height:100dvh!important;max-height:100dvh!important;border:0!important;border-radius:0!important}body.mou-chat-fullscreen .mou-flow-chat .mou-messages-sidebar{display:none!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-panel{width:100%!important;height:100%!important;min-height:0!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-active{display:flex!important;flex-direction:column!important;height:100%!important;max-height:100dvh!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-messages{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-bottom:20px!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-header{padding-top:calc(10px + env(safe-area-inset-top,0px))!important;flex:0 0 auto!important}body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;flex:0 0 auto!important}}
 @media(min-width:761px){.mou-flow-chat .mou-messages-shell,.mou-flow-chat .mou-chat-panel{min-height:680px!important}}
+
+/* Match Flow's mobile hierarchy: header, scrollable timeline, compact actions, composer. */
+@media(max-width:760px){
+ body.mou-chat-fullscreen .mou-flow-chat .mou-chat-bubble{max-width:86%!important;border-radius:22px!important;padding:14px 16px!important}
+ body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form{gap:8px!important;border-top:1px solid #d8c18a22!important;background:rgba(8,9,9,.98)!important;backdrop-filter:blur(16px)!important}
+ body.mou-chat-fullscreen .mou-flow-chat .mou-chat-form input{border-radius:999px!important;padding:0 17px!important;background:#ffffff09!important}
+ body.mou-chat-fullscreen .mou-flow-chat .mou-chat-tools button{width:42px!important;height:42px!important;border-radius:50%!important}
+ body.mou-chat-fullscreen .mou-flow-chat .mou-chat-status:empty{display:none!important}
+}
