@@ -7,16 +7,17 @@ android {
     namespace 'mg.malawy.openup'
     compileSdk 35
 
+    // Keep debug builds independent from release signing secrets.
+    // The signed-release workflow validates all four secrets before assembleRelease.
     signingConfigs {
         release {
             def signingStore = System.getenv('MALAWY_STORE_FILE')
-            if (signingStore == null || signingStore.isBlank()) {
-                throw new GradleException('Missing MALAWY_STORE_FILE: configure the MALAWY Android signing secrets before building a release.')
+            if (signingStore != null && !signingStore.isBlank()) {
+                storeFile file(signingStore)
+                storePassword System.getenv('MALAWY_STORE_PASSWORD')
+                keyAlias System.getenv('MALAWY_KEY_ALIAS')
+                keyPassword System.getenv('MALAWY_KEY_PASSWORD')
             }
-            storeFile file(signingStore)
-            storePassword System.getenv('MALAWY_STORE_PASSWORD')
-            keyAlias System.getenv('MALAWY_KEY_ALIAS')
-            keyPassword System.getenv('MALAWY_KEY_PASSWORD')
         }
     }
 
