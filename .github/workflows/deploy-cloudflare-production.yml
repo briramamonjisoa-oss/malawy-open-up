@@ -1,3 +1,4 @@
+# Production deployment workflow — redeploy trigger after MALAWY OPEN UP feed update.
 name: Deploy MALAWY OPEN UP to Cloudflare Production
 
 on:
