@@ -15,7 +15,11 @@ exports.handler=async event=>{
    const withId=String(event.queryStringParameters?.with||'');
    if(withId&&withId!==me.id&&!await accepted(me.id,withId))return out(403,{error:'La messagerie privée est réservée aux amis acceptés.'});
    const rows=await all(TABLE),visible=rows.filter(r=>{const f=r.fields||{};return (f[F.from]===me.id||f[F.to]===me.id)&&(!withId||f[F.from]===withId||f[F.to]===withId)&&f[F.status]!=='Supprimé';});
-   return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:f[F.read]||'',mine:f[F.from]===me.id};})});
+   if(withId){
+    const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
+    await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
+   }
+   return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:withId&&f[F.to]===me.id&&!f[F.read]?new Date().toISOString():(f[F.read]||''),mine:f[F.from]===me.id};})});
   }
   if(method!=='POST'||b.action!=='send')return out(400,{error:'Action inconnue.'});
   const target=String(b.targetId||''),content=String(b.content||'').trim();
