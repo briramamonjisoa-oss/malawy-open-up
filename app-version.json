@@ -1,6 +1,6 @@
 {
-  "latestVersionCode": 8,
-  "latestVersionName": "1.0.25",
-  "forceUpdate": false,
-  "apkUrl": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-debug.apk"
+  "latestVersionCode": 9,
+  "latestVersionName": "1.0.26",
+  "forceUpdate": true,
+  "apkUrl": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.26-migration/app-release.apk"
 }

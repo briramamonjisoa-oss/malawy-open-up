@@ -6,12 +6,34 @@ plugins {
 android {
     namespace 'mg.malawy.openup'
     compileSdk 35
+
+    // Keep debug builds independent from release signing secrets.
+    // The signed-release workflow validates all four secrets before assembleRelease.
+    signingConfigs {
+        release {
+            def signingStore = System.getenv('MALAWY_STORE_FILE')
+            if (signingStore != null && !signingStore.isBlank()) {
+                storeFile file(signingStore)
+                storePassword System.getenv('MALAWY_STORE_PASSWORD')
+                keyAlias System.getenv('MALAWY_KEY_ALIAS')
+                keyPassword System.getenv('MALAWY_KEY_PASSWORD')
+            }
+        }
+    }
+
     defaultConfig {
         applicationId 'mg.malawy.openup'
         minSdk 23
         targetSdk 35
-        versionCode 8
-        versionName '1.0.25'
+        versionCode 9
+        versionName '1.0.26'
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
     }
 }
 

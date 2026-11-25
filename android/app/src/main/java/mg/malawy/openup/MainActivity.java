@@ -40,7 +40,7 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private static final String HOME = "https://malawy-open-up.briramamonjisoa.workers.dev";
     private static final String VERSION_URL = HOME + "/app-version.json";
-    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-debug.apk";
+    private static final String APK_URL = "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/download/android-v1.0.26-migration/app-release.apk";
     private boolean updateDialogVisible = false;
     private static final int FILE_CHOOSER_REQUEST = 501;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 502;
@@ -217,7 +217,9 @@ public class MainActivity extends Activity {
 
         TextView message = updateText(
             "MALAWY OPEN UP " + versionName + " est disponible. " +
-            (force ? "Cette mise à jour est obligatoire pour continuer." : "Installe la mise à jour pour profiter des nouveautés."),
+            (force
+                ? "Cette mise à jour est obligatoire. Télécharge le fichier, désinstalle ensuite l'ancienne application, puis ouvre le fichier téléchargé pour installer la nouvelle version. Tu devras te reconnecter avec ton UID et ton PIN."
+                : "Installe la mise à jour pour profiter des nouveautés."),
             15, muted, false);
         message.setLineSpacing(dp(4), 1.0f);
         LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
