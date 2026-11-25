@@ -24,6 +24,11 @@ exports.handler=async event=>{
    const rec=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields:{[F.id]:id,[F.from]:me.id,[F.to]:target,[F.type]:type,[F.status]:'ringing',[F.ice]:'[]',[F.created]:now.toISOString(),[F.expires]:expires,[F.updated]:now.toISOString()}}]})});
    return out(201,{success:true,callId:id,recordId:rec.records?.[0]?.id,iceServers:iceServers()});
   }
+  if(method==='GET'&&event.queryStringParameters?.incoming==='1'){
+   const incoming=await find(TABLE,`AND({Destinataire record ID}=${val(me.id)},{Statut}="ringing")`);
+   const live=[];for(const row of incoming){const f=row.fields||{};if(Date.parse(f[F.expires]||'')>Date.now()&&await friend(f[F.from],me.id))live.push({callId:f[F.id],callerId:f[F.from],type:f[F.type],created:f[F.created]});}
+   return out(200,{incoming:live.slice(0,3)});
+  }
   const callId=String(event.queryStringParameters?.callId||b.callId||'');
   if(!callId)return out(400,{error:'Appel introuvable.'});
   const rows=await find(TABLE,`{Call ID}=${val(callId)}`),record=rows[0];if(!record)return out(404,{error:'Cet appel n’existe plus.'});
