@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const shell=$('messages')?.querySelector('.mou-messages-shell');
 if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
-let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;
+let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;\nconst cacheKey=id=>'mou_chat_cache_v1:'+id;\nfunction saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}\nfunction readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const page=()=>document.getElementById('messages');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -109,7 +109,7 @@ function renderMessages(){
 async function refreshInbox(){
  if(!token()){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">Connecte-toi avec ton compte joueur pour ouvrir ta messagerie.</p>';return;}
  const [friendsData,messageData]=await Promise.all([request('friends'),request('messages')]);
- contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur'})).filter(x=>x.id);
+ contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur',photo:x.photo||'',online:!!x.online})).filter(x=>x.id);
  contactsMessages=messageData.messages||[];
  renderContacts();
 }
@@ -119,11 +119,11 @@ async function openChat(id,name){
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;$('mouChatAvatar').textContent=name.slice(0,1).toUpperCase();
  shell.classList.add('chat-open');renderContacts();
- $('mouChatMessages').innerHTML='<p class="mou-message-empty">Chargement des messages…</p>';status('');
+ messages=readChatCache(id);renderMessages();status('');
  try{
-  const d=await request('messages?with='+encodeURIComponent(id));messages=d.messages||[];
+  const d=await request('messages?with='+encodeURIComponent(id));if(activeId!==id)return;messages=d.messages||[];
   renderMessages();await refreshInbox();
- }catch(e){$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
+ }catch(e){if(!messages.length)$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
 }
 async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
@@ -138,13 +138,21 @@ $('mouMessageContacts').addEventListener('click',e=>{
 $('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 $('mouChatForm').addEventListener('submit',async e=>{
  e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||(!activeId&&!activeGroupId))return;
- const button=$('mouChatForm').querySelector('button');button.disabled=true;status('Envoi…');
+ const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;
+ const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content,created:new Date().toISOString(),mine:true,pending:true};
+ messages.push(optimistic);input.value='';renderMessages();status('');button.disabled=false;
+ if(!targetGroup)refreshInbox().catch(()=>{});
  try{
-  if(activeGroupId)await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:activeGroupId,content})});
-  else await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:activeId,content})});
-  input.value='';const d=await request(activeGroupId?'messages?group='+encodeURIComponent(activeGroupId):'messages?with='+encodeURIComponent(activeId));messages=d.messages||[];
-  renderMessages();if(!activeGroupId)await refreshInbox();status('Envoyé');
- }catch(err){status(err.message);}finally{button.disabled=false;input.focus();}
+  const result=targetGroup
+   ?await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content})})
+   :await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:targetId,content})});
+  const saved=result.message||null;
+  if(saved){const index=messages.findIndex(x=>x.id===optimistic.id);if(index>=0)messages[index]=saved;}
+  renderMessages();status('');
+  if(!targetGroup)refreshInbox().catch(()=>{});
+ }catch(err){
+  messages=messages.filter(x=>x.id!==optimistic.id);renderMessages();status(err.message);input.value=content;
+ }finally{input.focus();}
 });
 async function pollInbox(){
  if(!page().classList.contains('active')||document.hidden||!token())return;
@@ -157,7 +165,7 @@ async function pollInbox(){
 }
 function startPolling(){
  if(poll)clearInterval(poll);
- poll=setInterval(pollInbox,12000);
+ poll=setInterval(pollInbox,5000);
 }
 let wasActive=false;
 const observePage=()=>{
