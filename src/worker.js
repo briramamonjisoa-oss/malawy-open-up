@@ -18,6 +18,8 @@ import stories from "../netlify/functions/stories.js";
 import messages from "../netlify/functions/messages.js";
 import presence from "../netlify/functions/presence.js";
 import guildGroups from "../netlify/functions/guild-groups.js";
+import calls from "../netlify/functions/calls.js";
+import messageActions from "../netlify/functions/message-actions.js";
 
 const handlers = {
   admin: admin.handler,
@@ -39,7 +41,9 @@ const handlers = {
   stories: stories.handler,
   messages: messages.handler,
   presence: presence.handler,
-  "guild-groups": guildGroups.handler
+  "guild-groups": guildGroups.handler,
+  calls: calls.handler,
+  "message-actions": messageActions.handler
 };
 
 function json(data, status = 200) {
@@ -59,7 +63,10 @@ export default {
       VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
       VAPID_SUBJECT: env.VAPID_SUBJECT,
       FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON,
-      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY
+      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY,
+      TURN_URLS: env.TURN_URLS,
+      TURN_USERNAME: env.TURN_USERNAME,
+      TURN_CREDENTIAL: env.TURN_CREDENTIAL
     };
     ctx.waitUntil(Promise.allSettled([
       handlers.tournaments({httpMethod:"GET",headers:{},body:""}),
@@ -83,7 +90,8 @@ export default {
           VAPID_PUBLIC_KEY: Boolean(env.VAPID_PUBLIC_KEY),
           VAPID_PRIVATE_KEY: Boolean(env.VAPID_PRIVATE_KEY),
           FIREBASE_SERVICE_ACCOUNT_JSON: Boolean(env.FIREBASE_SERVICE_ACCOUNT_JSON),
-          FREE_FIRE_API_KEY: Boolean(env.FREE_FIRE_API_KEY)
+          FREE_FIRE_API_KEY: Boolean(env.FREE_FIRE_API_KEY),
+          TURN_CONFIGURED: Boolean(env.TURN_URLS && env.TURN_USERNAME && env.TURN_CREDENTIAL)
         }
       });
     }
@@ -103,7 +111,10 @@ export default {
           VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY,
           VAPID_SUBJECT: env.VAPID_SUBJECT,
           FIREBASE_SERVICE_ACCOUNT_JSON: env.FIREBASE_SERVICE_ACCOUNT_JSON,
-      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY
+      FREE_FIRE_API_KEY: env.FREE_FIRE_API_KEY,
+          TURN_URLS: env.TURN_URLS,
+          TURN_USERNAME: env.TURN_USERNAME,
+          TURN_CREDENTIAL: env.TURN_CREDENTIAL
         };
         const body = ["GET", "HEAD"].includes(request.method) ? "" : await request.text();
         const event = {
