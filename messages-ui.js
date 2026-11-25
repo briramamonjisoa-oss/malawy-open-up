@@ -140,7 +140,7 @@ async function refreshInbox(){
  if(!token()){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">Connecte-toi avec ton compte joueur pour ouvrir ta messagerie.</p>';return;}
  const [friendsData,messageData]=await Promise.all([request('friends'),request('messages')]);
  contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur',photo:x.photo||'',online:!!x.online})).filter(x=>x.id);window.MOU_CONTACTS=contacts;
- contactsMessages=messageData.messages||[];
+ contactsMessages=messageData.messages||[];saveInboxCache();
  renderContacts();
  window.dispatchEvent(new Event('mou:messages-updated'));
 }
