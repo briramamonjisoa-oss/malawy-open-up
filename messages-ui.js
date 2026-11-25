@@ -112,6 +112,7 @@ async function refreshInbox(){
  contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur',photo:x.photo||'',online:!!x.online})).filter(x=>x.id);
  contactsMessages=messageData.messages||[];
  renderContacts();
+ window.dispatchEvent(new Event('mou:messages-updated'));
 }
 async function openChat(id,name){
  activeId=id;activeGroupId='';activeName=name;
