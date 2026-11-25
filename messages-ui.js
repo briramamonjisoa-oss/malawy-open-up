@@ -70,7 +70,7 @@ function renderGuildCard(data){
  }
 }
 async function openGuildChat(guildId,name){
- activeId='';activeGroupId=String(guildId||'');activeName=name||'Groupe de guilde';window.MOU_CURRENT_CHAT={id:'',groupId:activeGroupId,name:activeName};
+ activeId='';activeGroupId=String(guildId||'');activeName=name||'Groupe de guilde';lastRenderedMessagesKey='';window.MOU_CURRENT_CHAT={id:'',groupId:activeGroupId,name:activeName};
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=activeName;$('mouChatAvatar').textContent='✦';
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Discussion de guilde · Membres officiels';
@@ -114,16 +114,34 @@ function renderContacts(){
   return '<button type="button" class="mou-message-contact '+(c.id===activeId?'active':'')+'" data-contact="'+esc(c.id)+'"><span class="mou-contact-avatar">'+(c.photo?'<img src="'+esc(c.photo)+'" alt="" loading="lazy">':esc(c.pseudo.slice(0,1).toUpperCase()))+'</span><span class="mou-contact-copy"><b>'+esc(c.pseudo)+'</b><small>'+esc(preview)+'</small><small class="mou-contact-presence">'+(c.online?'En ligne':'Hors ligne')+'</small></span><span class="mou-contact-meta">'+(last?'<time>'+esc(time(last.created))+'</time>':'')+(unread?'<i>'+unread+'</i>':'')+'</span></button>';
  }).join(''):'<p class="mou-message-empty" style="padding:18px">'+(contacts.length?'Aucun ami trouvé.':'Aucun ami accepté pour le moment. Va dans Profil → Mon réseau pour ajouter des joueurs et accepter les demandes.')+'</p>';
 }
+let lastRenderedMessagesKey='';
 function renderMessages(){
  const box=$('mouChatMessages');
  if(activeId&&messages.length)saveChatCache(activeId,messages);
+ // Keep native audio elements alive across unchanged polls in Android WebView.
+ const renderKey=JSON.stringify([activeId,activeGroupId,messages.map(m=>[m.messageId||m.id,m.content,m.created,m.readAt||''])]);
+ if(renderKey===lastRenderedMessagesKey)return;
+ const audioState=[...box.querySelectorAll('audio.mou-chat-audio')].map(audio=>({
+  messageId:audio.closest('[data-message-id]')?.dataset.messageId||'',
+  currentTime:Number.isFinite(audio.currentTime)?audio.currentTime:0,
+  paused:audio.paused,muted:audio.muted,volume:audio.volume
+ }));
+ const wasNearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;
  box.innerHTML=messages.length?messages.map(m=>{
   const name=m.senderPseudo||'Joueur',avatar=m.senderPhoto?'<img src="'+esc(m.senderPhoto)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
   const stamp=new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
   const raw=String(m.content||''),quote=raw.match(/^↪ ([^\n]+)\n\n/),body=quote?raw.slice(quote[0].length):raw;
   return '<article class="mou-chat-message-row '+(m.mine?'mine':'')+'"><button type="button" class="mou-chat-sender-avatar" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'" aria-label="Voir le profil de '+esc(name)+'">'+avatar+'</button><div class="mou-chat-message-main"><button type="button" class="mou-chat-sender-name" data-public-player="'+esc(name)+'" data-player-id="'+esc(m.senderId||"")+'">'+esc(name)+'</button><div class="mou-chat-bubble '+(m.mine?'mine':'')+'" data-message-id="'+esc(m.messageId||m.id)+'">'+(quote?'<div class="mou-reply-quote">'+esc(quote[1])+'</div>':'')+renderMedia(body)+'<time>'+esc(stamp)+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time><div class="mou-message-actions"><button type="button" data-reply="'+esc(m.messageId||m.id)+'">↩ Répondre</button>'+(!activeGroupId?'<button type="button" data-react="'+esc(m.messageId||m.id)+'">☺ Réagir</button>':'')+'</div></div></div></article>';
  }).join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
- box.scrollTop=box.scrollHeight;
+ for(const state of audioState){
+  const audio=[...box.querySelectorAll('audio.mou-chat-audio')].find(el=>el.closest('[data-message-id]')?.dataset.messageId===state.messageId);
+  if(!audio)continue;
+  audio.muted=state.muted;audio.volume=state.volume;
+  const restore=()=>{try{audio.currentTime=state.currentTime;}catch{}if(!state.paused)audio.play().catch(()=>{});};
+  if(audio.readyState>=1)restore();else audio.addEventListener('loadedmetadata',restore,{once:true});
+ }
+ lastRenderedMessagesKey=renderKey;
+ if(wasNearBottom||!audioState.length)box.scrollTop=box.scrollHeight;
 }
 async function openSenderProfile(id){
  if(!id)return;
@@ -148,7 +166,7 @@ async function refreshInbox(){
  window.dispatchEvent(new Event('mou:messages-updated'));
 }
 async function openChat(id,name){
- activeId=id;activeGroupId='';activeName=name;replyTo=null;window.MOU_CURRENT_CHAT={id,groupId:'',name};
+ activeId=id;activeGroupId='';activeName=name;replyTo=null;lastRenderedMessagesKey='';window.MOU_CURRENT_CHAT={id,groupId:'',name};
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;const contact=contacts.find(c=>c.id===id);$('mouChatAvatar').innerHTML=contact?.photo?'<img src="'+esc(contact.photo)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
@@ -179,7 +197,7 @@ $('mouMessageContacts').addEventListener('click',e=>{
  const b=e.target.closest('[data-contact]');if(!b)return;
  const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);
 });
-$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');document.body.classList.remove('mou-chat-fullscreen');activeId='';activeGroupId='';replyTo=null;window.MOU_CURRENT_CHAT=null;const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
+$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');document.body.classList.remove('mou-chat-fullscreen');activeId='';activeGroupId='';replyTo=null;lastRenderedMessagesKey='';window.MOU_CURRENT_CHAT=null;const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 
 // Media and voice-note controls (uploads use the existing unsigned Cloudinary preset).
 const mediaStyle=document.createElement('style');mediaStyle.textContent=`
