@@ -5,7 +5,10 @@ const $=id=>document.getElementById(id);
 const shell=$('messages')?.querySelector('.mou-messages-shell');
 if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
-let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;\nconst cacheKey=id=>'mou_chat_cache_v1:'+id;\nfunction saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}\nfunction readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
+let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;
+const cacheKey=id=>'mou_chat_cache_v1:'+id;
+function saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}
+function readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const page=()=>document.getElementById('messages');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
