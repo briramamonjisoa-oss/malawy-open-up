@@ -64,7 +64,7 @@ async function openGuildChat(guildId,name){
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=activeName;$('mouChatAvatar').textContent='✦';
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Discussion de guilde · Membres officiels';
- shell.classList.add('chat-open');renderContacts();status('');
+ shell.classList.add('chat-open');document.body.classList.add('mou-chat-fullscreen');renderContacts();status('');
  $('mouChatMessages').innerHTML='<p class="mou-message-empty">Chargement du groupe…</p>';
  try{const d=await request('messages?group='+encodeURIComponent(activeGroupId));messages=d.messages||[];renderMessages();}
  catch(e){$('mouChatMessages').innerHTML='<p class="mou-message-empty">'+esc(e.message)+'</p>';}
@@ -123,7 +123,7 @@ async function openChat(id,name){
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;const contact=contacts.find(c=>c.id===id);$('mouChatAvatar').innerHTML=contact?.photo?'<img src="'+esc(contact.photo)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
- shell.classList.add('chat-open');renderContacts();
+ shell.classList.add('chat-open');document.body.classList.add('mou-chat-fullscreen');renderContacts();
  messages=readChatCache(id);renderMessages();status('');
  try{
   const d=await request('messages?with='+encodeURIComponent(id));if(activeId!==id)return;messages=d.messages||[];
@@ -140,7 +140,7 @@ $('mouMessageContacts').addEventListener('click',e=>{
  const b=e.target.closest('[data-contact]');if(!b)return;
  const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);
 });
-$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
+$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');document.body.classList.remove('mou-chat-fullscreen');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 
 // Media and voice-note controls (uploads use the existing unsigned Cloudinary preset).
 const mediaStyle=document.createElement('style');mediaStyle.textContent=`
