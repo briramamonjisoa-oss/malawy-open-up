@@ -82,9 +82,9 @@ async function openGuildChat(guildId,name){
 async function refreshGuildGroup(){
  if(!token())return;
  if(guildCardTask)return guildCardTask;
- guildCardTask=request('guild-groups').then(renderGuildCard).catch(error=>{
+ guildCardTask=request('guild-groups').then(data=>{renderGuildCard(data);return data;}).catch(error=>{
   console.warn('Groupe de guilde:',error.message);
-  renderGuildCard(null);
+  renderGuildCard(null);return null;
  }).finally(()=>{guildCardTask=null;});
  return guildCardTask;
 }
@@ -163,8 +163,14 @@ async function load(){
  if(!token()){await refreshInbox().catch(()=>{});return;}
  const cached=readInboxCache();
  if(cached){contacts=cached.contacts;contactsMessages=cached.messages;window.MOU_CONTACTS=contacts;renderContacts();}
- // La boîte de réception s'affiche sans attendre le chargement du groupe de guilde.
- refreshGuildGroup().catch(()=>{});
+ try{
+  const guildData=await refreshGuildGroup();
+  // Un non-chef rejoint directement le groupe officiel lorsqu'il ouvre la messagerie.
+  // Si sa guilde n'a pas encore de groupe, aucun message ni espace ne lui est affiché.
+  if(guildData?.group&&guildData.role!=='leader'){
+   await openGuildChat(guildData.group.guildId,guildData.group.name);
+  }
+ }catch(error){console.warn('Ouverture automatique du groupe de guilde:',error.message);}
  try{await refreshInbox();lastLoad=Date.now();}
  catch(e){if(!cached)$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">'+esc(e.message)+'</p>';else status('Synchronisation différée : '+e.message);}
 }
