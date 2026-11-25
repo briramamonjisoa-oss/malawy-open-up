@@ -17,7 +17,7 @@ async function all(table,force=false){
  tableInflight.set(table,task);
  try{return await task;}finally{tableInflight.delete(table);}
 }
-async function find(table,formula){const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});const d=await airtable(encodeURIComponent(table)+'?'+q);return d.records||[];}
+async function find(table,formula){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
 async function byRecordIds(table,ids){if(!ids.length)return [];const clauses=ids.map(id=>`RECORD_ID()="${String(id).replace(/"/g,'\\"')}"`);return find(table,`OR(${clauses.join(',')})`);}
 const fields=r=>r.fields||{};
 exports.handler=async event=>{
