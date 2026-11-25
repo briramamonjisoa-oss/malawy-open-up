@@ -1256,3 +1256,61 @@ body.mou-community-active #community{padding-bottom:calc(104px + env(safe-area-i
 .mou-contact-avatar,.mou-chat-avatar{position:relative;overflow:hidden}
 .mou-contact-avatar img,.mou-chat-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .mou-contact-presence{display:block;margin-top:3px;color:#8f897d;font-size:9px!important}
+
+
+/* MALAWY MESSENGER — immersive full-screen conversation on phones */
+@media(max-width:760px){
+ body.mou-chat-fullscreen{overflow:hidden!important}
+ body.mou-chat-fullscreen>.top,
+ body.mou-chat-fullscreen>header.top,
+ body.mou-chat-fullscreen>nav.bottom,
+ body.mou-chat-fullscreen>main>.tabs{display:none!important}
+ body.mou-chat-fullscreen .mou-messages-shell.chat-open{
+  position:fixed!important;inset:0!important;z-index:10050!important;
+  display:block!important;width:100vw!important;height:100vh!important;height:100dvh!important;
+  min-height:100vh!important;min-height:100dvh!important;max-height:100dvh!important;
+  margin:0!important;padding:0 0 env(safe-area-inset-bottom,0px)!important;
+  box-sizing:border-box!important;border:0!important;border-radius:0!important;
+  overflow:hidden!important;background:#080909!important;
+  box-shadow:none!important;
+ }
+ body.mou-chat-fullscreen .mou-messages-shell.chat-open .mou-messages-sidebar{display:none!important}
+ body.mou-chat-fullscreen .mou-messages-shell.chat-open .mou-chat-panel{
+  display:flex!important;width:100%!important;height:100%!important;min-height:0!important;
+  flex-direction:column!important;background:
+   radial-gradient(ellipse at 50% 0,rgba(216,193,138,.09),transparent 42%),#080909!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-active{
+  display:flex!important;width:100%!important;height:100%!important;min-height:0!important;
+  flex:1 1 auto!important;overflow:hidden!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-header{
+  flex:0 0 auto!important;min-height:76px!important;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px!important;
+  background:rgba(15,15,14,.97)!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-messages{
+  flex:1 1 0!important;min-height:0!important;max-height:none!important;
+  overflow-y:auto!important;overscroll-behavior:contain!important;
+  padding:20px 15px!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-bubble{
+  max-width:min(90%,560px)!important;padding:14px 16px!important;
+  font-size:16px!important;line-height:1.55!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-bubble time{font-size:11px!important}
+ body.mou-chat-fullscreen .mou-chat-tools,
+ body.mou-chat-fullscreen .mou-chat-theme{
+  flex:0 0 auto!important;min-height:48px!important;padding:7px 14px 3px!important;
+  background:#0b0b0b!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-tools button{width:44px!important;height:42px!important}
+ body.mou-chat-fullscreen .mou-chat-theme button{width:28px!important;height:28px!important}
+ body.mou-chat-fullscreen .mou-chat-form{
+  flex:0 0 auto!important;padding:10px 13px calc(12px + env(safe-area-inset-bottom,0px))!important;
+  background:#0b0b0b!important;
+ }
+ body.mou-chat-fullscreen .mou-chat-form input{height:52px!important;font-size:16px!important}
+ body.mou-chat-fullscreen .mou-chat-form button{width:52px!important;height:52px!important;flex-basis:52px!important}
+ body.mou-chat-fullscreen .mou-chat-status{flex:0 0 auto!important;background:#0b0b0b!important;padding:2px 14px 6px!important}
+ body.mou-chat-fullscreen .mou-chat-media{max-width:min(78vw,420px)!important;max-height:48vh!important}
+}
