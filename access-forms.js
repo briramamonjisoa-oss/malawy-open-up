@@ -70,11 +70,19 @@
       window.addEventListener('mou:notification-permission', onPermission);
       window.addEventListener('mou:fcm-token', onToken);
       try {
-        if (!window.MalawyAndroid?.requestNotificationPermission || !window.MalawyAndroid?.requestFcmToken) {
+        if (!window.MalawyAndroid?.requestFcmToken) {
           finish(new Error('Ouvre MALAWY OPEN UP depuis son application Android officielle pour activer les notifications.'));
           return;
         }
-        window.MalawyAndroid.requestNotificationPermission();
+        if (window.MalawyAndroid.requestNotificationPermission) {
+          window.MalawyAndroid.requestNotificationPermission();
+        } else {
+          // Compatibilité avec l’APK déjà installé : il demande l’autorisation au démarrage.
+          // On conserve son pont FCM existant sans exiger une mise à jour de l’APK.
+          permissionResolved = true;
+          permissionGranted = true;
+          window.MalawyAndroid.requestFcmToken();
+        }
       } catch (error) {
         finish(new Error('Impossible de demander les notifications Android. Vérifie les autorisations de l’application.'));
       }
