@@ -1,6 +1,6 @@
 {
-  "latestVersionCode": 5,
-  "latestVersionName": "1.0.22",
-  "forceUpdate": true,
+  "latestVersionCode": 7,
+  "latestVersionName": "1.0.24",
+  "forceUpdate": false,
   "apkUrl": "https://github.com/briramamonjisoa-oss/malawy-open-up/releases/latest/download/app-debug.apk"
 }
