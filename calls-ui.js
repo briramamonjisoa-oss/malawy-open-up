@@ -69,7 +69,7 @@ async function syncCall(){
  }catch(e){if(e.message.includes('expiré')||e.message.includes('n’existe plus')){stateText(e.message);await finish(false);}}
 }
 async function pollIncoming(){
- if(!token()||document.hidden||!document.getElementById('messages')?.classList.contains('active')||currentCall)return;
+ if(!token()||document.hidden||currentCall)return;
  try{const d=await api('calls?incoming=1');const call=d.incoming?.[0];if(!call||call.callId===incomingShown)return;incomingShown=call.callId;currentCall={callId:call.callId,peerId:call.callerId,type:call.type};role='callee';const peer=(window.MOU_CONTACTS||[]).find(x=>x.id===call.callerId);currentCall.name=peer?.pseudo||'Un ami';show(currentCall.name,call.type);stateText('Appel entrant…');$('mouCallAccept').hidden=false;$('mouCallDecline').hidden=false;$('mouCallHangup').hidden=true;}catch(e){console.warn('Appels entrants:',e.message);}
 }
 async function finish(notify){
@@ -77,5 +77,5 @@ async function finish(notify){
  if(notify&&currentCall)await api('calls',{method:'POST',body:JSON.stringify({action:'end',callId:currentCall.callId})}).catch(()=>{});
  pc?.close();pc=null;stream?.getTracks().forEach(t=>t.stop());stream=null;remoteStream=null;currentCall=null;role='';remoteSet=false;seenIce.clear();if($('mouCallRemote'))$('mouCallRemote').srcObject=null;if($('mouCallLocal'))$('mouCallLocal').srcObject=null;hide();
 }
-mount();setInterval(pollIncoming,2500);window.addEventListener('beforeunload',()=>{if(currentCall)api('calls',{method:'POST',body:JSON.stringify({action:'end',callId:currentCall.callId})}).catch(()=>{});});
+mount();setInterval(pollIncoming,5000);window.addEventListener('beforeunload',()=>{if(currentCall)api('calls',{method:'POST',body:JSON.stringify({action:'end',callId:currentCall.callId})}).catch(()=>{});});
 })();
