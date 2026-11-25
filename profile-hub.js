@@ -10,9 +10,11 @@
     if (!friends) return;
     built = true;
 
+    const identityLegacy = $('.admin-player-main', profile);
     const freeFire = $('#freeFireProfileCard', profile);
     const stats = $('.stats', profile);
     const history = $('#profileMatches', profile);
+    const historyHeading = history?.previousElementSibling?.matches('h3') ? history.previousElementSibling : null;
     const photoLabel = $('#profilePhoto', profile)?.closest('label');
     const savePhoto = $('#saveProfilePhoto', profile);
     const photoMsg = $('#profileMsg', profile);
@@ -100,25 +102,28 @@
       game: {title:'Profil Free Fire', nodes:[freeFire]},
       network: {title:'Mon réseau', nodes:[friends]},
       presence: {title:'Présence en ligne', nodes:[presence]},
-      history: {title:'Historique des matchs', nodes:[history]},
+      history: {title:'Historique des matchs', nodes:[historyHeading,history]},
       photo: {title:'Photo de profil', nodes:[photoLabel,savePhoto,photoMsg]}
     };
     const anchors = new Map();
-    Object.values(sections).forEach(s=>s.nodes.forEach(n=>{
+    const managedNodes = [identityLegacy,freeFire,friends,photoLabel,savePhoto,photoMsg,historyHeading,history].filter(Boolean);
+    managedNodes.forEach(n=>{
       if(n && !anchors.has(n)){
         const marker=document.createComment('profile-panel-anchor');
         n.parentNode?.insertBefore(marker,n);
         anchors.set(n,marker);
       }
-    }));
+    });
     function restoreNodes(){
       anchors.forEach((marker,node)=>{
         if(marker.parentNode) marker.parentNode.insertBefore(node,marker.nextSibling);
       });
     }
+    function hideLegacyNodes(){ managedNodes.forEach(node=>{node.hidden=true;}); }
     function open(key){
       const section=sections[key]; if(!section)return;
       restoreNodes();
+      hideLegacyNodes();
       content.replaceChildren();
       section.nodes.forEach(node=>{if(node){node.hidden=false;content.appendChild(node);}});
       if(key==='presence'&&presence){presence.hidden=false;}
@@ -131,7 +136,7 @@
       modal.hidden=true;document.body.style.overflow='';
       restoreNodes();
       content.replaceChildren();
-      Object.values(sections).forEach(s=>s.nodes.forEach(n=>{if(n)n.hidden=false;}));
+      hideLegacyNodes();
     }
     shell.addEventListener('click',e=>{
       const button=e.target.closest('[data-profile-open]');
@@ -152,6 +157,7 @@
     new MutationObserver(updateFriendCount).observe(friends,{childList:true,subtree:true,characterData:true});
     const updateIdentity=()=>{$('#mouProfileHubAvatar',shell).innerHTML=$('#profileAvatar',profile)?.innerHTML||'M';};
     new MutationObserver(updateIdentity).observe($('#profileAvatar',profile),{childList:true,subtree:true});
+    hideLegacyNodes();
     if(logout)logout.hidden=true;
   }
   document.addEventListener('DOMContentLoaded',mount);
