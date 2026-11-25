@@ -383,23 +383,35 @@ public class MainActivity extends Activity {
             @Override public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(() -> {
                     boolean asksForAudio = false;
+                    boolean asksForVideo = false;
                     for (String resource : request.getResources()) {
                         if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) asksForAudio = true;
+                        if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) asksForVideo = true;
                     }
                     String requestHost = request.getOrigin() == null ? "" : request.getOrigin().getHost();
-                    boolean trustedOrigin = HOME.contains(requestHost) && requestHost.equals(Uri.parse(HOME).getHost());
-                    if (!asksForAudio || !trustedOrigin) {
+                    boolean trustedOrigin = requestHost.equals(Uri.parse(HOME).getHost());
+                    if ((!asksForAudio && !asksForVideo) || !trustedOrigin) {
                         request.deny();
                         return;
                     }
-                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                        request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                    java.util.ArrayList<String> androidPermissions = new java.util.ArrayList<>();
+                    if (asksForAudio && ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        androidPermissions.add(Manifest.permission.RECORD_AUDIO);
+                    }
+                    if (asksForVideo && ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        androidPermissions.add(Manifest.permission.CAMERA);
+                    }
+                    if (androidPermissions.isEmpty()) {
+                        java.util.ArrayList<String> webResources = new java.util.ArrayList<>();
+                        if (asksForAudio) webResources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+                        if (asksForVideo) webResources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+                        request.grant(webResources.toArray(new String[0]));
                         return;
                     }
                     if (pendingWebPermissionRequest != null) pendingWebPermissionRequest.deny();
                     pendingWebPermissionRequest = request;
                     ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_REQUEST);
+                        androidPermissions.toArray(new String[0]), MICROPHONE_PERMISSION_REQUEST);
                 });
             }
 
@@ -437,13 +449,18 @@ public class MainActivity extends Activity {
             PermissionRequest request = pendingWebPermissionRequest;
             pendingWebPermissionRequest = null;
             if (request == null) return;
-            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-            if (granted) {
-                try { request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE}); }
-                catch (Exception error) { android.util.Log.w("MALAWY_MIC", "WebView microphone request expired", error); }
-            } else {
-                try { request.deny(); } catch (Exception ignored) { }
-                android.util.Log.w("MALAWY_MIC", "Microphone permission denied by Android");
+            boolean audioGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+            boolean videoGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+            java.util.ArrayList<String> webResources = new java.util.ArrayList<>();
+            for (String resource : request.getResources()) {
+                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource) && audioGranted) webResources.add(resource);
+                if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource) && videoGranted) webResources.add(resource);
+            }
+            try {
+                if (webResources.size() == request.getResources().length) request.grant(webResources.toArray(new String[0]));
+                else request.deny();
+            } catch (Exception error) {
+                android.util.Log.w("MALAWY_MEDIA", "WebView media permission request expired", error);
             }
         }
     }
