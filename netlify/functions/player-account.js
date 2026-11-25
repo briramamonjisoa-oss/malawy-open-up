@@ -60,18 +60,28 @@ exports.handler=async(event)=>{
   if(event.httpMethod==='GET'){
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
    const r=await airtable('Inscriptions/'+encodeURIComponent(session.id));
-   const f=r.fields||{},pseudo=f['Pseudo Free Fire']||'Joueur';
+   const f=r.fields||{},pseudo=f['Nom affiché MALAWY']||f['Pseudo Free Fire']||'Joueur';
    if(!isApproved(f['Statut inscription']))return{statusCode:403,headers,body:JSON.stringify({error:'Ton inscription n’est plus acceptée.'})};
    const tournamentSignups=await getPlayerTournamentSignups(String(f['ID Free Fire']||'').trim());
    const history=[];
    let ff=null,freeFire={syncedAt:f['Profil Free Fire synchronisé le']||null,cached:true,error:null};
    try{ff=f['Profil Free Fire JSON']?JSON.parse(f['Profil Free Fire JSON']):null;}catch{}
    if(event.queryStringParameters?.fast!=='1'){freeFire=await syncFreeFireProfile(r);ff=freeFire.data||ff;}
-   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,matchesPlayed:(Number(f.Victoires)||0)+(Number(f.Défaites)||0),status:f['Statut inscription']||'',matches:history,tournamentSignups,freeFireProfile:ff,freeFireSyncedAt:freeFire.syncedAt,freeFireSyncCached:freeFire.cached,freeFireSyncError:freeFire.error||null})};
+   return{statusCode:200,headers,body:JSON.stringify({id:r.id,pseudo,freeFirePseudo:f['Pseudo Free Fire']||'Joueur',playerId:f['ID Free Fire']||'',mode:f['Mode de combat']||'',photo:f.Photo||'',points:Number(f.Points)||0,wins:Number(f.Victoires)||0,losses:Number(f.Défaites)||0,matchesPlayed:(Number(f.Victoires)||0)+(Number(f.Défaites)||0),status:f['Statut inscription']||'',matches:history,tournamentSignups,freeFireProfile:ff,freeFireSyncedAt:freeFire.syncedAt,freeFireSyncCached:freeFire.cached,freeFireSyncError:freeFire.error||null})};
   }
   if(event.httpMethod==='PATCH'){
    const session=verifyPlayer(event);if(!session)return{statusCode:401,headers,body:JSON.stringify({error:'Session joueur expirée. Reconnecte-toi.'})};
    const x=JSON.parse(event.body||'{}');
+   if(x.action==='changeDisplayName'){
+    const name=String(x.pseudo||'').trim().replace(/\s+/g,' ');
+    if(!/^[\p{L}\p{N}_. -]{3,24}$/u.test(name))return{statusCode:400,headers,body:JSON.stringify({error:'Le pseudo doit contenir 3 à 24 caractères (lettres, chiffres, espaces, point, tiret ou underscore).'})};
+    const safe=name.toLocaleLowerCase('fr').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const q=new URLSearchParams({filterByFormula:"LOWER({Nom affiché MALAWY})='"+safe+"'",pageSize:'100'});
+    const matches=await airtable('Inscriptions?'+q.toString());
+    if((matches.records||[]).some(row=>row.id!==session.id))return{statusCode:409,headers,body:JSON.stringify({error:'Ce pseudo est déjà utilisé.'})};
+    await airtable('Inscriptions/'+encodeURIComponent(session.id),{method:'PATCH',body:JSON.stringify({fields:{'Nom affiché MALAWY':name}})});
+    return{statusCode:200,headers,body:JSON.stringify({success:true,pseudo:name})};
+   }
    if(x.action==='changePin'){
     const current=String(x.currentPin||''),next=String(x.newPin||'');
     if(!/^[0-9]{4,8}$/.test(current)||!/^[0-9]{4,8}$/.test(next))return{statusCode:400,headers,body:JSON.stringify({error:'Les PIN doivent contenir 4 à 8 chiffres.'})};

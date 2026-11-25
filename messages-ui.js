@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const shell=$('messages')?.querySelector('.mou-messages-shell');
 if(!shell||shell.dataset.mouReady==='1')return;
 shell.dataset.mouReady='1';
-let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0;
+let contacts=[],activeId='',activeName='',activeGroupId='',messages=[],poll=null,lastLoad=0,replyTo=null;
 const cacheKey=id=>'mou_chat_cache_v1:'+id;
 function saveChatCache(id,items){try{localStorage.setItem(cacheKey(id),JSON.stringify(items.slice(-150)));}catch(e){}}
 function readChatCache(id){try{const v=JSON.parse(localStorage.getItem(cacheKey(id))||'[]');return Array.isArray(v)?v:[];}catch{return [];}}
@@ -60,7 +60,7 @@ function renderGuildCard(data){
  }
 }
 async function openGuildChat(guildId,name){
- activeId='';activeGroupId=String(guildId||'');activeName=name||'Groupe de guilde';
+ activeId='';activeGroupId=String(guildId||'');activeName=name||'Groupe de guilde';window.MOU_CURRENT_CHAT={id:'',groupId:activeGroupId,name:activeName};
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=activeName;$('mouChatAvatar').textContent='✦';
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Discussion de guilde · Membres officiels';
@@ -107,19 +107,24 @@ function renderContacts(){
 function renderMessages(){
  const box=$('mouChatMessages');
  if(activeId&&messages.length)saveChatCache(activeId,messages);
- box.innerHTML=messages.length?messages.map(m=>'<div class="mou-chat-bubble '+(m.mine?'mine':'')+'">'+(activeGroupId?'<b class="mou-group-sender">'+esc(m.senderPseudo||'Joueur')+'</b>':'')+renderMedia(m.content)+'<time>'+esc(new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time></div>').join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
+ box.innerHTML=messages.length?messages.map(m=>{
+  const name=m.senderPseudo||'Joueur',avatar=m.senderPhoto?'<img src="'+esc(m.senderPhoto)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
+  const stamp=new Date(m.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const raw=String(m.content||''),quote=raw.match(/^↪ ([^\n]+)\n\n/),body=quote?raw.slice(quote[0].length):raw;
+  return '<article class="mou-chat-message-row '+(m.mine?'mine':'')+'"><button type="button" class="mou-chat-sender-avatar" data-public-player="'+esc(name)+'" aria-label="Voir le profil de '+esc(name)+'">'+avatar+'</button><div class="mou-chat-message-main"><button type="button" class="mou-chat-sender-name" data-public-player="'+esc(name)+'">'+esc(name)+'</button><div class="mou-chat-bubble '+(m.mine?'mine':'')+'" data-message-id="'+esc(m.messageId||m.id)+'">'+(quote?'<div class="mou-reply-quote">'+esc(quote[1])+'</div>':'')+renderMedia(body)+'<time>'+esc(stamp)+(m.mine?(activeGroupId?' · Envoyé':(m.readAt?' · Lu':' · Envoyé')):'')+'</time><div class="mou-message-actions"><button type="button" data-reply="'+esc(m.messageId||m.id)+'">↩ Répondre</button>'+(!activeGroupId?'<button type="button" data-react="'+esc(m.messageId||m.id)+'">☺ Réagir</button>':'')+'</div></div></div></article>';
+ }).join(''):'<p class="mou-message-empty">C’est le début de votre conversation. Envoie le premier message !</p>';
  box.scrollTop=box.scrollHeight;
 }
 async function refreshInbox(){
  if(!token()){$('mouMessageContacts').innerHTML='<p class="mou-message-empty" style="padding:18px">Connecte-toi avec ton compte joueur pour ouvrir ta messagerie.</p>';return;}
  const [friendsData,messageData]=await Promise.all([request('friends'),request('messages')]);
- contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur',photo:x.photo||'',online:!!x.online})).filter(x=>x.id);
+ contacts=(friendsData.relations||[]).filter(x=>x.status==='Acceptée').map(x=>({id:x.otherId,pseudo:x.pseudo||'Joueur',photo:x.photo||'',online:!!x.online})).filter(x=>x.id);window.MOU_CONTACTS=contacts;
  contactsMessages=messageData.messages||[];
  renderContacts();
  window.dispatchEvent(new Event('mou:messages-updated'));
 }
 async function openChat(id,name){
- activeId=id;activeGroupId='';activeName=name;
+ activeId=id;activeGroupId='';activeName=name;replyTo=null;window.MOU_CURRENT_CHAT={id,groupId:'',name};
  const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';
  $('mouChatEmpty').hidden=true;$('mouChatActive').hidden=false;
  $('mouChatName').textContent=name;const contact=contacts.find(c=>c.id===id);$('mouChatAvatar').innerHTML=contact?.photo?'<img src="'+esc(contact.photo)+'" alt="" loading="lazy">':esc(name.slice(0,1).toUpperCase());
@@ -140,7 +145,7 @@ $('mouMessageContacts').addEventListener('click',e=>{
  const b=e.target.closest('[data-contact]');if(!b)return;
  const c=contacts.find(x=>x.id===b.dataset.contact);if(c)openChat(c.id,c.pseudo);
 });
-$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');document.body.classList.remove('mou-chat-fullscreen');activeId='';activeGroupId='';const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
+$('mouChatBack').addEventListener('click',()=>{shell.classList.remove('chat-open');document.body.classList.remove('mou-chat-fullscreen');activeId='';activeGroupId='';replyTo=null;window.MOU_CURRENT_CHAT=null;const subtitle=$('mouChatActive').querySelector('.mou-chat-header small');if(subtitle)subtitle.textContent='Conversation privée';});
 
 // Media and voice-note controls (uploads use the existing unsigned Cloudinary preset).
 const mediaStyle=document.createElement('style');mediaStyle.textContent=`
@@ -210,16 +215,22 @@ themeBar.innerHTML='<span>Thème</span><button type="button" data-theme="gold" a
 themeBar.querySelectorAll('[data-theme]').forEach(btn=>{btn.style.background=({gold:'#d8c18a',blue:'#5ba5eb',violet:'#ae7ce1'})[btn.dataset.theme];btn.setAttribute('aria-pressed',String(btn.dataset.theme===savedTheme));btn.addEventListener('click',()=>{shell.dataset.chatTheme=btn.dataset.theme;localStorage.setItem('mou_chat_theme',btn.dataset.theme);themeBar.querySelectorAll('[data-theme]').forEach(x=>x.setAttribute('aria-pressed',String(x===btn)));});});
 chatForm.parentElement.insertBefore(themeBar,chatForm);
 
+const replyPreview=document.createElement('div');replyPreview.className='mou-reply-preview';replyPreview.hidden=true;chatForm.parentElement.insertBefore(replyPreview,toolsBar);
+$('mouChatMessages').addEventListener('click',async e=>{
+ const reply=e.target.closest('[data-reply]');if(reply){const m=messages.find(x=>(x.messageId||x.id)===reply.dataset.reply);if(!m)return;const content=String(m.content||'').replace(/^↪ [^\\n]+\\n\\n/,'');replyTo={name:m.senderPseudo||'Joueur',content:content.slice(0,140)};replyPreview.textContent='Réponse à '+replyTo.name+' : '+replyTo.content;replyPreview.hidden=false;$('mouChatInput').focus();return;}
+ const react=e.target.closest('[data-react]');if(react){let picker=react.parentElement.querySelector('.mou-reaction-picker');if(picker){picker.remove();return;}picker=document.createElement('span');picker.className='mou-reaction-picker';picker.innerHTML=['❤️','😂','👍','😮','😢','🔥'].map(emoji=>'<button type=\"button\" data-emoji=\"'+emoji+'\" data-message=\"'+esc(react.dataset.react)+'\">'+emoji+'</button>').join('');react.parentElement.append(picker);return;}
+ const choice=e.target.closest('[data-emoji]');if(choice){try{const result=await request('message-actions',{method:'POST',body:JSON.stringify({messageId:choice.dataset.message,emoji:choice.dataset.emoji})});choice.parentElement.innerHTML=result.removed?'':'<b>'+choice.dataset.emoji+'</b>'; }catch(error){status(error.message);}return;}
+});
 $('mouChatForm').addEventListener('submit',async e=>{
  e.preventDefault();const input=$('mouChatInput'),content=input.value.trim();if(!content||(!activeId&&!activeGroupId))return;
- const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;
- const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content,created:new Date().toISOString(),mine:true,pending:true};
+ const button=$('mouChatForm').querySelector('button'),targetId=activeId,targetGroup=activeGroupId;const outgoing=replyTo?'↪ '+replyTo.name+' : '+replyTo.content+'\n\n'+content:content;replyTo=null;replyPreview.hidden=true;
+ const optimistic={id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),senderId:'me',senderPseudo:'Moi',recipientId:targetId||('group:'+targetGroup),content:outgoing,created:new Date().toISOString(),mine:true,pending:true};
  messages.push(optimistic);input.value='';renderMessages();status('');button.disabled=false;
  
  try{
   const result=targetGroup
-   ?await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content})})
-   :await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:targetId,content})});
+   ?await request('messages',{method:'POST',body:JSON.stringify({action:'sendGroup',groupId:targetGroup,content:outgoing})})
+   :await request('messages',{method:'POST',body:JSON.stringify({action:'send',targetId:targetId,content:outgoing})});
   const saved=result.message||null;
   if(saved){const index=messages.findIndex(x=>x.id===optimistic.id);if(index>=0)messages[index]=saved;}
   renderMessages();status('');
@@ -245,7 +256,7 @@ let wasActive=false;
 const observePage=()=>{
  const active=page().classList.contains('active');
  if(active&&!wasActive)load();
- if(!active&&wasActive){activeId='';activeGroupId='';shell.classList.remove('chat-open');}
+ if(!active&&wasActive){activeId='';activeGroupId='';window.MOU_CURRENT_CHAT=null;shell.classList.remove('chat-open');}
  wasActive=active;
 };
 new MutationObserver(observePage).observe(page(),{attributes:true,attributeFilter:['class']});

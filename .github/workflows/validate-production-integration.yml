@@ -19,6 +19,10 @@ jobs:
         run: |
           node --check app.js
           node --check messages-ui.js
+          node --check calls-ui.js
+          node --check netlify/functions/calls.js
+          node --check netlify/functions/message-actions.js
+          node --check netlify/functions/player-account.js
           node --check friends-ui.js
           node --check netlify/functions/messages.js
           node --check netlify/functions/friends.js

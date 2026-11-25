@@ -4,7 +4,7 @@ const {queuePlayerEventNotification,queuePlayersEventNotification}=require('./no
 const TABLE='tblvtmlhTFkVdsX0C',REL='tblQoAGcQhii58Hwe',PLAYERS='tblz0rJpaQBpafBN2',GROUPS='tblOf7CoOFBKpIueo';
 const F={id:'fldBfRkQQLeYnV9ti',key:'fldaRDVwnflWRAR0L',from:'fldV3hCY47mznFBfu',fromName:'fldO6V4B8zA2QGNfW',to:'fld1Kaj1hVyHDPeb0',toName:'fld6MjPNGRqATQDmD',content:'fldOMcUM8kSHFz3ML',created:'fldbLOwXN5hSzieoD',read:'fldtXgb1lWgzNBc0E',status:'fldiPm5xI7CBgEq5q'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
-const P={pseudo:'fldaNsxza3T3krjfr',profile:'fldJAultgWl4cZfCW',status:'fldmc3ktn1we8phLq'};
+const P={pseudo:'fldaNsxza3T3krjfr',displayPseudo:'fldMBBZMw1aIlZXOJ',photo:'flds2WZeeSrLJZVOC',profile:'fldJAultgWl4cZfCW',status:'fldmc3ktn1we8phLq'};
 const G={guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',status:'fldBZBT3Vm1aexeXD'};
 const approved=v=>['accepte','acceptee','accepted','valide','validee','approved'].includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 async function verifyGuildMember(playerId,guildId){
@@ -15,7 +15,7 @@ async function verifyGuildMember(playerId,guildId){
  if(String(profile.clanBasicInfo?.clanId||'')!==guildId)return null;
  const group=groups.find(row=>String(row.fields?.[G.guildId]||'')===guildId&&row.fields?.[G.status]==='Actif');
  if(!group)return null;
- return {groupId:guildId,groupName:String(group.fields?.[G.name]||'Groupe de guilde'),pseudo:String(pf[P.pseudo]||profile.basicInfo?.nickname||'Joueur')};
+ return {groupId:guildId,groupName:String(group.fields?.[G.name]||'Groupe de guilde'),pseudo:String(pf[P.displayPseudo]||pf[P.pseudo]||profile.basicInfo?.nickname||'Joueur')};
 }
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
@@ -54,7 +54,10 @@ exports.handler=async event=>{
     const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
     const readAt=new Date().toISOString();for(let i=0;i<Math.min(unread.length,20);i+=10){const batch=unread.slice(i,i+10);await airtable(encodeURIComponent(TABLE),{method:'PATCH',body:JSON.stringify({records:batch.map(r=>({id:r.id,fields:{[F.read]:readAt}}))})});}
    }
-   return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:withId&&f[F.to]===me.id&&!f[F.read]?new Date().toISOString():(f[F.read]||''),mine:f[F.from]===me.id};})});
+   const senderIds=[...new Set(visible.map(r=>r.fields?.[F.from]).filter(Boolean))];
+   const profileRows=senderIds.length?await find(PLAYERS,'OR('+senderIds.map(id=>'RECORD_ID()='+value(id)).join(',')+')'):[];
+   const profileMap=new Map(profileRows.map(p=>[p.id,p.fields||{}]));
+   return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{},p=profileMap.get(f[F.from])||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:p[P.displayPseudo]||f[F.fromName],senderPhoto:p[P.photo]||'',recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:withId&&f[F.to]===me.id&&!f[F.read]?new Date().toISOString():(f[F.read]||''),mine:f[F.from]===me.id};})});
   }
   if(method==='POST'&&b.action==='sendGroup'){
    const groupId=String(b.groupId||''),content=String(b.content||'').trim();
@@ -73,14 +76,14 @@ exports.handler=async event=>{
   if(method!=='POST'||b.action!=='send')return out(400,{error:'Action inconnue.'});
   const target=String(b.targetId||''),content=String(b.content||'').trim();
   if(!target||target===me.id)return out(400,{error:'Destinataire invalide.'});
-  if(!content||content.length>1000)return out(400,{error:'Le message doit contenir entre 1 et 1 000 caractères.'});
+  if(!content||content.length>1300)return out(400,{error:'Le message doit contenir entre 1 et 1 300 caractères.'});
   if(!await accepted(me.id,target))return out(403,{error:'Tu dois être ami avec ce joueur pour lui envoyer un message privé.'});
   const [sender,recipient]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),airtable(PLAYERS+'/'+encodeURIComponent(target)+'?returnFieldsByFieldId=true')]);
-  const senderPseudo=String(sender.fields?.fldaNsxza3T3krjfr||me.pseudo||'Joueur'),recipientPseudo=String(recipient.fields?.fldaNsxza3T3krjfr||'Joueur');
+  const senderPseudo=String(sender.fields?.[P.displayPseudo]||sender.fields?.fldaNsxza3T3krjfr||me.pseudo||'Joueur'),recipientPseudo=String(recipient.fields?.[P.displayPseudo]||recipient.fields?.fldaNsxza3T3krjfr||'Joueur');
   const id='msg_'+crypto.randomUUID(),created=new Date().toISOString(),key=[me.id,target].sort().join('_');
   const fields={[F.id]:id,[F.key]:key,[F.from]:me.id,[F.fromName]:senderPseudo,[F.to]:target,[F.toName]:recipientPseudo,[F.content]:content,[F.created]:created,[F.status]:'Envoyé'};
   const saved=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields}]})});
   try{await queuePlayerEventNotification(target,'Nouveau message',senderPseudo+' t’a envoyé un message.','/#messages','message:'+id+':'+target);}catch(error){console.warn('Notification de message non envoyée:',error.message);}
-  return out(201,{success:true,id:saved.records?.[0]?.id,message:{id,senderId:me.id,senderPseudo,recipientId:target,recipientPseudo,content,created,mine:true}});
+  return out(201,{success:true,id:saved.records?.[0]?.id,message:{id,senderId:me.id,senderPseudo,senderPhoto:sender.fields?.[P.photo]||'',recipientId:target,recipientPseudo,content,created,mine:true}});
  }catch(e){return out(500,{error:e.message||'Erreur messagerie.'});}
 };

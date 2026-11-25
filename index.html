@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="MALAWY OPEN UP">
 
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="stylesheet" href="/style.css?v=messenger-fullscreen-20261125-1">
+<link rel="stylesheet" href="/style.css?v=messenger-social-calls-20261125-1">
 
 <title>MALAWY OPEN UP — Free Fire</title>
 </head>
@@ -68,7 +68,8 @@
 </header>
 <div id="settingsMenu" class="settings-menu" hidden>
  <div class="settings-title">PARAMÈTRES</div>
- <button type="button" id="themeToggle" class="settings-option">Mode clair</button>
+ <button type="button" id="themeToggle" class="settings-option">Mode clair / sombre</button>
+ <div class="settings-title">COULEUR DE L’INTERFACE</div><div class="mou-accent-options"><button type="button" data-accent="gold">Or</button><button type="button" data-accent="blue">Bleu</button><button type="button" data-accent="violet">Violet</button></div>
  <div id="pinResetWrap" class="pin-reset-wrap" hidden><form id="pinResetForm" class="form"><b>Réinitialiser le code PIN</b><label>Ancien PIN<input name="currentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><label>Nouveau PIN<input name="newPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label><button class="primary" type="submit">Enregistrer le nouveau PIN</button><p id="pinResetMsg" class="message" aria-live="polite"></p></form></div>
  <button type="button" id="settingsLogout" class="settings-option danger-text">↪ Déconnexion</button>
 </div>
@@ -176,7 +177,7 @@
 <div id="playerProfile" class="panel" hidden><div class="admin-player-main"><div id="profileAvatar" class="player-avatar">?</div><div><b id="profilePseudo"></b><small id="profileUid"></small><small id="profileStatus"></small></div></div>
 <div class="stats"><article><strong id="profilePoints">0</strong><span>Points</span></article><article><strong id="profileWins">0</strong><span>Victoires</span></article><article><strong id="profileLosses">0</strong><span>Défaites</span></article></div>
 <div id="freeFireProfileCard" class="freefire-profile-card" hidden></div>
-<label class="form">Modifier ma photo<input id="profilePhoto" type="file" accept="image/*"></label><button id="saveProfilePhoto" class="primary">Enregistrer ma photo</button><p id="profileMsg" class="message" aria-live="polite"></p>
+<div class="mou-profile-edit"><h3>PERSONNALISER MON PROFIL</h3><label>Pseudo public MALAWY<input id="profileDisplayName" maxlength="24" autocomplete="nickname" placeholder="Ton pseudo public"></label><small>Ton pseudo Free Fire officiel reste inchangé.</small><button id="saveProfileDisplayName" class="secondary" type="button">Enregistrer mon pseudo</button><label class="form">Modifier ma photo<input id="profilePhoto" type="file" accept="image/*"></label><button id="saveProfilePhoto" class="primary">Enregistrer ma photo</button></div><p id="profileMsg" class="message" aria-live="polite"></p>
 <h3>HISTORIQUE DES MATCHS</h3><div id="profileMatches" class="stack"></div><button id="playerLogout" class="secondary">Déconnexion</button></div>
 </section>
 
@@ -352,7 +353,7 @@
 </nav>
 
 <script src="/navigation-fix.js?v=meniscus-1"></script>
-<script src="/app.js?v=global-player-directory-20261125-1"></script>
+<script src="/app.js?v=profile-settings-20261125-1"></script>
 <script src="/ui-controls.js"></script>
 <script src="/access-forms.js?v=uid-pin-2026-1"></script>
 <script src="/admin-access.js"></script>
@@ -361,7 +362,8 @@
 
 <script src="/community-feed.js?v=friend-persistence-performance-1"></script>
 <script src="/friends-ui.js?v=global-player-directory-20261125-2"></script>
-<script src="/messages-ui.js?v=messenger-fullscreen-20261125-1"></script>
+<script src="/messages-ui.js?v=messenger-social-calls-20261125-2"></script>
+<script src="/calls-ui.js?v=webrtc-friends-20261125-1"></script>
 <script src="/stories-presence-ui.js?v=11"></script>
 <script src="/profile-hub.js?v=approved-profile-layout-20261125-2"></script>
 <script src="/navbar-v2.js?v=meniscus-5"></script>
