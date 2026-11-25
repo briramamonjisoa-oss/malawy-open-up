@@ -24,6 +24,28 @@
     showMode(button.id === 'showSignup' ? 'signup' : 'login');
   }, true);
 
+  let signupNotification = null;
+  const notificationButton = $('#mouSignupEnableNotifications');
+  const notificationStatus = $('#mouSignupNotificationStatus');
+
+  async function activateSignupNotifications() {
+    if (notificationButton) notificationButton.disabled = true;
+    if (notificationStatus) notificationStatus.textContent = 'Activation des notifications…';
+    try {
+      signupNotification = await prepareSignupNotifications();
+      if (notificationStatus) notificationStatus.textContent = '✓ Notifications activées sur cet appareil. Tu peux envoyer ta demande.';
+      if (notificationButton) notificationButton.textContent = '✓ Notifications activées';
+    } catch (error) {
+      signupNotification = null;
+      if (notificationStatus) notificationStatus.textContent = error.message || 'Activation impossible. Réessaie.';
+      if (notificationButton) notificationButton.textContent = '🔔 Réessayer l’activation';
+    } finally {
+      if (notificationButton) notificationButton.disabled = false;
+    }
+  }
+
+  notificationButton?.addEventListener('click', activateSignupNotifications);
+
   function waitForFcmToken() {
     // Réutilise exactement le fournisseur FCM utilisé par le bouton
     // « Activer les notifications » dans le panneau Notifications.
@@ -94,11 +116,11 @@
     if (button) button.disabled = true;
     try {
       if (isSignup) {
-        if (!form.elements.notificationsEnabled?.checked) {
-          throw new Error('Coche « Activer les notifications sur mon téléphone » pour envoyer ta demande.');
+        if (!signupNotification) {
+          throw new Error('Active les notifications avec le bouton prévu avant d’envoyer ta demande.');
         }
-        message.textContent = 'Vérification des notifications…';
-        const notification = await prepareSignupNotifications();
+        message.textContent = 'Vérification de ton inscription…';
+        const notification = signupNotification;
         const photo = await uploadProfilePhoto(data.get('photo'), message);
         message.textContent = 'Vérification de ton UID Free Fire…';
         const payload = {
@@ -121,6 +143,9 @@
         window.dispatchEvent(new Event('mou:player-auth'));
         window.dispatchEvent(new Event('mou:signup-success'));
         form.reset();
+        signupNotification = null;
+        if (notificationStatus) notificationStatus.textContent = 'Active les notifications avant d’envoyer ta demande.';
+        if (notificationButton) notificationButton.textContent = '🔔 Activer les notifications';
       } else {
         message.textContent = 'Connexion en cours…';
         const payload = {
