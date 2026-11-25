@@ -46,3 +46,57 @@ function setup(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 document.addEventListener('mou:player-auth',setup);
 })();
+
+/* Flow layout adapter: keep MALAWY's real message/API controls, rebuild only their presentation. */
+(function(){
+'use strict';
+function mountFlowLayout(){
+ const active=document.getElementById('mouChatActive');
+ if(!active||active.dataset.flowLayout==='1')return;
+ const header=active.querySelector('.mou-chat-header');
+ const list=document.getElementById('mouChatMessages');
+ const form=document.getElementById('mouChatForm');
+ const tools=document.querySelector('#mouChatActive .mou-chat-tools:not(.mou-chat-theme)');
+ const themes=document.querySelector('#mouChatActive .mou-chat-theme');
+ const reply=document.querySelector('#mouChatActive .mou-reply-preview');
+ const input=document.getElementById('mouChatInput');
+ const send=form?.querySelector('button[type="submit"]');
+ if(!header||!list||!form||!tools||!input||!send)return;
+ active.dataset.flowLayout='1';
+ const shell=document.querySelector('#messages .mou-messages-shell');
+ shell?.classList.add('mou-flow-chat');
+ const page=document.getElementById('messages');page?.classList.add('mou-flow-chat');
+ // Flow composer: attach and microphone controls live inside the rounded input field.
+ const field=document.createElement('div');field.className='mou-flow-field';
+ const attach=document.getElementById('mouChatAttach'),voice=document.getElementById('mouChatVoice');
+ const mediaStatus=document.getElementById('mouChatMediaStatus');
+ field.append(input);
+ if(attach)field.append(attach);
+ if(voice)field.append(voice);
+ if(mediaStatus)field.append(mediaStatus);
+ form.insertBefore(field,send);
+ form.classList.add('mou-flow-composer');
+ if(reply)form.parentElement.insertBefore(reply,form);
+ if(themes){themes.hidden=true;themes.setAttribute('aria-hidden','true');}
+ // Header controls stay bound to the existing WebRTC buttons mounted by calls-ui.js.
+ header.classList.add('mou-flow-header');
+ const avatar=document.getElementById('mouChatAvatar');
+ avatar?.classList.add('mou-flow-avatar');
+ const back=header.querySelector('#mouChatBack');
+ back?.setAttribute('aria-label','Retour');
+ const callButtons=header.querySelector('.mou-call-header-actions');
+ if(callButtons){callButtons.classList.add('mou-flow-call-actions');}
+ // A small day marker, without replacing or fabricating conversation messages.
+ if(!list.querySelector('.mou-flow-day')){
+  const marker=document.createElement('div');marker.className='mou-flow-day';marker.textContent='Conversation';list.prepend(marker);
+ }
+ // Reposition reply preview in the same sequence as Flow.
+ if(reply)reply.classList.add('mou-flow-reply');
+ // Keep the message list as the only flexible/scrolling region.
+ active.classList.add('mou-flow-active');
+ form.setAttribute('autocomplete','off');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountFlowLayout);else mountFlowLayout();
+document.addEventListener('mou:messages-updated',mountFlowLayout);
+document.addEventListener('mou:player-auth',mountFlowLayout);
+})();
