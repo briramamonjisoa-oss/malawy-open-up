@@ -217,7 +217,9 @@ public class MainActivity extends Activity {
 
         TextView message = updateText(
             "MALAWY OPEN UP " + versionName + " est disponible. " +
-            (force ? "Cette mise à jour est obligatoire pour continuer." : "Installe la mise à jour pour profiter des nouveautés."),
+            (force
+                ? "Cette mise à jour est obligatoire. Télécharge le fichier, désinstalle ensuite l'ancienne application, puis ouvre le fichier téléchargé pour installer la nouvelle version. Tu devras te reconnecter avec ton UID et ton PIN."
+                : "Installe la mise à jour pour profiter des nouveautés."),
             15, muted, false);
         message.setLineSpacing(dp(4), 1.0f);
         LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
