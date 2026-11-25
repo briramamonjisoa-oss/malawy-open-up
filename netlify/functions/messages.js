@@ -21,7 +21,7 @@ const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/j
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
 const value=v=>'"'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
-async function find(table,formula){const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});const d=await airtable(encodeURIComponent(table)+'?'+q);return d.records||[];}
+async function find(table,formula){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
 async function guildMemberIds(guildId) {
  const players=await all(PLAYERS),members=[];
  for(const row of players){
@@ -52,7 +52,7 @@ exports.handler=async event=>{
    const pair=withId?`OR(AND({Expéditeur record ID}=${value(me.id)},{Destinataire record ID}=${value(withId)}),AND({Expéditeur record ID}=${value(withId)},{Destinataire record ID}=${value(me.id)}))`:`OR({Expéditeur record ID}=${value(me.id)},{Destinataire record ID}=${value(me.id)})`;const rows=await find(TABLE,`AND({Statut}!="Supprimé",NOT(LEFT({Conversation Key},6)="group:"),${pair})`),visible=rows;
    if(withId){
     const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
-    await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
+    const readAt=new Date().toISOString();for(let i=0;i<Math.min(unread.length,20);i+=10){const batch=unread.slice(i,i+10);await airtable(encodeURIComponent(TABLE),{method:'PATCH',body:JSON.stringify({records:batch.map(r=>({id:r.id,fields:{[F.read]:readAt}}))})});}
    }
    return out(200,{messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:f[F.to],recipientPseudo:f[F.toName],content:f[F.content],created:f[F.created],readAt:withId&&f[F.to]===me.id&&!f[F.read]?new Date().toISOString():(f[F.read]||''),mine:f[F.from]===me.id};})});
   }
