@@ -4,6 +4,14 @@ const API='https://malawy-open-up.briramamonjisoa.workers.dev/.netlify/functions
 const token=()=>localStorage.getItem('mou_player_token')||'';
 const $=id=>document.getElementById(id);
 let pc=null,stream=null,remoteStream=null,currentCall=null,role='',pollTimer=null,seenIce=new Set(),remoteSet=false,muted=false,cameraOff=false,incomingShown='';
+let iceWriteQueue=Promise.resolve();
+function queueIceCandidate(candidate,callId){
+ iceWriteQueue=iceWriteQueue.then(async()=>{
+  if(!currentCall||currentCall.callId!==callId)return;
+  await api('calls',{method:'POST',body:JSON.stringify({action:'candidate',callId,candidate})});
+ }).catch(error=>{if(currentCall?.callId===callId)stateText('Signalisation réseau : '+error.message);});
+ return iceWriteQueue;
+}
 async function api(path,options={}){const r=await fetch(API+path,{...options,headers:{Authorization:'Bearer '+token(),...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erreur appel ('+r.status+')');return d;}
 function mount(){
  const header=$('mouChatActive')?.querySelector('.mou-chat-header');if(!header||$('mouCallAudio'))return;
@@ -35,7 +43,7 @@ async function media(type){if(!navigator.mediaDevices?.getUserMedia)throw Error(
 function setupPeer(iceServers){
  pc=new RTCPeerConnection({iceServers:iceServers||[{urls:'stun:stun.l.google.com:19302'}]});remoteStream=new MediaStream();$('mouCallRemote').srcObject=remoteStream;
  pc.ontrack=e=>{const tracks=e.streams?.[0]?.getTracks?.()||[e.track].filter(Boolean);tracks.forEach(t=>{if(!remoteStream.getTrackById(t.id))remoteStream.addTrack(t);});const remote=$('mouCallRemote');if(remote){remote.srcObject=remoteStream;remote.play().catch(()=>stateText('Appel reçu. Appuie sur lecture si le son ne démarre pas.'));}};
- pc.onicecandidate=e=>{if(e.candidate&&currentCall)api('calls',{method:'POST',body:JSON.stringify({action:'candidate',callId:currentCall.callId,candidate:e.candidate.toJSON()})}).catch(err=>stateText(err.message));};
+ pc.onicecandidate=e=>{if(e.candidate&&currentCall)queueIceCandidate(e.candidate.toJSON(),currentCall.callId);};
  pc.onconnectionstatechange=()=>{const s=pc?.connectionState;if(s==='connected')stateText('Appel connecté');if(s==='failed')stateText('Connexion impossible. Un relais TURN peut être nécessaire sur ce réseau.');if(s==='disconnected')stateText('Connexion interrompue…');};
  stream?.getTracks().forEach(t=>pc.addTrack(t,stream));
 }
