@@ -1,4 +1,5 @@
 const {airtable,verifyPlayer}=require('./auth');
+const {queuePlayerEventNotification}=require('./notifications');
 const TABLE='tblurcTUHZq4hgYVo',REL='tblQoAGcQhii58Hwe';
 const F={id:'flddFspJ786tqtN5z',from:'fldnHZSKMrIxwsqFT',to:'fldACeLLXwsW4cTRo',type:'fldjGQz0LpHUWZ6Ed',status:'fldNhIfDytJpn2cbx',offer:'fld247bpN6s92tPv0',answer:'fldcsD34bwK3PQPH2',ice:'fldpzLBigCtIu4WuD',created:'fldcssy4XAJuiwGIj',expires:'fld1iyMQtX6iCbDrW',updated:'fldBDlaQ7KO38XHFu'};
 const R={from:'fldV969gNKryDledy',to:'fldbn9UWoDNNZPpS6',status:'fldV1k5nClaf3CT9M'};
@@ -22,6 +23,9 @@ exports.handler=async event=>{
    if(existing.some(x=>Date.parse(x.fields?.[F.expires]||'')>Date.now()))return out(409,{error:'Un appel est déjà en cours avec ce joueur.'});
    const id='call_'+require('crypto').randomUUID(),now=new Date(),expires=new Date(now.getTime()+2*60*60*1000).toISOString();
    const rec=await airtable(encodeURIComponent(TABLE),{method:'POST',body:JSON.stringify({records:[{fields:{[F.id]:id,[F.from]:me.id,[F.to]:target,[F.type]:type,[F.status]:'ringing',[F.ice]:'[]',[F.created]:now.toISOString(),[F.expires]:expires,[F.updated]:now.toISOString()}}]})});
+   try {
+    await queuePlayerEventNotification(target,type==='video'?'Appel vidéo entrant':'Appel audio entrant',(me.pseudo||'Un ami')+' essaie de te joindre sur MALAWY OPEN UP.','/#messages','incoming-call:'+id);
+   } catch(error) { console.warn('Notification d’appel non envoyée:',error.message); }
    return out(201,{success:true,callId:id,recordId:rec.records?.[0]?.id,iceServers:iceServers()});
   }
   if(method==='GET'&&event.queryStringParameters?.incoming==='1'){
