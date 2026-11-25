@@ -68,6 +68,95 @@ function storyStyles(){if(document.getElementById('mouStoryStyles'))return;const
 @media(min-width:600px){.mou-story-viewer{padding:18px}.mou-story-viewer-inner{height:min(94dvh,900px);max-height:900px;border-radius:26px}.mou-story-viewer-inner:after{bottom:12px}.mou-story-progress-list{top:14px}.mou-story-head{top:30px}.mou-story-caption{bottom:40px}}
 @media(max-height:560px) and (orientation:landscape){.mou-story-viewer-inner{width:min(100vw,900px);height:100dvh}.mou-story-owner-avatar{width:38px;height:38px}.mou-story-caption{bottom:28px;padding:8px 12px}}
 
+/* MALAWY signature refinement — compact esports identity, less empty black space */
+.mou-story-viewer-inner{
+  border-color:rgba(218,193,132,.72);
+  box-shadow:0 0 0 1px rgba(127,77,181,.18),0 0 38px rgba(218,193,132,.14),0 0 90px rgba(117,55,173,.18);
+  background:
+    radial-gradient(ellipse at 50% 18%,rgba(107,54,151,.16),transparent 42%),
+    radial-gradient(ellipse at 50% 82%,rgba(194,158,91,.10),transparent 40%),
+    #050506;
+}
+.mou-story-viewer-inner:before{
+  background:
+    linear-gradient(180deg,rgba(5,5,8,.74) 0%,rgba(8,6,12,.30) 17%,transparent 36%,transparent 68%,rgba(5,5,8,.24) 78%,rgba(5,5,8,.92) 100%),
+    linear-gradient(115deg,rgba(119,66,166,.10),transparent 32%,transparent 70%,rgba(210,184,119,.08));
+}
+.mou-story-viewer-inner:after{
+  content:"M  ·  MALAWY OPEN UP  ·  ESPORT";
+  bottom:calc(15px + env(safe-area-inset-bottom));
+  color:#d8c18a;
+  letter-spacing:.22em;
+  font-size:9px;
+  text-shadow:0 0 9px rgba(216,193,138,.38),0 0 20px rgba(130,72,180,.22);
+}
+.mou-story-progress-list{
+  top:calc(12px + env(safe-area-inset-top));
+  left:15px;right:15px;gap:5px;
+}
+.mou-story-progress{height:3px;background:rgba(255,255,255,.20);box-shadow:0 0 8px rgba(0,0,0,.7)}
+.mou-story-progress i{
+  background:linear-gradient(90deg,#a9874e 0%,#f0d99e 52%,#9a63c5 100%);
+  box-shadow:0 0 12px rgba(216,193,138,.65),0 0 15px rgba(154,99,197,.28);
+}
+.mou-story-head{
+  top:calc(27px + env(safe-area-inset-top));
+  left:13px;right:13px;
+  padding:8px 9px 8px 10px;
+  border:1px solid rgba(216,193,138,.34);
+  border-radius:18px;
+  background:linear-gradient(110deg,rgba(7,7,9,.76),rgba(35,23,47,.48));
+  box-shadow:0 8px 28px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.mou-story-owner{gap:12px}
+.mou-story-owner-avatar{
+  width:44px;height:44px;
+  border-color:#ddc582;
+  background:linear-gradient(145deg,#17131d,#080808);
+  box-shadow:0 0 0 3px rgba(216,193,138,.10),0 0 20px rgba(151,94,196,.24);
+}
+.mou-story-owner-avatar:after{
+  background:linear-gradient(145deg,#17111f,#080808);
+  box-shadow:0 0 10px rgba(151,94,196,.3);
+}
+.mou-story-owner-meta b{font-size:14px;letter-spacing:.01em}
+.mou-story-owner-meta small{color:#c9bb9b;font-size:10px}
+.mou-story-close{
+  width:36px;height:36px;border-radius:12px;
+  border-color:rgba(216,193,138,.48);
+  background:linear-gradient(145deg,rgba(24,20,29,.86),rgba(5,5,6,.78));
+  color:#e8d49e;font-size:23px;
+  box-shadow:0 0 14px rgba(125,76,163,.16);
+}
+.mou-story-media{
+  background:
+    radial-gradient(ellipse at 50% 35%,rgba(120,68,160,.22),transparent 38%),
+    radial-gradient(ellipse at 50% 75%,rgba(216,193,138,.10),transparent 45%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.012) 0 1px,transparent 1px 22px),
+    #050506;
+}
+.mou-story-media img,.mou-story-media video{
+  object-fit:contain;
+  filter:drop-shadow(0 8px 28px rgba(0,0,0,.35));
+}
+.mou-story-caption{
+  left:16px;right:16px;
+  bottom:calc(48px + env(safe-area-inset-bottom));
+  padding:14px 16px 14px 18px;
+  border:1px solid rgba(216,193,138,.38);
+  border-left:3px solid #9a63c5;
+  border-radius:16px;
+  background:linear-gradient(110deg,rgba(8,8,10,.88),rgba(30,18,43,.72));
+  box-shadow:0 10px 34px rgba(0,0,0,.34),0 0 22px rgba(130,72,180,.10),inset 0 1px rgba(255,255,255,.07);
+  font-size:15px;font-weight:650;
+}
+@media(min-width:600px){
+ .mou-story-head{top:30px}
+ .mou-story-caption{bottom:48px}
+}
+
+
 `;document.head.appendChild(s);}
 function viewer(group,index){
  let current=Math.max(0,Math.min(index,group.length-1));
