@@ -9,7 +9,7 @@ const G={guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',status:'fldBZBT3Vm
 const approved=v=>['accepte','acceptee','accepted','valide','validee','approved'].includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 async function verifyGuildMember(playerId,guildId){
  if(!/^[0-9]{5,24}$/.test(guildId))return null;
- const [player,groups]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(playerId)+'?returnFieldsByFieldId=true'),all(GROUPS)]);
+ const [player,groups]=await Promise.all([airtable(PLAYERS+'/'+encodeURIComponent(playerId)+'?returnFieldsByFieldId=true'),find(GROUPS,`AND({${G.guildId}}=${value(guildId)},{${G.status}}="Actif")`)]);
  const pf=player.fields||{};if(!approved(pf[P.status]))return null;
  let profile={};try{profile=JSON.parse(pf[P.profile]||'{}')}catch{}
  if(String(profile.clanBasicInfo?.clanId||'')!==guildId)return null;
@@ -20,6 +20,8 @@ async function verifyGuildMember(playerId,guildId){
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(data)});
 const body=e=>{try{return JSON.parse(e.body||'{}')}catch{return {}}};
 async function all(table){let rows=[],offset;do{const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true'});if(offset)q.set('offset',offset);const d=await airtable(encodeURIComponent(table)+'?'+q);rows.push(...(d.records||[]));offset=d.offset;}while(offset&&rows.length<1000);return rows;}
+const value=v=>'"'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+async function find(table,formula){const q=new URLSearchParams({pageSize:'100',returnFieldsByFieldId:'true',filterByFormula:formula});const d=await airtable(encodeURIComponent(table)+'?'+q);return d.records||[];}
 async function guildMemberIds(guildId) {
  const players=await all(PLAYERS),members=[];
  for(const row of players){
@@ -30,7 +32,7 @@ async function guildMemberIds(guildId) {
  }
  return members;
 }
-async function accepted(a,b){const rows=await all(REL);return rows.some(r=>r.fields?.[R.status]==='Acceptée'&&((r.fields[R.from]===a&&r.fields[R.to]===b)||(r.fields[R.to]===a&&r.fields[R.from]===b)));}
+async function accepted(a,b){const rows=await find(REL,`AND({${R.status}}="Acceptée",OR(AND({${R.from}}=${value(a)},{${R.to}}=${value(b)}),AND({${R.from}}=${value(b)},{${R.to}}=${value(a)})))`);return rows.length>0;}
 exports.handler=async event=>{
  const me=verifyPlayer(event);if(!me)return out(401,{error:'Connecte-toi pour accéder à la messagerie.'});
  const b=body(event),method=event.httpMethod||'GET';
@@ -40,14 +42,14 @@ exports.handler=async event=>{
    if(groupId){
     const membership=await verifyGuildMember(me.id,groupId);
     if(!membership)return out(403,{error:'Tu dois appartenir à cette guilde et son groupe officiel doit être actif.'});
-    const key='group:'+groupId,rows=await all(TABLE);
+    const key='group:'+groupId,rows=await find(TABLE,`AND({${F.key}}=${value(key)},{${F.status}}!="Supprimé")`);
     const visible=rows.filter(r=>r.fields?.[F.key]===key&&r.fields?.[F.status]!=='Supprimé');
     return out(200,{group:{id:membership.groupId,name:membership.groupName},messages:visible.sort((a,b)=>String(a.fields?.[F.created]||'').localeCompare(String(b.fields?.[F.created]||''))).map(r=>{const f=r.fields||{};return{id:r.id,messageId:f[F.id],senderId:f[F.from],senderPseudo:f[F.fromName],recipientId:key,recipientPseudo:membership.groupName,content:f[F.content],created:f[F.created],readAt:'',mine:f[F.from]===me.id};})});
    }
 
    const withId=String(event.queryStringParameters?.with||'');
    if(withId&&withId!==me.id&&!await accepted(me.id,withId))return out(403,{error:'La messagerie privée est réservée aux amis acceptés.'});
-   const rows=await all(TABLE),visible=rows.filter(r=>{const f=r.fields||{};return !String(f[F.key]||'').startsWith('group:')&&(f[F.from]===me.id||f[F.to]===me.id)&&(!withId||f[F.from]===withId||f[F.to]===withId)&&f[F.status]!=='Supprimé';});
+   const pair=withId?`OR(AND({${F.from}}=${value(me.id)},{${F.to}}=${value(withId)}),AND({${F.from}}=${value(withId)},{${F.to}}=${value(me.id)}))`:`OR({${F.from}}=${value(me.id)},{${F.to}}=${value(me.id)})`;const rows=await find(TABLE,`AND({${F.status}}!="Supprimé",NOT(LEFT({${F.key}},6)="group:"),${pair})`),visible=rows;
    if(withId){
     const unread=visible.filter(r=>r.fields?.[F.to]===me.id&&!r.fields?.[F.read]);
     await Promise.all(unread.slice(0,100).map(r=>airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({fields:{[F.read]:new Date().toISOString()}})})));
