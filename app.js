@@ -251,8 +251,8 @@ function freeFireRankCard(rankCode,points,mode='br'){
 async function loadPlayerProfile(options={}){
  if(!state.playerToken)return;
  try{
-  const controller=new AbortController(),profileTimeout=setTimeout(()=>controller.abort(),8000);
-  let r;try{r=await fetch(API_ORIGIN+'/.netlify/functions/player-account',{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store',signal:controller.signal});}finally{clearTimeout(profileTimeout);}
+  const controller=new AbortController(),profileTimeout=setTimeout(()=>controller.abort(),20000);
+  let r;try{r=await fetch(API_ORIGIN+'/.netlify/functions/player-account'+(options.silent?'':'?fast=1'),{headers:{Authorization:'Bearer '+state.playerToken},cache:'no-store',signal:controller.signal});}finally{clearTimeout(profileTimeout);}
   const p=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401||r.status===403){state.playerToken='';localStorage.removeItem('mou_player_token');}throw Error(p.error||'Profil temporairement inaccessible ('+r.status+').');}
   state.player=p;
   fetch(API_ORIGIN+'/.netlify/functions/guild-info?fast=1',{cache:'no-store'}).then(gr=>gr.json()).then(gd=>{if(gd?.id){state.guildInfo=gd;try{render();}catch(e){}}}).catch(e=>console.warn('Guilde Free Fire non actualisée:',e.message));// La vérification silencieuse du profil ne doit pas déclencher une navigation.$('#playerLoginForm').hidden=true;$('#playerProfile').hidden=false;document.body.classList.remove('access-locked');$('#accessGate').hidden=true;
