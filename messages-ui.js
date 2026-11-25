@@ -229,7 +229,17 @@ voiceButton.addEventListener('click',async()=>{
  if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){mediaStatus.textContent='L’enregistrement vocal n’est pas pris en charge sur cet appareil.';return;}
  voiceButton.disabled=true;
  try{
-  voiceStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  // Android WebView on some devices cannot initialize the audio source with
+  // DSP constraints. Try the full configuration first, then the native default.
+  try{
+   voiceStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  }catch(firstError){
+   if(firstError.name==='NotAllowedError'||firstError.name==='SecurityError')throw firstError;
+   console.warn('MALAWY voice: retrying microphone with default audio source',firstError.name,firstError.message);
+   voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }
+  const audioTrack=voiceStream?.getAudioTracks?.()[0];
+  if(!audioTrack||audioTrack.readyState!=='live')throw new Error('Microphone Android indisponible. Ferme les autres applications utilisant le micro puis réessaie.');
   voiceTarget={id:activeId,groupId:activeGroupId};
   const types=['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'];
   const mimeType=types.find(type=>MediaRecorder.isTypeSupported?.(type))||'';
