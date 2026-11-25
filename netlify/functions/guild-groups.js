@@ -52,15 +52,19 @@ async function resolveMe(me,force=false){
 async function getGroup(guildId){return (await all(GROUPS)).find(r=>String(fields(r)[GF.guildId]||'')===guildId)||null;}
 async function notifyGuildWelcome(player,guild){
  const key='guild-welcome:'+guild.id+':'+player.id;
+ const formula='{Notification Key}="'+key.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+ const query=new URLSearchParams({filterByFormula:formula,pageSize:'1'});
+ const existing=await airtable(encodeURIComponent('Notifications')+'?'+query);
+ if((existing.records||[]).length)return false;
  const title='Bienvenue, chef de guilde !';
- const message='Ton groupe '+guild.name+' a été créé automatiquement dans MALAWY OPEN UP. Le nom et les informations de ta guilde sont déjà renseignés. Ouvre « Ma guilde » pour choisir sa photo et accueillir tes membres.';
+ const message='Ton groupe '+guild.name+' est prêt dans MALAWY OPEN UP. Le nom et les informations de ta guilde sont déjà renseignés. Ouvre « Ma guilde » pour choisir sa photo et accueillir tes membres.';
  try{await queuePlayerEventNotification(player.id,title,message,'/#messages',key);}catch(error){console.warn('Push bienvenue guilde:',error.message);}
- try{
-  const history=await all('Notifications');
-  if(!history.some(r=>String(fields(r)['Notification Key']||'')===key)){
-   await airtable(encodeURIComponent('Notifications'),{method:'POST',body:JSON.stringify({records:[{fields:{'Player record ID':player.id,Title:title,Message:message,URL:'/#messages','Created At':new Date().toISOString(),'Notification Key':key}}]})});
-  }
- }catch(error){console.warn('Historique bienvenue guilde:',error.message);}
+ const after=await airtable(encodeURIComponent('Notifications')+'?'+query);
+ if(!(after.records||[]).length){
+  try{await airtable(encodeURIComponent('Notifications'),{method:'POST',body:JSON.stringify({records:[{fields:{'Player record ID':player.id,Title:title,Message:message,URL:'/#messages','Created At':new Date().toISOString(),'Notification Key':key}}]})});}
+  catch(error){console.warn('Historique bienvenue guilde:',error.message);}
+ }
+ return true;
 }
 function publicGroup(r){const f=fields(r);let officers=[];try{officers=JSON.parse(f[GF.officers]||'[]')}catch{}return {id:r.id,groupId:f[GF.groupId],guildId:f[GF.guildId],name:f[GF.name],level:Number(f[GF.level])||0,region:f[GF.region]||'',leaderPlayerId:f[GF.leaderRecord],leaderUid:f[GF.leaderUid],leaderPseudo:f[GF.leaderName],officers,status:f[GF.status]||'Actif',createdAt:f[GF.created],photo:f[GF.photo]||''};}
 exports.handler=async event=>{
@@ -84,7 +88,6 @@ exports.handler=async event=>{
      if(!recordId)throw new Error('Le groupe de guilde n’a pas pu être créé dans Airtable.');
      group=await airtable(GROUPS+'/'+encodeURIComponent(recordId)+'?returnFieldsByFieldId=true');
      welcomeCreated=true;
-     await notifyGuildWelcome({id:me.id,pseudo:resolved.player.pseudo},info);
     }
    }
    if(!group)return out(200,{group:null,guild,canCreate:false,role:'member',members:[]});
@@ -93,6 +96,10 @@ exports.handler=async event=>{
     const now=new Date().toISOString();
     await airtable(GROUPS+'/'+group.id,{method:'PATCH',body:JSON.stringify({fields:{[GF.leaderRecord]:me.id,[GF.leaderUid]:resolved.player.uid,[GF.leaderName]:resolved.player.pseudo,[GF.name]:String(resolved.clan.clanName||resolved.clan.name||g.name),[GF.officers]:'[]',[GF.updated]:now}})});
     const refreshed=await airtable(GROUPS+'/'+group.id+'?returnFieldsByFieldId=true');g=publicGroup(refreshed);
+   }
+   if(resolved.isLeader){
+    const newlyWelcomed=await notifyGuildWelcome({id:me.id,pseudo:resolved.player.pseudo},{id:resolved.guildId,name:g.name||guild.name||'ta guilde'});
+    welcomeCreated=welcomeCreated||newlyWelcomed;
    }
    const isOfficer=g.officers.some(x=>x.playerRecordId===me.id);
    const roster=await all(PLAYERS);
