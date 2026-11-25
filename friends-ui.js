@@ -13,7 +13,7 @@
   function mount() {
     const profile = document.getElementById('playerProfile');
     if (!profile) return;
-    if (document.getElementById('mouFriends')) { if(token()) load(); return; }
+    if (document.getElementById('mouFriends')) return;
     const section = document.createElement('section');
     section.id = 'mouFriends';
     section.className = 'mou-friends';
@@ -161,7 +161,7 @@
       if (q && q.length >= 2 && activeFilter === 'search') await search(q);
     } catch (error) { if (message) message.textContent = error.message; button.disabled = false; }
   });
-  document.addEventListener('mou:player-auth', mount);
+  document.addEventListener('mou:player-auth', () => { mount(); load(); });
   document.addEventListener('DOMContentLoaded', mount);
   const observer = new MutationObserver(mount);
   observer.observe(document.documentElement, {childList:true, subtree:true});
