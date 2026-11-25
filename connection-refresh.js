@@ -12,7 +12,10 @@ function mount(){
  overlay.setAttribute('role','alertdialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','mouConnectionTitle');
  overlay.innerHTML='<div class="mou-connection-card"><div class="mou-connection-mark">M</div><p class="mou-connection-kicker">MALAWY OPEN UP</p><h2 id="mouConnectionTitle">Connexion indisponible</h2><p id="mouConnectionText">Vérifiez votre connexion Internet.</p><button type="button" id="mouConnectionRetry">Réessayer</button><small>Votre session reste enregistrée. Ne vous reconnectez pas et ne recréez pas de compte.</small></div>';
  document.body.appendChild(overlay);
- $('#mouConnectionRetry').addEventListener('click',()=>probe(true));
+ const style=document.createElement('style');style.id='mouConnectionOverlayStyle';
+ style.textContent='#mouConnectionOverlay{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:24px;background:rgba(3,4,7,.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-family:system-ui,-apple-system,sans-serif;color:#f3eee3}#mouConnectionOverlay[hidden]{display:none!important}#mouConnectionOverlay .mou-connection-card{width:min(100%,390px);padding:34px 24px;border:1px solid rgba(216,193,138,.55);border-radius:24px;background:linear-gradient(145deg,#191813,#080809);box-shadow:0 24px 80px #000;text-align:center}#mouConnectionOverlay .mou-connection-mark{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 18px;border:1px solid #d8c18a;border-radius:18px;color:#d8c18a;font-size:44px;font-weight:900}#mouConnectionOverlay .mou-connection-kicker{margin:0 0 12px;color:#c7b17c;font-size:10px;letter-spacing:.24em}#mouConnectionOverlay h2{margin:0 0 12px;font-size:22px}#mouConnectionOverlay p:not(.mou-connection-kicker){color:#c5c0b5;font-size:15px;line-height:1.6}#mouConnectionOverlay button{width:100%;margin:14px 0;padding:14px;border:0;border-radius:13px;background:linear-gradient(110deg,#bda66f,#e5d3a6);color:#15120b;font-size:15px;font-weight:800}#mouConnectionOverlay small{display:block;color:#958a73;font-size:11px;line-height:1.5}';
+ document.head.appendChild(style);
+ overlay.querySelector('#mouConnectionRetry').addEventListener('click',()=>probe(true));
  updateNotice();
 }
 function updateNotice(message){
@@ -23,8 +26,8 @@ function updateNotice(message){
 function showOverlay(serverDown=false){
  if(!overlay)return;
  offline=!navigator.onLine;
- $('#mouConnectionTitle').textContent=offline?'Connexion Internet indisponible':'Serveur MALAWY momentanément inaccessible';
- $('#mouConnectionText').textContent=offline?'Vérifiez votre connexion Internet.':'Internet semble disponible, mais MALAWY ne parvient pas à joindre son serveur. Réessayez dans quelques instants.';
+ overlay.querySelector('#mouConnectionTitle').textContent=offline?'Connexion Internet indisponible':'Serveur MALAWY momentanément inaccessible';
+ overlay.querySelector('#mouConnectionText').textContent=offline?'Vérifiez votre connexion Internet.':'Internet semble disponible, mais MALAWY ne parvient pas à joindre son serveur. Réessayez dans quelques instants.';
  overlay.hidden=false;
  updateNotice(offline?'Vérifiez votre connexion Internet.':'Connexion au serveur MALAWY indisponible.');
 }
