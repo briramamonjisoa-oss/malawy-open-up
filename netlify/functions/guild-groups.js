@@ -4,7 +4,7 @@ const CACHE='tblHgA9YIuR9Oqwe5';
 const GROUPS='tblOf7CoOFBKpIueo';
 const PF={pseudo:'fldaNsxza3T3krjfr',uid:'fldbZWPSxIePTc41P',profile:'fldJAultgWl4cZfCW',synced:'fldr4kMBGAqlN6rU4',status:'fldmc3ktn1we8phLq'};
 const APPROVED=['accepte','acceptee','accepted','valide','validee','approved'];
-const approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,''));
+const approved=v=>APPROVED.includes(String(v||'').trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 const CF={id:'flde1aEl0Rfmt8oEb',name:'fldqXbfYepLyAxtrD',level:'fld0uMiE1PHh3GoAg',region:'fldNGVDjZxHMbaFKM',members:'fldudC5wdD6EZsQnB',capacity:'fldEVWY1R0aInz996',online:'flde3AkNObHR0BusJ',leader:'fld4Um2XwpcgXoySZ',leaderUid:'fldh2AcVScdk5TQEh',leaderJson:'fldXAWYVwscWFxbo4',raw:'fldhImFvhTHv55oPh',synced:'fldcgxLer6bnBKmkL'};
 const GF={groupId:'fldR1XeGsryaDzlAa',guildId:'fldfLYjJEme1kBMx0',name:'fldr1iPGh1XKgvqMU',level:'fldClrRG6DV8rrGsg',region:'fldOI53lZNVaqEyT3',leaderRecord:'fldKcXZ2Miz5CmKm1',leaderUid:'fldK0983lKd0dFqfH',leaderName:'flddhMQ8z9yVtfzU2',officers:'fld7ca2t1SdIwGo3c',status:'fldBZBT3Vm1aexeXD',created:'fldtKzjWbRofTULEA',updated:'fldafzcYOPNNq5xGc'};
 const out=(statusCode,data)=>({statusCode,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'},body:JSON.stringify(data)});
@@ -89,11 +89,16 @@ exports.handler=async event=>{
   }
   const group=await getGroup(resolved.guildId);if(!group)return out(404,{error:'Le groupe officiel de ta guilde n’existe pas encore.'});
   const gf=fields(group),officers=(()=>{try{return JSON.parse(gf[GF.officers]||'[]')}catch{return []}})();
+  if(gf[GF.status]!=='Actif')return out(403,{error:'Ce groupe est actuellement suspendu.'});
   if(gf[GF.leaderRecord]!==me.id)return out(403,{error:'Seul le chef actuel de la guilde peut gérer les officiers.'});
   if(action==='appointOfficer'||action==='removeOfficer'){
    const targetId=String(b.playerRecordId||'').trim();if(!targetId||targetId===me.id)return out(400,{error:'Joueur cible invalide.'});
-   const target=await airtable(PLAYERS+'/'+encodeURIComponent(targetId)+'?returnFieldsByFieldId=true'),targetProfile=await playerProfile(target,true),targetClan=targetProfile.profile.clanBasicInfo||{};
-   if(String(targetClan.clanId||'')!==resolved.guildId)return out(403,{error:'Un officier doit appartenir à la même guilde.'});
+   let targetProfile=null;
+   if(action==='appointOfficer'){
+    const target=await airtable(PLAYERS+'/'+encodeURIComponent(targetId)+'?returnFieldsByFieldId=true');targetProfile=await playerProfile(target,true);
+    const targetClan=targetProfile.profile.clanBasicInfo||{};
+    if(String(targetClan.clanId||'')!==resolved.guildId)return out(403,{error:'Un officier doit appartenir à la même guilde.'});
+   }
    let next=officers.filter(x=>x.playerRecordId!==targetId);
    if(action==='appointOfficer'){
     if(officers.some(x=>x.playerRecordId===targetId))return out(200,{success:true,officers});
