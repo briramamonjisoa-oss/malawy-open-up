@@ -12,12 +12,34 @@ exports.verify = (event) => {
   if(a.length!==b.length || !crypto.timingSafeEqual(a,b)) return false;
   try { const data=JSON.parse(Buffer.from(payload,'base64url').toString()); return data.role==='admin' && data.exp > Date.now(); } catch { return false; }
 };
+let airtableQueue = Promise.resolve();
+let lastAirtableRequest = 0;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 exports.airtable = async (path, options={}) => {
   const env=config();
   const token=env.AIRTABLE_TOKEN, base=env.AIRTABLE_BASE_ID;
   if(!token||!base) throw new Error('Configuration Airtable manquante : vérifie AIRTABLE_TOKEN et AIRTABLE_BASE_ID dans les paramètres du Worker Cloudflare.');
-  const r=await fetch(`https://api.airtable.com/v0/${base}/${path}`,{...options,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',...(options.headers||{})}});
-  const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}if(!r.ok){const detail=d.error?.message||d.error?.type||raw.slice(0,180)||'Réponse vide';throw new Error('Airtable HTTP '+r.status+' : '+detail);}return d;
+  const run = async () => {
+    let attempt = 0;
+    while (true) {
+      const gap = 260 - (Date.now() - lastAirtableRequest);
+      if (gap > 0) await wait(gap);
+      lastAirtableRequest = Date.now();
+      const r = await fetch(`https://api.airtable.com/v0/${base}/${path}`,{...options,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',...(options.headers||{})}});
+      const raw=await r.text();let d={};try{d=JSON.parse(raw)}catch{}
+      if (r.status === 429 && attempt < 4) {
+        const retryAfter = Number(r.headers.get('retry-after')) || 0;
+        await wait(Math.max(retryAfter * 1000, 700 * (2 ** attempt)));
+        attempt++;
+        continue;
+      }
+      if(!r.ok){const detail=d.error?.message||d.error?.type||raw.slice(0,180)||'Réponse vide';const error=new Error('Airtable HTTP '+r.status+' : '+detail);error.status=r.status;throw error;}
+      return d;
+    }
+  };
+  const task = airtableQueue.then(run, run);
+  airtableQueue = task.then(()=>undefined,()=>undefined);
+  return task;
 };
 
 exports.verifyPlayer = (event) => {
