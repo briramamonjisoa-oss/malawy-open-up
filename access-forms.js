@@ -32,8 +32,12 @@
     if (notificationButton) notificationButton.disabled = true;
     if (notificationStatus) notificationStatus.textContent = 'Activation des notifications…';
     try {
+      if (window.MalawyAndroid?.areNotificationsEnabled &&
+          !window.MalawyAndroid.areNotificationsEnabled()) {
+        throw new Error('Les notifications sont désactivées pour MALAWY OPEN UP. Autorise-les dans les paramètres Android, puis réessaie.');
+      }
       signupNotification = await prepareSignupNotifications();
-      if (notificationStatus) notificationStatus.textContent = '✓ Notifications activées sur cet appareil. Tu peux envoyer ta demande.';
+      if (notificationStatus) notificationStatus.textContent = '✓ Notifications autorisées et Firebase prêt. Tu peux envoyer ta demande.';
       if (notificationButton) notificationButton.textContent = '✓ Notifications activées';
     } catch (error) {
       signupNotification = null;
