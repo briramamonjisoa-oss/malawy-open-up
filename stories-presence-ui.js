@@ -157,11 +157,23 @@ function storyStyles(){if(document.getElementById('mouStoryStyles'))return;const
 }
 
 
+
+.mou-story-social-actions{position:absolute;z-index:8;right:13px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:13px}
+.mou-story-social-actions button{width:48px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid rgba(216,193,138,.48);border-radius:17px;background:linear-gradient(145deg,rgba(9,9,11,.76),rgba(35,23,45,.58));color:#e4d19b;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 24px rgba(0,0,0,.32),0 0 18px rgba(137,83,174,.13);font-size:22px;line-height:1}
+.mou-story-social-actions button small{font-size:10px;color:#c6b98f}
+.mou-story-social-actions button.active{border-color:#e5cc8d;background:linear-gradient(145deg,rgba(111,78,34,.66),rgba(68,38,83,.70));box-shadow:0 0 18px rgba(216,193,138,.35),0 0 24px rgba(145,91,180,.18)}
+.mou-story-reply{position:absolute;z-index:9;left:13px;right:70px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;padding:7px;border:1px solid rgba(216,193,138,.42);border-radius:19px;background:linear-gradient(110deg,rgba(8,8,10,.82),rgba(32,20,42,.72));box-shadow:0 10px 30px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.mou-story-reply input{flex:1;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#f4ead2!important;padding:10px 9px!important;margin:0!important;font-size:13px!important}
+.mou-story-reply input::placeholder{color:#b7ad9a}
+.mou-story-reply button{flex:0 0 40px;width:40px;height:40px;border:1px solid rgba(216,193,138,.55);border-radius:13px;background:linear-gradient(145deg,#d9c48b,#967849);color:#090909;font-size:18px;font-weight:800}
+.mou-story-reply-status{position:absolute;z-index:10;left:18px;right:76px;bottom:calc(66px + env(safe-area-inset-bottom));color:#e3d19d;font-size:11px;text-shadow:0 2px 8px #000}
+.mou-story-caption{bottom:calc(74px + env(safe-area-inset-bottom))!important;right:76px!important}
+@media(max-height:560px) and (orientation:landscape){.mou-story-social-actions{right:9px;gap:7px}.mou-story-social-actions button{width:42px;min-height:44px}.mou-story-reply{bottom:8px}.mou-story-caption{bottom:64px!important}}
 `;document.head.appendChild(s);}
 function viewer(group,index){
  let current=Math.max(0,Math.min(index,group.length-1));
  const layer=document.createElement('div');layer.className='mou-story-viewer';
- layer.innerHTML='<section class="mou-story-viewer-inner" role="dialog" aria-modal="true" aria-label="Story"><div class="mou-story-progress-list"></div><header class="mou-story-head"><button type="button" class="mou-story-owner" aria-label="Voir le profil du joueur"><span class="mou-story-owner-avatar"></span><span class="mou-story-owner-meta"><b></b><small></small></span></button><button class="mou-story-close" aria-label="Fermer">×</button></header><div class="mou-story-media"></div><div class="mou-story-caption"></div><button class="mou-story-hit mou-story-prev" aria-label="Story précédente"></button><button class="mou-story-hit mou-story-next" aria-label="Story suivante"></button></section>';
+ layer.innerHTML='<section class="mou-story-viewer-inner" role="dialog" aria-modal="true" aria-label="Story"><div class="mou-story-progress-list"></div><header class="mou-story-head"><button type="button" class="mou-story-owner" aria-label="Voir le profil du joueur"><span class="mou-story-owner-avatar"></span><span class="mou-story-owner-meta"><b></b><small></small></span></button><button class="mou-story-close" aria-label="Fermer">×</button></header><div class="mou-story-media"></div><div class="mou-story-caption"></div><div class="mou-story-social-actions"><button type="button" data-story-reaction="Cœur" aria-label="Envoyer un cœur">♥<small>0</small></button><button type="button" data-story-reaction="Étoile" aria-label="Envoyer une étoile">★<small>0</small></button></div><form class="mou-story-reply"><input maxlength="1000" autocomplete="off" placeholder="Envoyer un message privé…" aria-label="Message privé"><button type="submit" aria-label="Envoyer">➤</button></form><div class="mou-story-reply-status" aria-live="polite"></div><button class="mou-story-hit mou-story-prev" aria-label="Story précédente"></button><button class="mou-story-hit mou-story-next" aria-label="Story suivante"></button></section>';
  const inner=layer.querySelector('.mou-story-viewer-inner'),progress=layer.querySelector('.mou-story-progress-list'),media=layer.querySelector('.mou-story-media'),owner=layer.querySelector('.mou-story-owner'),caption=layer.querySelector('.mou-story-caption');
  function render(){
   const s=group[current],isVideo=/\\.(mp4|webm|mov|m4v)(\\?|$)/i.test(s.media)||String(s.media).includes('/video/upload/');
@@ -173,6 +185,10 @@ function viewer(group,index){
   media.innerHTML=isVideo?'<video src="'+esc(s.media)+'" controls autoplay playsinline></video>':'<img src="'+esc(s.media)+'" alt="Story de '+esc(s.pseudo)+'">';
   caption.textContent=s.caption||'';
   caption.hidden=!s.caption;
+  layer.querySelectorAll('[data-story-reaction]').forEach(btn=>{const type=btn.dataset.storyReaction;btn.classList.toggle('active',s.myReaction===type);btn.querySelector('small').textContent=String(s.reactionCounts?.[type]||0);});
+  const replyInput=layer.querySelector('.mou-story-reply input'),replyButton=layer.querySelector('.mou-story-reply button');
+  replyInput.disabled=!!s.mine;replyButton.disabled=!!s.mine;replyInput.placeholder=s.mine?'Ta propre story':'Envoyer un message privé…';
+  layer.querySelector('.mou-story-reply-status').textContent='';
   layer.querySelector('.mou-story-prev').disabled=current===0;
   layer.querySelector('.mou-story-next').disabled=current===group.length-1;
  }
@@ -181,6 +197,18 @@ function viewer(group,index){
  layer.querySelector('.mou-story-close').onclick=close;
  layer.querySelector('.mou-story-prev').onclick=()=>move(-1);
  layer.querySelector('.mou-story-next').onclick=()=>move(1);
+ layer.querySelectorAll('[data-story-reaction]').forEach(btn=>btn.onclick=async()=>{
+  const s=group[current],type=btn.dataset.storyReaction;btn.disabled=true;
+  try{const result=await api('stories','POST',{action:'react',storyId:s.id,type});const before=s.myReaction||'';if(before&&s.reactionCounts) s.reactionCounts[before]=Math.max(0,(s.reactionCounts[before]||0)-1);if(result.reaction){s.reactionCounts=s.reactionCounts||{};s.reactionCounts[result.reaction]=(s.reactionCounts[result.reaction]||0)+1;}s.myReaction=result.reaction||'';render();}
+  catch(err){layer.querySelector('.mou-story-reply-status').textContent=err.message;}finally{btn.disabled=false;}
+ });
+ layer.querySelector('.mou-story-reply').onsubmit=async e=>{
+  e.preventDefault();const s=group[current],input=e.currentTarget.querySelector('input'),status=layer.querySelector('.mou-story-reply-status'),button=e.currentTarget.querySelector('button'),content=input.value.trim();
+  if(!content)return;if(s.mine){status.textContent='Tu ne peux pas envoyer un message à toi-même.';return;}
+  button.disabled=true;status.textContent='Envoi du message…';
+  try{await api('messages','POST',{action:'send',targetId:s.authorId,content});input.value='';status.textContent='Message privé envoyé';}
+  catch(err){status.textContent=err.message;}finally{button.disabled=false;}
+ };
  owner.onclick=()=>{const name=owner.dataset.pseudo;close();if(name&&window.MOU_OPEN_PUBLIC_PLAYER)window.MOU_OPEN_PUBLIC_PLAYER(name);};
  layer.addEventListener('click',e=>{if(e.target===layer)close();});
  document.addEventListener('keydown',function onKey(e){if(!layer.isConnected){document.removeEventListener('keydown',onKey);return;}if(e.key==='Escape'){close();document.removeEventListener('keydown',onKey);}if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);});

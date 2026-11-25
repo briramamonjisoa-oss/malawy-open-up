@@ -18,11 +18,30 @@ exports.handler=async event=>{
     const relations=await all(REL);
     friends=new Set(relations.filter(x=>x.fields?.[R.status]==='Acceptée'&&(x.fields[R.from]===me.id||x.fields[R.to]===me.id)).map(x=>x.fields[R.from]===me.id?x.fields[R.to]:x.fields[R.from]));
    }catch(relationError){console.warn('Stories: relations indisponibles, stories publiques conservées',relationError);}
+   const playerRows=await all(PLAYERS).catch(()=>[]),playerMap=new Map(playerRows.map(x=>[x.id,x.fields||{}]));
+   const reactionRows=await all('tbll4617fx7IWwHIF').catch(()=>[]);
    const visible=rows.filter(x=>{const f=x.fields||{};const expiry=Date.parse(f[F.expires]||'')||Date.parse(f[F.created]||'')+86400000;return f[F.status]==='Publié'&&expiry>now&&(f[F.author]===me.id||f[F.audience]==='Tous'||(f[F.audience]==='Amis'&&friends.has(f[F.author])));});
-   return out(200,{stories:visible.sort((a,b)=>String(a.fields[F.created]).localeCompare(String(b.fields[F.created]))).map(x=>{const f=x.fields||{};return{id:x.id,authorId:f[F.author],pseudo:f[F.pseudo]||'Joueur',photo:f[F.photo]||'',media:f[F.media]||'',caption:f[F.caption]||'',created:f[F.created]||'',expires:f[F.expires]||'',mine:f[F.author]===me.id};})});
+   return out(200,{stories:visible.sort((a,b)=>String(a.fields[F.created]).localeCompare(String(b.fields[F.created]))).map(x=>{const f=x.fields||{},p=playerMap.get(f[F.author])||{},rr=reactionRows.filter(r=>r.fields?.fldkr9L5Ba2XOEl1J===x.id);return{id:x.id,authorId:f[F.author],pseudo:f[F.pseudo]||p.fldaNsxza3T3krjfr||'Joueur',photo:f[F.photo]||p.flds2WZeeSrLJZVOC||'',media:f[F.media]||'',caption:f[F.caption]||'',created:f[F.created]||'',expires:f[F.expires]||'',mine:f[F.author]===me.id,reactionCounts:{'Cœur':rr.filter(r=>r.fields?.fldCZIIrH61GvxqIB==='Cœur').length,'Étoile':rr.filter(r=>r.fields?.fldCZIIrH61GvxqIB==='Étoile').length},myReaction:rr.find(r=>r.fields?.fldoE2V95Bib1KJuv===me.id)?.fields?.fldCZIIrH61GvxqIB||''};})});
+  }
+  if(event.httpMethod==='POST'&&b.action==='react'){
+   const storyId=String(b.storyId||''),type=String(b.type||'');
+   if(!storyId||!['Cœur','Étoile'].includes(type))return out(400,{error:'Réaction invalide.'});
+   const story=await airtable(encodeURIComponent(TABLE)+'/'+encodeURIComponent(storyId)+'?returnFieldsByFieldId=true'),sf=story.fields||{},expiry=Date.parse(sf[F.expires]||'')||Date.parse(sf[F.created]||'')+86400000;
+   if(sf[F.status]!=='Publié'||expiry<=Date.now())return out(404,{error:'Cette story n’est plus disponible.'});
+   if(sf[F.author]!==me.id&&sf[F.audience]==='Amis'){
+    const relations=await all(REL),ok=relations.some(r=>r.fields?.[R.status]==='Acceptée'&&((r.fields[R.from]===me.id&&r.fields[R.to]===sf[F.author])||(r.fields[R.to]===me.id&&r.fields[R.from]===sf[F.author])));
+    if(!ok)return out(403,{error:'Cette story est réservée aux amis.'});
+   }
+   const key=storyId+'_'+me.id,reactions=await all('tbll4617fx7IWwHIF'),existing=reactions.find(r=>r.fields?.fldqXaCFYR72SubYI===key);
+   if(existing&&existing.fields?.fldCZIIrH61GvxqIB===type){await airtable('tbll4617fx7IWwHIF/'+encodeURIComponent(existing.id),{method:'DELETE'});return out(200,{success:true,reaction:'',removed:true});}
+   const player=await airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true'),pseudo=String(player.fields?.fldaNsxza3T3krjfr||me.pseudo||'Joueur');
+   const fields={fldqXaCFYR72SubYI:key,fldkr9L5Ba2XOEl1J:storyId,fldoE2V95Bib1KJuv:me.id,fldFh0WBIdJAY4GS9:pseudo,fldCZIIrH61GvxqIB:type,fldHPLMaG6xZskuIX:new Date().toISOString()};
+   if(existing)await airtable('tbll4617fx7IWwHIF/'+encodeURIComponent(existing.id),{method:'PATCH',body:JSON.stringify({fields})});
+   else await airtable('tbll4617fx7IWwHIF',{method:'POST',body:JSON.stringify({records:[{fields}]})});
+   return out(200,{success:true,reaction:type});
   }
   const player=await airtable(PLAYERS+'/'+encodeURIComponent(me.id)+'?returnFieldsByFieldId=true');
-  const pf=player.fields||{},pseudo=String(pf['Pseudo Free Fire']||me.pseudo||'Joueur'),photo=String(pf.Photo||'');
+  const pf=player.fields||{},pseudo=String(pf.fldaNsxza3T3krjfr||me.pseudo||'Joueur'),photo=String(pf.flds2WZeeSrLJZVOC||'');
   if(event.httpMethod!=='POST')return out(405,{error:'Méthode non autorisée.'});
   if(b.action==='publish'){
    const media=String(b.media||''),caption=String(b.caption||'').trim(),audience=b.audience==='Tous'?'Tous':'Amis';

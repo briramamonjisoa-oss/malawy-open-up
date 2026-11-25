@@ -15,6 +15,7 @@ import guildInfo from "../netlify/functions/guild-info.js";
 import communityFeed from "../netlify/functions/community-feed.js";
 import friends from "../netlify/functions/friends.js";
 import stories from "../netlify/functions/stories.js";
+import messages from "../netlify/functions/messages.js";
 import presence from "../netlify/functions/presence.js";
 
 const handlers = {
@@ -35,6 +36,7 @@ const handlers = {
   "community-feed": communityFeed.handler,
   friends: friends.handler,
   stories: stories.handler,
+  messages: messages.handler,
   presence: presence.handler
 };
 
